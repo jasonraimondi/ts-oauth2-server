@@ -37,7 +37,7 @@ export interface IAccessTokenRepository {
 
   revokeAccessToken(token: string): any;
 
-  isAccessTokenRevoked(token: string): any;
+  isAccessTokenRevoked(token: string): boolean;
 }
 
 export interface IAuthCodeRepository {
@@ -51,7 +51,7 @@ export interface IAuthCodeRepository {
 }
 
 export interface IClientRepository {
-  getClientEntity(clientId: string): Promise<IClient>;
+  getClientEntity(clientId: string): IClient | Promise<IClient>;
 
   validateClient(clientId: string, clientSecret?: string, grantType?: string): boolean | Promise<boolean>
 }
@@ -67,7 +67,7 @@ export interface IRefreshTokenRepository {
 }
 
 export interface IScopeRepository {
-  getScopeEntityByIdentifier($identifier: string): IScope | Promise<IScope>;
+  getScopeEntityByIdentifier(scopeId: string): IScope | Promise<IScope>;
 
   finalizeScopes(scopes: IScope, grantType: string, client: IClient, userIdentifier: string): IScope | Promise<IScope>
 }
