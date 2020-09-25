@@ -1,5 +1,9 @@
+import { SignOptions, VerifyOptions } from "jsonwebtoken";
+
 export interface JwtService {
-  signAsync(unencryptedData: string): Promise<string>;
+  verify(token: string, options?: VerifyOptions): Promise<object>;
+
   decode(encryptedData: string): any;
-  sign(data: object, param2: { expiresIn: number }): string;
+
+  sign(payload: string | Buffer | object, options?: SignOptions): Promise<string>;
 }

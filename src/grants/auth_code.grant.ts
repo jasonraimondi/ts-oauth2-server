@@ -21,6 +21,8 @@ export interface IAuthCodePayload {
   code_challenge_method?: string;
 }
 
+const codeChallengeRegExp = /^[A-Za-z0-9-._~]{43,128}$/g;
+
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantTypeIdentifiers = "authorization_code";
 
@@ -103,18 +105,19 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       if (validatedPayload.code_challenge_method) {
         let verifier: ICodeChallenge;
 
-        if (validatedPayload.code_challenge_method === "S256") {
+        if (validatedPayload.code_challenge_method.toLowerCase() === "s256") {
           verifier = this.codeChallengeVerifiers.S256;
-        } else if (validatedPayload.code_challenge_method === "plain") {
+        } else if (validatedPayload.code_challenge_method.toLowerCase() === "plain") {
           verifier = this.codeChallengeVerifiers.plain;
         } else {
-          throw OAuthException.serverError(
-            `Unsupported code challenge method ${validatedPayload.code_challenge_method}`,
+          throw OAuthException.invalidRequest(
+            "code_challenge_method",
+            "Code challenge method must be one of `plain` or `s256`",
           );
         }
 
         if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
-          throw OAuthException.invalidGrant("Failed to verify `code_verifier`");
+          throw OAuthException.invalidGrant("Failed to verify code challenge.");
         }
       }
     }
@@ -172,37 +175,34 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     let codeChallenge = this.getQueryStringParameter("code_challenge", request);
 
-    if (codeChallenge) {
-      const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
-
-      const codeChallengeRegExp = /^[A-Za-z0-9-._~]{43,128}$/g;
-
-      if (!codeChallengeRegExp.test(base64decode(codeChallenge))) {
-        throw OAuthException.invalidRequest(
-          "code_challenge",
-          "Code challenge must follow the specifications of RFC-7636.",
-        );
-      }
-
-      authorizationRequest.codeChallenge = codeChallenge;
-      authorizationRequest.codeChallengeMethod = codeChallengeMethod;
+    if (!codeChallenge) {
+      throw OAuthException.invalidRequest("code_challenge", "The authorization server requires public clients to use PKCE RFC-7636")
     }
+
+    const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
+
+
+    if (!codeChallengeRegExp.test(base64decode(codeChallenge))) {
+      throw OAuthException.invalidRequest(
+        "code_challenge",
+        "Code challenge must follow the specifications of RFC-7636 and match ${codeChallengeRegExp.toString()}.",
+      );
+    }
+
+    authorizationRequest.codeChallenge = codeChallenge;
+    authorizationRequest.codeChallengeMethod = codeChallengeMethod;
 
     return authorizationRequest;
   }
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<RedirectResponse> {
-    if (!authorizationRequest.user) {
-      throw new OAuthException("authorization request error user not found", 500);
-    }
-
     const finalRedirectUri = authorizationRequest.redirectUri ?? this.getClientRedirectUri(authorizationRequest);
 
     if (authorizationRequest.isAuthorizationApproved) {
       const authCode = await this.issueAuthCode(
         this.authCodeTTL,
         authorizationRequest.client,
-        authorizationRequest.user?.identifier,
+        authorizationRequest.user?.identifier, // @todo should this be allowed null?
         authorizationRequest.redirectUri,
         authorizationRequest.codeChallenge,
         authorizationRequest.codeChallengeMethod,
@@ -232,7 +232,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       );
     }
 
-    throw new OAuthException("error something went wrong", 500);
+    // @todo what exception should I throw here?
+    throw OAuthException.invalidGrant();
   }
 
   private async validateAuthorizationCode(payload: any, client: OAuthClient, request: IRequest) {
@@ -264,7 +265,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   private getClientRedirectUri(authorizationRequest: AuthorizationRequest): string {
-    if (authorizationRequest.client.redirectUris.length === 0) throw OAuthException.missingRedirectUri();
+    if (authorizationRequest.client.redirectUris.length === 0) throw OAuthException.invalidRequest("redirect_uri");
     return authorizationRequest.client.redirectUris[0];
   }
 }

@@ -17,16 +17,7 @@ export interface InMemory {
 }
 
 export const inMemoryDatabase: InMemory = {
-  clients: [
-    {
-      id: "abc123",
-      secret: "i am a secret",
-      name: "testing client",
-      redirectUris: ["http://localhost"],
-      isConfidential: false,
-      allowedGrants: [],
-    },
-  ],
+  clients: [],
   authCodes: [],
   accessTokens: [],
   refreshTokens: [],

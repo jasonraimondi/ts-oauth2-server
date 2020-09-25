@@ -1,55 +1,64 @@
-import { AuthCodeGrant, AuthorizationServer, ClientCredentialsGrant, JwtService } from "../../src";
-import {
-  inMemoryAccessTokenRepository,
-  inMemoryAuthCodeRepository,
-  inMemoryClientRepository,
-  inMemoryRefreshTokenRepository,
-  inMemoryScopeRepository,
-  inMemoryUserRepository,
-} from "./repository";
+import type { Request, Response } from "express";
+import express from "express";
 
-const clientRepository = inMemoryClientRepository;
-const accessTokenRepository = inMemoryAccessTokenRepository;
-const refreshTokenRepository = inMemoryRefreshTokenRepository;
-const authCodeRepository = inMemoryAuthCodeRepository;
-const scopeRepository = inMemoryScopeRepository;
-const userRepository = inMemoryUserRepository;
-const jwt: JwtService = {
-  decode(encryptedData: string): any {
-    console.log("DECODE");
-  },
-  sign(data: object, options: { expiresIn: number }): string {
-    console.log("SIGN");
-    return "";
-  },
-  signAsync(unencryptedData: string): Promise<string> {
-    console.log("SIGN ASYNC");
-    return Promise.resolve("");
-  },
-};
+import { inMemoryAuthorizationServer } from "./oauth_authorization_server";
+import { OAuthException } from "../../src/exceptions";
+import { json } from "body-parser";
 
-const clientCredentialsGrant = new ClientCredentialsGrant(
-  clientRepository,
-  accessTokenRepository,
-  refreshTokenRepository,
-  authCodeRepository,
-  scopeRepository,
-  userRepository,
-  jwt,
-);
+const app = express()
+const port = 3000
 
-const authCodeGrant = new AuthCodeGrant(
-  clientRepository,
-  accessTokenRepository,
-  refreshTokenRepository,
-  authCodeRepository,
-  scopeRepository,
-  userRepository,
-  jwt,
-);
+app.use(json());
 
-const authorizationServer = new AuthorizationServer();
-authorizationServer.enableGrantType(clientCredentialsGrant);
-authorizationServer.enableGrantType(authCodeGrant);
+const authorizationServer = inMemoryAuthorizationServer;
 
-export { authorizationServer as inMemoryAuthorizationServer };
+app.get('/authorize', async (req: Request, res: Response) => {
+  try {
+    // Validate the HTTP request and return an AuthorizationRequest object.
+    const authRequest = await authorizationServer.validateAuthorizationRequest(req);
+
+    // The auth request object can be serialized and saved into a user's session.
+    // You will probably want to redirect the user at this point to a login endpoint.
+
+    // Once the user has logged in set the user on the AuthorizationRequest
+    console.log("Once the user has logged in set the user on the AuthorizationRequest");
+    const user = { identifier: "abc", email: "user@example.com"};
+    authRequest.user = user;
+
+    // At this point you should redirect the user to an authorization page.
+    // This form will ask the user to approve the client and the scopes requested.
+
+    // Once the user has approved or denied the client update the status
+    // (true = approved, false = denied)
+    authRequest.isAuthorizationApproved = true;
+
+    // Return the HTTP redirect response
+    await authorizationServer.completeAuthorizationRequest(authRequest, res);
+  } catch (e) {
+    handleError(e, res);
+  }
+})
+
+app.post("/token", async (req: Request, res: Response) => {
+  try {
+    return await inMemoryAuthorizationServer.respondToAccessTokenRequest(req, res);
+  } catch (e) {
+    handleError(e, res);
+    return;
+  }
+})
+
+function  handleError(e: any, res: Response) {
+  // @todo clean up error handling
+  if (e instanceof OAuthException) {
+    res.status(e.status)
+    res.send({
+      status: e.status,
+      message: e.message,
+    })
+    return;
+  }
+  throw e;
+}
+
+export { app as inMemoryExpressApp };

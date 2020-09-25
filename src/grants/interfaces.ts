@@ -3,7 +3,7 @@ import { AuthorizationRequest } from "../requests";
 import { RedirectResponse } from "../responses";
 import { IRequest, IResponse } from "../requests/interface";
 
-export type GrantTypeIdentifiers = "authorization_code" | "client_credentials";
+export type GrantTypeIdentifiers = "authorization_code" | "client_credentials" | "refresh_token";
 
 export interface IGrant {
   identifier: GrantTypeIdentifiers;

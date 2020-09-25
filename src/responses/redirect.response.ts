@@ -8,7 +8,7 @@ export class RedirectResponse extends AbstractResponse {
   }
 
   async generateHttpResponse(response: IResponse) {
-    if (!this._redirectUri) throw OAuthException.missingRedirectUri();
+    if (!this._redirectUri) throw OAuthException.invalidRequest("redirect_uri");
     return response.redirect(302, this._redirectUri);
   }
 }

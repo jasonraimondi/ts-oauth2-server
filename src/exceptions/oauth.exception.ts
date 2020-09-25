@@ -90,16 +90,4 @@ export class OAuthException extends Error {
   static unsupportedGrantType() {
     return new OAuthException("unsupported grant_type", ErrorType.UnsupportedGrantType);
   }
-
-  // static missingRedirectUri() {
-  //   return new OAuthException("missing redirect uri", HttpStatus.INTERNAL_SERVER_ERROR);
-  // }
-  //
-  // static errorValidatingClient() {
-  //   return new OAuthException("error validating client", HttpStatus.FORBIDDEN);
-  // }
-  //
-  // static serverError(message: string) {
-  //   return new OAuthException(message, 500);
-  // }
 }
