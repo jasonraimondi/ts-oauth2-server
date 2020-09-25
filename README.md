@@ -1,99 +1,108 @@
-# TSDX User Guide
+# Typescript OAuth2 Server
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
+[![Tests](https://github.com/jasonraimondi/typescript-oauth2-server/workflows/Tests/badge.svg)](https://github.com/jasonraimondi/typescript-oauth2-server/actions?query=workflow%3A%22Tests%22)
 
-> This TSDX setup is meant for developing libraries (not apps!) that can be published to NPM. If you’re looking to build a Node app, you could use `ts-node-dev`, plain `ts-node`, or simple `tsc`.
+## Which Grant?
 
-> If you’re new to TypeScript, checkout [this handy cheatsheet](https://devhints.io/typescript)
+```
++-------+
+| start |
++-------+
+    V
+    |
+    |
++---------------------+                +--------------------------+
+| Access token owner? |>---Machine---->| Client Credentials Grant |
++---------------------+                +--------------------------+
+    V
+    |
+   User
+    |
+    |                          +---------------------------+
+    |>----Server App---------->| Auth Code Grant with PKCE |
+    |                          +---------------------------+
+    |
+    |                          +---------------------------+
+    |>----Browser Based App--->| Auth Code Grant with PKCE |
+    |                          +---------------------------+
+    |
+    |                          +---------------------------+
+    |>----Native Mobile App--->| Auth Code Grant with PKCE |
+                               +---------------------------+
 
-## Commands
-
-TSDX scaffolds your new library inside `/src`.
-
-To run TSDX, use:
-
-```bash
-npm start # or yarn start
 ```
 
-This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
+## Client Credentials Grant
 
-To do a one-off build, use `npm run build` or `yarn build`.
+https://tools.ietf.org/html/rfc6749#section-4.4
 
-To run tests, use `npm test` or `yarn test`.
+https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/
 
-## Configuration
-
-Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
-
-### Jest
-
-Jest tests are set up to run with `npm test` or `yarn test`.
-
-#### Setup Files
-
-This is the folder structure we set up for you:
-
-```txt
-/src
-  index.tsx       # EDIT THIS
-/test
-  blah.test.tsx   # EDIT THIS
-.gitignore
-package.json
-README.md         # EDIT THIS
-tsconfig.json
+```http request
+POST /token HTTP/1.1
+Host: example.com
+ 
+grant_type=client_credentials
+&client_id=xxxxxxxxxx
+&client_secret=xxxxxxxxxx
 ```
 
-### Rollup
+Token Response:
 
-TSDX uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
+https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
 
-### TypeScript
-
-`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
-
-## Continuous Integration
-
-### GitHub Actions
-
-A simple action is included that runs these steps on all pushes:
-
-- Installs deps w/ cache
-- Lints, tests, and builds
-
-## Optimizations
-
-Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
-
-```js
-// ./types/index.d.ts
-declare var __DEV__: boolean;
-
-// inside your code...
-if (__DEV__) {
-  console.log('foo');
+```http request
+HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: no-store
+Pragma: no-cache
+ 
+{
+  "access_token":"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+  "token_type":"bearer",
+  "expires_in":3600,
+  "refresh_token":"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk",
+  "scope":"create"
 }
 ```
 
-You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
+## @TODO Appropriate Unsuccessful Response
 
-## Module Formats
+https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
 
-CJS, ESModules, and UMD module formats are supported.
 
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+## Authorization Code Grant with PKCE
 
-## Named Exports
 
-Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
+https://tools.ietf.org/html/rfc6749#section-4.1 
+https://tools.ietf.org/html/rfc7636
 
-## Including Styles
+https://www.oauth.com/oauth2-servers/pkce/
 
-There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
+read this https://www.oauth.com/oauth2-servers/pkce/authorization-request/
 
-For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
+- **response_type=code** – indicates that your server expects to receive an authorization code
+- **client_id=** – The client ID you received when you first created the application
+- **redirect_uri=** – Indicates the URL to return the user to after authorization is complete, such as org.example.app://redirect
+- **state=1234zyx** – A random string generated by your application, which you’ll verify later
+- **code_challenge=XXXXXXXXX** – The code challenge generated as previously described
+- **code_challenge_method=S256** – either plain or S256, depending on whether the challenge is the plain verifier string or the SHA256 hash of the string. If this parameter is omitted, the server will assume plain.
 
-## Publishing to NPM
+```typescript
+const code_verifier = base64urlencode(crypto.randomBytes(40));
+const code_challenge = base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest("hex"));
+```
 
-We recommend using [np](https://github.com/sindresorhus/np).
+```http request
+GET /authorize HTTP/1.1
+Host: example.com
+ 
+id=123
+&response_type=code
+&client_id=xxxxxxx
+&redirect_uri=http://localhost
+&scope=xxxx
+&state=xxxx
+&code_challenge=xxxx
+&code_challenge_method=s256
+```

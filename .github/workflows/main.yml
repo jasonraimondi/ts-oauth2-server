@@ -1,42 +1,45 @@
-name: CI
-on: [push]
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Begin CI...
-        uses: actions/checkout@v2
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x ]
 
-      - name: Use Node 12
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
-          node-version: 12.x
-
-      - name: Use cached node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: nodeModules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            nodeModules-
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run test:cov --ci --maxWorkers=2
         env:
           CI: true
-
-      - name: Lint
-        run: yarn lint
+          DOMAIN: localhost
+          JWT_SECRET: testing-access-token-secret
+      - run: npm run build --if-present
+      - name: report coverage to code climate
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter format-coverage -t lcov coverage/lcov.info
+          ./cc-test-reporter upload-coverage
         env:
-          CI: true
-
-      - name: Test
-        run: yarn test --ci --coverage --maxWorkers=2
-        env:
-          CI: true
-
-      - name: Build
-        run: yarn build
-        env:
-          CI: true
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
