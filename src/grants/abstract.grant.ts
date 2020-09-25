@@ -38,10 +38,12 @@ export abstract class AbstractGrant implements IGrant {
   protected async validateClient(request: IRequest): Promise<OAuthClient> {
     const [clientId, clientSecret] = this.getClientCredentials(request);
 
-    if (!(await this.clientRepository.isClientValid(this.identifier, clientId, clientSecret))) {
-      throw OAuthException.errorValidatingClient();
+    const isClientValid = await this.clientRepository.isClientValid(this.identifier, clientId, clientSecret);
+
+    if (!isClientValid) {
+      throw OAuthException.invalidClient();
     }
-    // @todo we are querying the client twice here and that is stupid
+
     return this.clientRepository.getClientByIdentifier(clientId);
   }
 
@@ -102,7 +104,7 @@ export abstract class AbstractGrant implements IGrant {
     );
 
     if (invalidScopes.length > 0) {
-      throw OAuthException.invalidScopes(invalidScopes, redirectUri);
+      throw OAuthException.invalidScope(invalidScopes.join(", "), redirectUri);
     }
 
     return validScopes;
@@ -176,7 +178,7 @@ export abstract class AbstractGrant implements IGrant {
   }
 
   protected encrypt(unencryptedData: string): Promise<string> {
-    return this.jwt.signAsync(unencryptedData);
+    return this.jwt.sign(unencryptedData);
   }
 
   protected decrypt(encryptedData: string) {
@@ -188,7 +190,7 @@ export abstract class AbstractGrant implements IGrant {
   }
 
   canRespondToAccessTokenRequest(request: IRequest): boolean {
-    return request.body?.grant_type === this.identifier;
+    return this.getRequestParameter("grant_type", request) === this.identifier;
   }
 
   canRespondToAuthorizationRequest(request: IRequest): boolean {

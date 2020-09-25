@@ -25,7 +25,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
     const isClientValid = await this.clientRepository.isClientValid(grantType, clientId, clientSecret);
 
     if (!isClientValid) {
-      throw OAuthException.errorValidatingClient();
+      throw OAuthException.invalidClient();
     }
 
     const client = await this.clientRepository.getClientByIdentifier(clientId);
@@ -40,12 +40,13 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const expiresIn = accessTokenTTL.toSeconds();
 
-    const jwtSignedToken = this.jwt.sign(accessToken.toJWT, { expiresIn });
+    const jwtSignedToken = await this.jwt.sign(accessToken.toJWT, { expiresIn });
 
     return response.send({
       token_type: "Bearer",
       expires_in: accessTokenTTL.toSeconds(),
       access_token: jwtSignedToken,
+      scope: validScopes.map(scope => scope.name).join(this.scopeDelimiterString),
     });
   }
 }
