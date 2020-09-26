@@ -7,7 +7,6 @@ import { base64encode } from "../../src/utils";
 import { inMemoryExpressApp } from "../../examples/in_memory/main";
 import { ACCESS_TOKEN_REGEX } from "./auth_code.grant.spec";
 
-
 describe("client_credentials grant e2e", () => {
   let client: OAuthClient;
   let clientNoClientCredentialsAllowed: OAuthClient;
@@ -23,7 +22,7 @@ describe("client_credentials grant e2e", () => {
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
-      allowedGrants: ["client_credentials"]
+      allowedGrants: ["client_credentials"],
     };
 
     clientNoClientCredentialsAllowed = {
@@ -34,7 +33,6 @@ describe("client_credentials grant e2e", () => {
       redirectUris: ["http://localhost"],
       allowedGrants: [],
     };
-
 
     inMemoryDatabase.clients.push(client, clientNoClientCredentialsAllowed);
     inMemoryDatabase.scopes.push({ name: "scope-1" }, { name: "scope-2" });

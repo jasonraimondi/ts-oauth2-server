@@ -8,11 +8,7 @@ export type GrantTypeIdentifiers = "authorization_code" | "client_credentials" |
 export interface IGrant {
   identifier: GrantTypeIdentifiers;
 
-  respondToAccessTokenRequest(
-    request: IRequest,
-    response: IResponse,
-    accessTokenTTL: DateInterval,
-  ): Promise<IResponse>;
+  respondToAccessTokenRequest(request: IRequest, response: IResponse, accessTokenTTL: DateInterval): Promise<IResponse>;
 
   canRespondToAuthorizationRequest(request: IRequest): boolean;
 

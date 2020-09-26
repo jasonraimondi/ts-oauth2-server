@@ -176,11 +176,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     let codeChallenge = this.getQueryStringParameter("code_challenge", request);
 
     if (!codeChallenge) {
-      throw OAuthException.invalidRequest("code_challenge", "The authorization server requires public clients to use PKCE RFC-7636")
+      throw OAuthException.invalidRequest(
+        "code_challenge",
+        "The authorization server requires public clients to use PKCE RFC-7636",
+      );
     }
 
     const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
-
 
     if (!codeChallengeRegExp.test(base64decode(codeChallenge))) {
       throw OAuthException.invalidRequest(

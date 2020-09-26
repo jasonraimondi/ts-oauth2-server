@@ -18,21 +18,20 @@ const userRepository = inMemoryUserRepository;
 import jwt, { Secret, VerifyOptions } from "jsonwebtoken";
 
 export class JWT implements JwtService {
-  constructor(private readonly secretOrPrivateKey: Secret) {
-  }
+  constructor(private readonly secretOrPrivateKey: Secret) {}
 
   // Asynchronously verify given token using a secret or a public key to get a decoded token
   verify(token: string, options: VerifyOptions): Promise<object> {
     return new Promise((resolve, reject) => {
-      jwt.verify(token, this.secretOrPrivateKey, ((err, decoded) => {
+      jwt.verify(token, this.secretOrPrivateKey, (err, decoded) => {
         if (decoded) resolve(decoded);
         else reject(err);
-      }))
+      });
     });
   }
 
   // Returns the decoded payload without verifying if the signature is valid.
-  decode(encryptedData: string): any {
+  decode(encryptedData: string): null | { [key: string]: any } | string {
     return jwt.decode(encryptedData);
   }
 
@@ -42,8 +41,8 @@ export class JWT implements JwtService {
       jwt.sign(payload, this.secretOrPrivateKey, (err, encoded) => {
         if (encoded) resolve(encoded);
         else reject(err);
-      })
-    })
+      });
+    });
   }
 }
 

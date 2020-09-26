@@ -46,7 +46,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
       token_type: "Bearer",
       expires_in: accessTokenTTL.toSeconds(),
       access_token: jwtSignedToken,
-      scope: validScopes.map(scope => scope.name).join(this.scopeDelimiterString),
+      scope: validScopes.map((scope) => scope.name).join(this.scopeDelimiterString),
     });
   }
 }

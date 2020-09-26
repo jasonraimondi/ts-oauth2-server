@@ -10,7 +10,7 @@ import { base64urlencode } from "../../src/utils";
 import { inMemoryExpressApp } from "../../examples/in_memory/main";
 import { IAuthCodePayload } from "../../src/grants";
 
-export const ACCESS_TOKEN_REGEX = /[A-Za-z0-9\-\._~\+\/]+=*/g
+export const ACCESS_TOKEN_REGEX = /[A-Za-z0-9\-\._~\+\/]+=*/g;
 
 describe("auth_code grant e2e", () => {
   let client: OAuthClient;
@@ -24,7 +24,7 @@ describe("auth_code grant e2e", () => {
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
-      allowedGrants: ["client_credentials"]
+      allowedGrants: ["client_credentials"],
     };
 
     app = inMemoryExpressApp;
@@ -37,17 +37,15 @@ describe("auth_code grant e2e", () => {
     const codeVerifier = base64urlencode(crypto.randomBytes(40));
     const codeChallenge = base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest("hex"));
 
-    const authorizeResponse = await request(app)
-      .get("/authorize")
-      .query({
-        response_type: "code",
-        client_id: client.id,
-        redirect_uri: "http://localhost",
-        scope: "scope-1 scope-2",
-        state: "state-is-a-secret",
-        code_challenge: codeChallenge,
-        code_challenge_method: "S256",
-      });
+    const authorizeResponse = await request(app).get("/authorize").query({
+      response_type: "code",
+      client_id: client.id,
+      redirect_uri: "http://localhost",
+      scope: "scope-1 scope-2",
+      state: "state-is-a-secret",
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+    });
 
     const authorizeResponseQuery = querystring.parse(authorizeResponse.headers.location);
     const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
@@ -58,15 +56,13 @@ describe("auth_code grant e2e", () => {
     expect(decodedCode.expire_time).toBeGreaterThan(Date.now() / 1000);
     expect(authorizeResponseQuery.state).toBe("state-is-a-secret");
 
-    const tokenResponse = await request(app)
-      .post("/token")
-      .send({
-        grant_type: "authorization_code",
-        code: authorizeResponseQuery.code,
-        redirect_uri: "http://localhost",
-        client_id: client.id,
-        code_verifier: codeVerifier,
-      });
+    const tokenResponse = await request(app).post("/token").send({
+      grant_type: "authorization_code",
+      code: authorizeResponseQuery.code,
+      redirect_uri: "http://localhost",
+      client_id: client.id,
+      code_verifier: codeVerifier,
+    });
 
     expect(tokenResponse.status).toBe(200);
     expect(tokenResponse.body.token_type).toBe("Bearer");

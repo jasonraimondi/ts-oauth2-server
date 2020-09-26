@@ -7,7 +7,6 @@ import { base64encode } from "../../src/utils";
 import { inMemoryExpressApp } from "../../examples/in_memory/main";
 import { ACCESS_TOKEN_REGEX } from "./auth_code.grant.spec";
 
-
 describe.skip("refresh_token grant e2e", () => {
   let client: OAuthClient;
   let clientNoClientCredentialsAllowed: OAuthClient;
@@ -23,7 +22,7 @@ describe.skip("refresh_token grant e2e", () => {
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
-      allowedGrants: ["refresh_token"]
+      allowedGrants: ["refresh_token"],
     };
 
     inMemoryDatabase.clients.push(client, clientNoClientCredentialsAllowed);
@@ -34,7 +33,7 @@ describe.skip("refresh_token grant e2e", () => {
     return request(app)
       .post("/token")
       .send({
-        grant_type: "client_credentials",
+        grant_type: "refresh_token",
         refresh_token: "refresh-token-identifier",
         client_id: client.id,
         client_secret: client.secret,

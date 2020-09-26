@@ -65,12 +65,11 @@ POST /token HTTP/1.1
 Host: example.com
  
 grant_type=client_credentials
-&client_id=xxxxxxxxxx # this is optoinal
+&client_id=xxxxxxxxxx
 &client_secret=xxxxxxxxxx 
 ```
 
-[Token Response][0]:
-
+[Token Response][access_token_response]:
 
 ```http request
 HTTP/1.1 200 OK
@@ -79,7 +78,7 @@ Cache-Control: no-store
 Pragma: no-cache
  
 {
-  "access_token":"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+  "access_token":"f",
   "token_type":"bearer",
   "expires_in":3600,
   "refresh_token":"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk",

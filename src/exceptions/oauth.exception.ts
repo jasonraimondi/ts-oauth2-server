@@ -55,7 +55,8 @@ export class OAuthException extends Error {
    */
   static invalidGrant(hint?: string) {
     let message = "The provided authorization grant (e.g., authorization_code, client_credentials) or refresh token ";
-    message += "is invalid, expired, revoked, or does not match the redirection URI used in the authorization request, ";
+    message +=
+      "is invalid, expired, revoked, or does not match the redirection URI used in the authorization request, ";
     message += "or was issued to another client.";
     return new OAuthException(message, ErrorType.InvalidGrant, hint);
   }

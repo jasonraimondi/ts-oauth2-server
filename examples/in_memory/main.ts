@@ -5,14 +5,14 @@ import { inMemoryAuthorizationServer } from "./oauth_authorization_server";
 import { OAuthException } from "../../src/exceptions";
 import { json } from "body-parser";
 
-const app = express()
-const port = 3000
+const app = express();
+const port = 3000;
 
 app.use(json());
 
 const authorizationServer = inMemoryAuthorizationServer;
 
-app.get('/authorize', async (req: Request, res: Response) => {
+app.get("/authorize", async (req: Request, res: Response) => {
   try {
     // Validate the HTTP request and return an AuthorizationRequest object.
     const authRequest = await authorizationServer.validateAuthorizationRequest(req);
@@ -22,7 +22,7 @@ app.get('/authorize', async (req: Request, res: Response) => {
 
     // Once the user has logged in set the user on the AuthorizationRequest
     console.log("Once the user has logged in set the user on the AuthorizationRequest");
-    const user = { identifier: "abc", email: "user@example.com"};
+    const user = { identifier: "abc", email: "user@example.com" };
     authRequest.user = user;
 
     // At this point you should redirect the user to an authorization page.
@@ -37,7 +37,7 @@ app.get('/authorize', async (req: Request, res: Response) => {
   } catch (e) {
     handleError(e, res);
   }
-})
+});
 
 app.post("/token", async (req: Request, res: Response) => {
   try {
@@ -46,16 +46,16 @@ app.post("/token", async (req: Request, res: Response) => {
     handleError(e, res);
     return;
   }
-})
+});
 
-function  handleError(e: any, res: Response) {
+function handleError(e: any, res: Response) {
   // @todo clean up error handling
   if (e instanceof OAuthException) {
-    res.status(e.status)
+    res.status(e.status);
     res.send({
       status: e.status,
       message: e.message,
-    })
+    });
     return;
   }
   throw e;
