@@ -1,8 +1,8 @@
 # Typescript OAuth2 Server
 
-## Installing
+## :construction_worker: This project is under development :construction:
 
-:construction_worker: this project is under development :construction:
+## Installing
 
 ```
 npm install @jmondi/oauth2-server
@@ -18,6 +18,10 @@ npm install @jmondi/oauth2-server
 * chore: documentation
 
 ## Grants
+
+* `client_credentials` - when applications request an access token to access their own resources, not on behalf of a user.
+* `authorization_code` - a temporary code that the client will exchange for an access token. The user authorizes the application, they are redirected back to the application with a temporary code in the URL. The application exchanges that code for the access token. 
+* `refresh_token`
 
 ### Which Grant?
 
@@ -54,14 +58,15 @@ Deciding which grant to use depends on the type of client the end user will be u
 
 ### Client Credentials Grant
 
+For machine to machine communications
 
 ```http request
 POST /token HTTP/1.1
 Host: example.com
  
 grant_type=client_credentials
-&client_id=xxxxxxxxxx
-&client_secret=xxxxxxxxxx
+&client_id=xxxxxxxxxx # this is optoinal
+&client_secret=xxxxxxxxxx 
 ```
 
 [Token Response][0]:
@@ -187,4 +192,6 @@ https://www.oauth.com/oauth2-servers/pkce/
 
 https://www.oauth.com/oauth2-servers/pkce/authorization-request/
 
-[0]: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/ "Access Token Response"
+[access_token_response]: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/ "Access Token Response"
+
+[client_credentials]: https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/ "Client Credentials Grant"

@@ -22,7 +22,7 @@
     "sourceMap": true,
     "strictFunctionTypes": true,
     "strictNullChecks": true,
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
       "~/*": ["src/*"]
     }

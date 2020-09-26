@@ -3,7 +3,7 @@
   "license": "MIT",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi",
-  "module": "dist/jmondi-oauth2-server.esm.js",
+  "module": "dist/jmondi-oauth2-server.js",
   "main": "dist/jmondi-oauth2-server.js",
   "typings": "dist/index.d.ts",
   "files": [
@@ -15,7 +15,8 @@
   },
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "rollup -c rollup.config.ts",
+    "build": "cross-env TS_NODE_PROJECT=tsconfig.webpack.json webpack --config webpack.config.ts",
+    "build:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=tsconfig.webpack.json webpack --config webpack.config.ts",
     "start": "rollup -c rollup.config.ts -w",
     "format": "prettier --write \"{src,test,examples}/**/*.(t|j)s*\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
@@ -27,11 +28,6 @@
   },
   "peerDependencies": {},
   "devDependencies": {
-    "@babel/core": "^7.11.6",
-    "@babel/preset-typescript": "^7.10.4",
-    "@rollup/plugin-babel": "^5.2.1",
-    "@rollup/plugin-commonjs": "^15.1.0",
-    "@rollup/plugin-node-resolve": "^9.0.0",
     "@types/express": "^4.17.8",
     "@types/jest": "^26.0.14",
     "@types/jsonwebtoken": "^8.5.0",
@@ -40,6 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
     "body-parser": "^1.19.0",
+    "cross-env": "^7.0.2",
     "eslint": "^7.9.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
@@ -47,14 +44,15 @@
     "jest": "^26.4.2",
     "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
-    "rollup": "^2.28.1",
-    "rollup-plugin-typescript2": "^0.27.2",
     "supertest": "^5.0.0",
     "ts-jest": "^26.4.0",
+    "ts-loader": "^8.0.4",
     "ts-node": "^9.0.0",
     "ts-node-dev": "^1.0.0-pre.63",
-    "tslib": "^2.0.1",
-    "typescript": "^4.0.3"
+    "tsconfig-paths-webpack-plugin": "^3.3.0",
+    "typescript": "^4.0.3",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "@jmondi/date-interval": "^0.2.0",
