@@ -1,4 +1,4 @@
-import { IRequest } from "../requests/interface";
+import { RequestInterface } from "../requests/request";
 
 export const HttpStatus = {
   NOT_ACCEPTABLE: 406,
@@ -25,7 +25,10 @@ export class OAuthException extends Error {
     public readonly errorUri?: string,
     public readonly status = HttpStatus.BAD_REQUEST,
   ) {
-    super(error);
+    super(errorDescription ? `${error}: ${errorDescription}` : error);
+
+    Error.captureStackTrace(this, this.constructor);
+    this.name = this.constructor.name;
   }
 
   /**

@@ -1,26 +1,21 @@
 import { DateInterval } from "@jmondi/date-interval";
-import type { Request, Response } from "express";
 
 import { AbstractGrant } from "./abstract.grant";
 import { OAuthException } from "../exceptions";
-import { IRequest, IResponse } from "../requests/interface";
+import { ResponseInterface } from "../responses/response";
+import { RequestInterface } from "../requests/request";
 
 export class ClientCredentialsGrant extends AbstractGrant {
   readonly identifier = "client_credentials";
 
   async respondToAccessTokenRequest(
-    request: IRequest,
-    response: IResponse,
+    request: RequestInterface,
+    response: ResponseInterface,
     accessTokenTTL: DateInterval,
-  ): Promise<Response> {
+  ): Promise<ResponseInterface> {
     const [clientId, clientSecret] = this.getClientCredentials(request);
 
     const grantType = this.getGrantType(request);
-
-    if (grantType !== this.identifier) {
-      // @todo fix this error message
-      throw OAuthException.invalidGrant(`${grantType} !== ${this.identifier}`);
-    }
 
     const isClientValid = await this.clientRepository.isClientValid(grantType, clientId, clientSecret);
 
@@ -40,13 +35,30 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const expiresIn = accessTokenTTL.toSeconds();
 
-    const jwtSignedToken = await this.jwt.sign(accessToken.toJWT, { expiresIn });
+    const to = {
+      sub: userId,
+      iss: "https://authorization-server.com",
+      cid: client.name,
+      iat: Date.now() / 1000,
+      exp: accessTokenTTL.end().getTime() / 1000,
+      scope: validScopes,
+    };
 
-    return response.send({
+    const jwtSignedToken = await this.jwt.sign(to, { expiresIn });
+
+    const refreshToken = await this.issueRefreshToken(accessToken);
+
+    response.body = {
       token_type: "Bearer",
       expires_in: accessTokenTTL.toSeconds(),
       access_token: jwtSignedToken,
+      refresh_token: refreshToken?.refreshToken,
       scope: validScopes.map((scope) => scope.name).join(this.scopeDelimiterString),
-    });
+    };
+
+    response.set("Cache-Control", "no-store");
+    response.set("Pragma", "no-cache");
+
+    return response;
   }
 }

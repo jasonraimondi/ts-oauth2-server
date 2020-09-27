@@ -1,10 +1,10 @@
-import { GrantTypeIdentifiers } from "../grants/interfaces";
+import { GrantIdentifier } from "../grants/grant.interface";
 
 export interface OAuthClient {
   id: string;
   secret?: string;
   name: string;
   redirectUris: string[];
-  allowedGrants: GrantTypeIdentifiers[];
+  allowedGrants: GrantIdentifier[];
   isConfidential: boolean;
 }

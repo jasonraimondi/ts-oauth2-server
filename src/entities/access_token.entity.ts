@@ -4,7 +4,6 @@ import { OAuthClient } from "./client.entity";
 import { OAuthScope } from "./scope.entity";
 
 export interface OAuthAccessToken {
-  toJWT: object; // @todo refactor
   token: string;
   client: OAuthClient;
   clientId: string;

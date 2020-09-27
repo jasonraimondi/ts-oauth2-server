@@ -1,6 +1,4 @@
-import crypto from "crypto";
 import { DateInterval } from "@jmondi/date-interval";
-import type { Request, Response } from "express";
 
 import { AuthorizationRequest } from "../requests";
 import {
@@ -12,18 +10,18 @@ import {
   OAuthUserRepository,
 } from "../repositories";
 import { OAuthAccessToken, OAuthAuthCode, OAuthClient, OAuthRefreshToken, OAuthScope } from "../entities";
-import { RedirectResponse } from "../responses";
 import { OAuthException } from "../exceptions";
 import { arrayDiff, base64decode, JwtService } from "../utils";
-import { GrantTypeIdentifiers, IGrant } from "./interfaces";
-import { IRequest, IResponse } from "../requests/interface";
+import { GrantIdentifier, GrantInterface } from "./grant.interface";
+import { ResponseInterface } from "../responses/response";
+import { RequestInterface } from "../requests/request";
 
-export abstract class AbstractGrant implements IGrant {
+export abstract class AbstractGrant implements GrantInterface {
   protected readonly scopeDelimiterString = " ";
 
-  protected readonly supportedGrantTypes: GrantTypeIdentifiers[] = ["client_credentials", "authorization_code"];
+  protected readonly supportedGrantTypes: GrantIdentifier[] = ["client_credentials", "authorization_code"];
 
-  abstract readonly identifier: GrantTypeIdentifiers;
+  abstract readonly identifier: GrantIdentifier;
 
   constructor(
     protected readonly clientRepository: OAuthClientRepository,
@@ -35,7 +33,7 @@ export abstract class AbstractGrant implements IGrant {
     protected readonly jwt: JwtService,
   ) {}
 
-  protected async validateClient(request: IRequest): Promise<OAuthClient> {
+  protected async validateClient(request: RequestInterface): Promise<OAuthClient> {
     const [clientId, clientSecret] = this.getClientCredentials(request);
 
     const isClientValid = await this.clientRepository.isClientValid(this.identifier, clientId, clientSecret);
@@ -47,7 +45,7 @@ export abstract class AbstractGrant implements IGrant {
     return this.clientRepository.getClientByIdentifier(clientId);
   }
 
-  protected getClientCredentials(request: IRequest): [string, string | undefined] {
+  protected getClientCredentials(request: RequestInterface): [string, string | undefined] {
     const [basicAuthUser, basicAuthPass] = this.getBasicAuthCredentials(request);
 
     // @todo is this being body okay?
@@ -65,7 +63,7 @@ export abstract class AbstractGrant implements IGrant {
     return [clientId, clientSecret];
   }
 
-  protected getBasicAuthCredentials(request: IRequest) {
+  protected getBasicAuthCredentials(request: RequestInterface) {
     if (!request.headers?.hasOwnProperty("authorization")) {
       return [undefined, undefined];
     }
@@ -91,7 +89,7 @@ export abstract class AbstractGrant implements IGrant {
     }
   }
 
-  protected async validateScopes(scopes: string | string[], redirectUri?: string) {
+  protected async validateScopes(scopes: string | string[], redirectUri?: string): Promise<OAuthScope[]> {
     if (typeof scopes === "string") {
       scopes = scopes.split(this.scopeDelimiterString);
     }
@@ -158,22 +156,23 @@ export abstract class AbstractGrant implements IGrant {
     return refreshToken;
   }
 
-  protected generateUniqueIdentifier(len = 40) {
-    return crypto.randomBytes(len).toString("hex");
-  }
+  // protected generateUniqueIdentifier(len = 40) {
+  //   return crypto.randomBytes(len).toString("hex");
+  // }
 
-  protected getGrantType(request: IRequest): GrantTypeIdentifiers {
+  protected getGrantType(request: RequestInterface): GrantIdentifier {
     const result = request.body?.grant_type ?? request.query?.grant_type;
-    if (!result) throw OAuthException.invalidRequest("grant_type");
-    if (!this.supportedGrantTypes.includes(result)) throw OAuthException.invalidRequest("grant_type");
+    if (!result || !this.supportedGrantTypes.includes(result)) {
+      throw OAuthException.invalidRequest("grant_type");
+    }
     return result;
   }
 
-  protected getRequestParameter(param: string, request: IRequest, defaultValue?: any) {
+  protected getRequestParameter(param: string, request: RequestInterface, defaultValue?: any) {
     return request.body?.[param] ?? defaultValue;
   }
 
-  protected getQueryStringParameter(param: string, request: IRequest, defaultValue?: any) {
+  protected getQueryStringParameter(param: string, request: RequestInterface, defaultValue?: any) {
     return request.query?.[param] ?? defaultValue;
   }
 
@@ -185,29 +184,29 @@ export abstract class AbstractGrant implements IGrant {
     return this.jwt.decode(encryptedData);
   }
 
-  validateAuthorizationRequest(request: IRequest): Promise<AuthorizationRequest> {
+  validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
     throw new Error("not implemented error");
   }
 
-  canRespondToAccessTokenRequest(request: IRequest): boolean {
+  canRespondToAccessTokenRequest(request: RequestInterface): boolean {
     return this.getRequestParameter("grant_type", request) === this.identifier;
   }
 
-  canRespondToAuthorizationRequest(request: IRequest): boolean {
+  canRespondToAuthorizationRequest(request: RequestInterface): boolean {
     return false;
   }
 
-  async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<RedirectResponse> {
+  async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     throw new Error("not implemented error");
   }
 
   // not included in phpoauth
 
   async respondToAccessTokenRequest(
-    request: IRequest,
-    response: IResponse,
+    request: RequestInterface,
+    response: ResponseInterface,
     accessTokenTTL: DateInterval,
-  ): Promise<IResponse> {
+  ): Promise<ResponseInterface> {
     throw new Error("not implemented error");
   }
 }

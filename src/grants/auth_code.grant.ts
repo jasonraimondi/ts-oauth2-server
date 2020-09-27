@@ -4,11 +4,11 @@ import { AbstractAuthorizedGrant } from "./abstract_authorized.grant";
 import { base64decode } from "../utils";
 import { AuthorizationRequest } from "../requests";
 import { ICodeChallenge, PlainVerifier, S256Verifier } from "../code_verifiers";
-import { RedirectResponse } from "../responses";
 import { OAuthException } from "../exceptions";
 import { OAuthClient, OAuthScope } from "../entities";
-import { GrantTypeIdentifiers } from "./interfaces";
-import { IRequest, IResponse } from "../requests/interface";
+import { GrantIdentifier } from "./grant.interface";
+import { OAuthResponse, ResponseInterface } from "../responses/response";
+import { RequestInterface } from "../requests/request";
 
 export interface IAuthCodePayload {
   client_id: string;
@@ -24,7 +24,7 @@ export interface IAuthCodePayload {
 const codeChallengeRegExp = /^[A-Za-z0-9-._~]{43,128}$/g;
 
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
-  readonly identifier: GrantTypeIdentifiers = "authorization_code";
+  readonly identifier: GrantIdentifier = "authorization_code";
 
   protected readonly authCodeTTL: DateInterval = new DateInterval({
     minutes: 15,
@@ -36,10 +36,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   };
 
   async respondToAccessTokenRequest(
-    request: IRequest,
-    response: IResponse,
+    request: RequestInterface,
+    response: ResponseInterface,
     accessTokenTTL: DateInterval,
-  ): Promise<IResponse> {
+  ): Promise<ResponseInterface> {
     const [clientId] = this.getClientCredentials(request);
 
     const client = await this.clientRepository.getClientByIdentifier(clientId);
@@ -128,19 +128,26 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     await this.authCodeRepository.revokeAuthCode(validatedPayload.auth_code_id);
 
-    return response.send({
+    response.body = {
       token_type: "Bearer",
       expires_in: Math.ceil((accessToken.expiresAt.getTime() - Date.now()) / 1000),
-      access_token: accessToken.token,
+      access_token: accessToken.token, // @todo this needs to be a JWT
       refresh_token: refreshToken?.refreshToken,
-    });
+    };
+
+    response.set("Cache-Control", "no-store");
+    response.set("Pragma", "no-cache");
+
+    return response;
   }
 
-  canRespondToAuthorizationRequest(request: IRequest): boolean {
-    return request.query?.response_type === "code" && !!request.query?.client_id;
+  canRespondToAuthorizationRequest(request: RequestInterface): boolean {
+    const response_type = this.getQueryStringParameter("response_type", request);
+    const client_id = this.getQueryStringParameter("client_id", request);
+    return response_type === "code" && !!client_id;
   }
 
-  async validateAuthorizationRequest(request: IRequest): Promise<AuthorizationRequest> {
+  async validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
     const clientId = this.getQueryStringParameter("client_id", request);
 
     if (typeof clientId !== "string") {
@@ -197,8 +204,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     return authorizationRequest;
   }
 
-  async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<RedirectResponse> {
-    const finalRedirectUri = authorizationRequest.redirectUri ?? this.getClientRedirectUri(authorizationRequest);
+  async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
+    const redirectUri = authorizationRequest.redirectUri ?? this.getClientRedirectUri(authorizationRequest);
 
     if (authorizationRequest.isAuthorizationApproved) {
       const authCode = await this.issueAuthCode(
@@ -226,19 +233,23 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
       const code = await this.encrypt(jsonPayload);
 
-      return new RedirectResponse(
-        this.makeRedirectUrl(finalRedirectUri, {
-          code,
-          state: authorizationRequest.state,
-        }),
-      );
+      const finalRedirectUri = this.makeRedirectUrl(redirectUri, {
+        code,
+        state: authorizationRequest.state,
+      });
+
+      const response = new OAuthResponse();
+
+      response.redirect(finalRedirectUri);
+
+      return response;
     }
 
     // @todo what exception should I throw here?
     throw OAuthException.invalidGrant();
   }
 
-  private async validateAuthorizationCode(payload: any, client: OAuthClient, request: IRequest) {
+  private async validateAuthorizationCode(payload: any, client: OAuthClient, request: RequestInterface) {
     if (!payload.auth_code_id) {
       throw OAuthException.invalidRequest("code", "Authorization code malformed");
     }

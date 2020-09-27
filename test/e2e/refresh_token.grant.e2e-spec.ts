@@ -3,9 +3,8 @@ import { Application } from "express";
 
 import { OAuthClient } from "../../src/entities";
 import { inMemoryDatabase } from "../../examples/in_memory/database";
-import { base64encode } from "../../src/utils";
 import { inMemoryExpressApp } from "../../examples/in_memory/main";
-import { ACCESS_TOKEN_REGEX } from "./auth_code.grant.spec";
+import { ACCESS_TOKEN_REGEX } from "./auth_code.grant.e2e-spec";
 
 describe.skip("refresh_token grant e2e", () => {
   let client: OAuthClient;

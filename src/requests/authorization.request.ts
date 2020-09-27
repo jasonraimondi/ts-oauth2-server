@@ -1,5 +1,5 @@
 import { OAuthClient, OAuthScope, OAuthUser } from "../entities";
-import { GrantTypeIdentifiers } from "../grants/interfaces";
+import { GrantIdentifier } from "../grants/grant.interface";
 
 export class AuthorizationRequest {
   scopes: OAuthScope[] = [];
@@ -10,7 +10,7 @@ export class AuthorizationRequest {
   codeChallengeMethod?: string;
 
   constructor(
-    public readonly grantTypeId: GrantTypeIdentifiers,
+    public readonly grantTypeId: GrantIdentifier,
     public readonly client: OAuthClient,
     public user?: OAuthUser,
   ) {

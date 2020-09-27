@@ -16,19 +16,25 @@ import {
   OAuthScope,
   OAuthUser,
 } from "../../src/entities";
-import { GrantTypeIdentifiers } from "../../src/grants";
+import { GrantIdentifier } from "../../src/grants";
 import { inMemoryDatabase } from "./database";
 
 const oneHourInFuture = new DateInterval({ hours: 1 }).end();
 
 export const inMemoryClientRepository: OAuthClientRepository = {
   async getClientByIdentifier(clientId: string): Promise<OAuthClient> {
-    return inMemoryDatabase.clients.find((client) => client.id === clientId)!;
+    return inMemoryDatabase.clients.filter((client) => client.id === clientId)[0];
   },
 
-  async isClientValid(grantType: GrantTypeIdentifiers, clientId: string, clientSecret?: string): Promise<boolean> {
+  async isClientValid(grantType: GrantIdentifier, clientId: string, clientSecret?: string): Promise<boolean> {
     const client = await this.getClientByIdentifier(clientId);
-    return true;
+
+    if (grantType === "client_credentials" && client.secret && clientSecret) {
+      return client.secret === clientSecret;
+    }
+
+    console.log({ isClientValid: false });
+    return false;
   },
 };
 
@@ -38,7 +44,7 @@ export const inMemoryScopeRepository: OAuthScopeRepository = {
   },
   async finalizeScopes(
     scopes: OAuthScope[],
-    identifier: GrantTypeIdentifiers,
+    identifier: GrantIdentifier,
     client: OAuthClient,
     user_id?: string,
   ): Promise<OAuthScope[]> {
@@ -63,6 +69,10 @@ export const inMemoryAccessTokenRepository: OAuthAccessTokenRepository = {
 };
 
 export const inMemoryRefreshTokenRepository: OAuthRefreshTokenRepository = {
+  isRefreshTokenRevoked(refreshTokenToken: string): Promise<boolean> {
+    console.log({ refreshTokenToken });
+    return Promise.resolve(false);
+  },
   async getNewToken(accessToken: OAuthAccessToken): Promise<OAuthRefreshToken | undefined> {
     return {
       refreshToken: "this-is-my-super-secret-refresh-token",

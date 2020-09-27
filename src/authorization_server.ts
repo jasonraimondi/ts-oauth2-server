@@ -1,23 +1,22 @@
 import { DateInterval } from "@jmondi/date-interval";
 
-import { IGrant } from "./grants";
+import { GrantInterface } from "./grants";
 import { OAuthException } from "./exceptions";
 import { AuthorizationRequest } from "./requests";
-import { IRequest, IResponse } from "./requests/interface";
+import { ResponseInterface } from "./responses/response";
+import { RequestInterface } from "./requests/request";
 
 export class AuthorizationServer {
-  private readonly enabledGrantTypes: { [key: string]: IGrant } = {};
-  private readonly grantTypeAccessTokenTTL: {
-    [key: string]: DateInterval;
-  } = {};
+  private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};
+  private readonly grantTypeAccessTokenTTL: { [key: string]: DateInterval } = {};
 
-  enableGrantType(grantType: IGrant, accessTokenTTL?: DateInterval) {
+  enableGrantType(grantType: GrantInterface, accessTokenTTL?: DateInterval) {
     if (!accessTokenTTL) accessTokenTTL = new DateInterval("PT1H");
     this.enabledGrantTypes[grantType.identifier] = grantType;
     this.grantTypeAccessTokenTTL[grantType.identifier] = accessTokenTTL;
   }
 
-  respondToAccessTokenRequest(req: IRequest, res: IResponse) {
+  respondToAccessTokenRequest(req: RequestInterface, res: ResponseInterface) {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (!grantType.canRespondToAccessTokenRequest(req)) {
         continue;
@@ -29,7 +28,7 @@ export class AuthorizationServer {
     throw OAuthException.unsupportedGrantType();
   }
 
-  validateAuthorizationRequest(req: IRequest) {
+  validateAuthorizationRequest(req: RequestInterface) {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (grantType.canRespondToAuthorizationRequest(req)) {
         return grantType.validateAuthorizationRequest(req);
@@ -39,9 +38,8 @@ export class AuthorizationServer {
     throw OAuthException.unsupportedGrantType();
   }
 
-  async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest, response: IResponse): Promise<void> {
+  async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     const grant = this.enabledGrantTypes[authorizationRequest.grantTypeId];
-    const completedRequest = await grant.completeAuthorizationRequest(authorizationRequest);
-    await completedRequest.generateHttpResponse(response);
+    return await grant.completeAuthorizationRequest(authorizationRequest);
   }
 }

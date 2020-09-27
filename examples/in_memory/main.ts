@@ -1,21 +1,24 @@
-import type { Request, Response } from "express";
-import express from "express";
+import { json, urlencoded } from "body-parser";
+import Express from "express";
 
 import { inMemoryAuthorizationServer } from "./oauth_authorization_server";
 import { OAuthException } from "../../src/exceptions";
-import { json } from "body-parser";
+import { OAuthRequest } from "../../src/requests/request";
+import { OAuthResponse } from "../../src/responses/response";
 
-const app = express();
-const port = 3000;
+const app = Express();
 
 app.use(json());
+app.use(urlencoded({ extended: false }));
 
 const authorizationServer = inMemoryAuthorizationServer;
 
-app.get("/authorize", async (req: Request, res: Response) => {
+app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
+  const request = new OAuthRequest(req);
+
   try {
     // Validate the HTTP request and return an AuthorizationRequest object.
-    const authRequest = await authorizationServer.validateAuthorizationRequest(req);
+    const authRequest = await authorizationServer.validateAuthorizationRequest(request);
 
     // The auth request object can be serialized and saved into a user's session.
     // You will probably want to redirect the user at this point to a login endpoint.
@@ -33,22 +36,26 @@ app.get("/authorize", async (req: Request, res: Response) => {
     authRequest.isAuthorizationApproved = true;
 
     // Return the HTTP redirect response
-    await authorizationServer.completeAuthorizationRequest(authRequest, res);
+    const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
+    return handleResponse(req, res, oauthResponse);
   } catch (e) {
     handleError(e, res);
   }
 });
 
-app.post("/token", async (req: Request, res: Response) => {
+app.post("/token", async (req: Express.Request, res: Express.Response) => {
+  // const request = OAuthRequest.fromExpress(req);
+  const response = OAuthResponse.fromExpress(res);
   try {
-    return await inMemoryAuthorizationServer.respondToAccessTokenRequest(req, res);
+    const oauthResponse = await inMemoryAuthorizationServer.respondToAccessTokenRequest(req, response);
+    return handleResponse(req, res, oauthResponse);
   } catch (e) {
     handleError(e, res);
     return;
   }
 });
 
-function handleError(e: any, res: Response) {
+function handleError(e: any, res: Express.Response) {
   // @todo clean up error handling
   if (e instanceof OAuthException) {
     res.status(e.status);
@@ -62,3 +69,36 @@ function handleError(e: any, res: Response) {
 }
 
 export { app as inMemoryExpressApp };
+
+function handleResponse(req: Express.Request, res: Express.Response, response: OAuthResponse) {
+  console.log({ response });
+  if (response.status === 302) {
+    if (!response.headers.location) {
+      throw new Error("missing redirect location"); // @todo this
+    }
+    res.set(response.headers);
+    res.redirect(response.headers.location);
+  } else {
+    res.set(response.headers);
+    res.status(response.status).send(response.body);
+  }
+}
+
+// var handleError = function(e, req, res, response, next) {
+//
+//   if (this.useErrorHandler === true) {
+//     next(e);
+//   } else {
+//     if (response) {
+//       res.set(response.headers);
+//     }
+//
+//     res.status(e.code);
+//
+//     if (e instanceof UnauthorizedRequestError) {
+//       return res.send();
+//     }
+//
+//     res.send({ error: e.name, error_description: e.message });
+//   }
+// };
