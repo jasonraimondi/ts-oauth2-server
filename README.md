@@ -1,5 +1,11 @@
 # Typescript OAuth2 Server
 
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/Tests?label=tests&style=flat-square)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/test_coverage)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/maintainability)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
+![npm](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)
+
+
 ## :construction_worker: This project is under development :construction:
 
 ## Installing
