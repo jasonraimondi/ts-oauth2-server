@@ -1,5 +1,3 @@
-import type { Response } from "express";
-
 export interface Headers {
   location?: string;
   [key: string]: any;
@@ -28,12 +26,6 @@ export class OAuthResponse implements ResponseInterface {
   status = 200;
   body: object = {};
   headers: Headers = {};
-
-  static fromExpress(response: Response) {
-    const oAuthResponse = new OAuthResponse({ headers: {} });
-    console.log({ method: "fromExpress" });
-    return oAuthResponse;
-  }
 
   constructor(responseOptions: Options = { headers: {} }) {
     this.headers = {

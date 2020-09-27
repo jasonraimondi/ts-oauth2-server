@@ -21,7 +21,10 @@ export interface IAuthCodePayload {
   code_challenge_method?: string;
 }
 
-const codeChallengeRegExp = /^[A-Za-z0-9-._~]{43,128}$/g;
+export const REGEXP_CODE_CHALLENGE = /^[A-Za-z0-9-._~]{43,128}$/g;
+
+export const REGEXP_CODE_VERIFIER  = /^[A-Za-z0-9-._~]{43,128}$/g;
+
 
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantIdentifier = "authorization_code";
@@ -94,8 +97,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
       // Validate code_verifier according to RFC-7636
       // @see: https://tools.ietf.org/html/rfc7636#section-4.1
-      const codeVerifierRegex = /^[A-Za-z0-9-._~]{43,128}$/;
-      if (!codeVerifierRegex.test(codeVerifier)) {
+      if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
         throw OAuthException.invalidRequest(
           "code_verifier",
           "Code verifier must follow the specifications of RFS-7636",
@@ -164,9 +166,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     this.validateRedirectUri(redirectUri, client);
 
     // @todo add test for scopes as string or string[]
-    let bodyScopes = this.getQueryStringParameter("scope", request, []);
-
-    if (typeof bodyScopes === "string") bodyScopes = bodyScopes.split(this.scopeDelimiterString);
+    const bodyScopes = this.getQueryStringParameter("scope", request, []);
 
     const scopes = await this.validateScopes(bodyScopes);
 
@@ -180,7 +180,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     if (redirectUri) authorizationRequest.redirectUri = redirectUri;
 
-    let codeChallenge = this.getQueryStringParameter("code_challenge", request);
+    const codeChallenge = this.getQueryStringParameter("code_challenge", request);
 
     if (!codeChallenge) {
       throw OAuthException.invalidRequest(
@@ -191,7 +191,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
 
-    if (!codeChallengeRegExp.test(base64decode(codeChallenge))) {
+    if (!REGEXP_CODE_CHALLENGE.test(base64decode(codeChallenge))) {
       throw OAuthException.invalidRequest(
         "code_challenge",
         "Code challenge must follow the specifications of RFC-7636 and match ${codeChallengeRegExp.toString()}.",

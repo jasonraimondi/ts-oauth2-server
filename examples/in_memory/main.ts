@@ -44,8 +44,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 });
 
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
-  // const request = OAuthRequest.fromExpress(req);
-  const response = OAuthResponse.fromExpress(res);
+  const response = new OAuthResponse(res);
   try {
     const oauthResponse = await inMemoryAuthorizationServer.respondToAccessTokenRequest(req, response);
     return handleResponse(req, res, oauthResponse);
@@ -71,7 +70,6 @@ function handleError(e: any, res: Express.Response) {
 export { app as inMemoryExpressApp };
 
 function handleResponse(req: Express.Request, res: Express.Response, response: OAuthResponse) {
-  console.log({ response });
   if (response.status === 302) {
     if (!response.headers.location) {
       throw new Error("missing redirect location"); // @todo this

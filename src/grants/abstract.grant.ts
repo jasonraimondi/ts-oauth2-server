@@ -161,7 +161,8 @@ export abstract class AbstractGrant implements GrantInterface {
   // }
 
   protected getGrantType(request: RequestInterface): GrantIdentifier {
-    const result = request.body?.grant_type ?? request.query?.grant_type;
+    const result =
+      this.getRequestParameter("grant_type", request) ?? this.getQueryStringParameter("grant_type", request);
     if (!result || !this.supportedGrantTypes.includes(result)) {
       throw OAuthException.invalidRequest("grant_type");
     }

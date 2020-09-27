@@ -16,7 +16,7 @@ import { base64encode } from "../../../src/utils";
 import { OAuthClient } from "../../../src/entities";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 
-describe("client credentials grant", () => {
+describe("client_credentials grant", () => {
   let client: OAuthClient;
   let grant: ClientCredentialsGrant;
 
@@ -49,13 +49,13 @@ describe("client credentials grant", () => {
     inMemoryDatabase.clients.push(client);
   });
 
-  function expectTokenResponse(clientCredentialsResponse: ResponseInterface) {
-    expect(clientCredentialsResponse.status).toBe(200);
-    expect(clientCredentialsResponse.headers["cache-control"]).toBe("no-store");
-    expect(clientCredentialsResponse.headers["pragma"]).toBe("no-cache");
-    expect(clientCredentialsResponse.body.token_type).toBe("Bearer");
-    expect(clientCredentialsResponse.body.expires_in).toBe(3600);
-    expect(typeof clientCredentialsResponse.body.access_token === "string").toBeTruthy();
+  function expectTokenResponse(tokenResponse: ResponseInterface) {
+    expect(tokenResponse.status).toBe(200);
+    expect(tokenResponse.headers["cache-control"]).toBe("no-store");
+    expect(tokenResponse.headers["pragma"]).toBe("no-cache");
+    expect(tokenResponse.body.token_type).toBe("Bearer");
+    expect(tokenResponse.body.expires_in).toBe(3600);
+    expect(typeof tokenResponse.body.access_token === "string").toBeTruthy();
   }
 
   it("can grant using basic auth", async () => {
@@ -72,10 +72,10 @@ describe("client credentials grant", () => {
     const accessTokenTTL = new DateInterval("PT1H");
 
     // act
-    const clientCredentialsResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    expectTokenResponse(clientCredentialsResponse);
+    expectTokenResponse(tokenResponse);
   });
 
   it("can grant using body", async () => {
@@ -90,10 +90,10 @@ describe("client credentials grant", () => {
     const accessTokenTTL = new DateInterval("PT1H");
 
     // act
-    const clientCredentialsResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    expectTokenResponse(clientCredentialsResponse);
+    expectTokenResponse(tokenResponse);
   });
 
   it("can grant using body with scopes", async () => {
@@ -105,19 +105,18 @@ describe("client credentials grant", () => {
         grant_type: "client_credentials",
         client_id: client.id,
         client_secret: client.secret,
-        scope: "scope-1 scope-2"
+        scope: "scope-1 scope-2",
       },
     });
     const accessTokenTTL = new DateInterval("PT1H");
 
     // act
-    const clientCredentialsResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    expectTokenResponse(clientCredentialsResponse);
-    expect(clientCredentialsResponse.body.scope).toBe("scope-1 scope-2")
+    expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.scope).toBe("scope-1 scope-2");
   });
-
 
   it("throws for invalid scope", async () => {
     // arrange
@@ -127,16 +126,18 @@ describe("client credentials grant", () => {
         grant_type: "client_credentials",
         client_id: client.id,
         client_secret: client.secret,
-        scope: "scope-1 this-scope-doesnt-exist"
+        scope: "scope-1 this-scope-doesnt-exist",
       },
     });
     const accessTokenTTL = new DateInterval("PT1H");
 
     // act
-    const clientCredentialsResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(clientCredentialsResponse).rejects.toThrowError(/The requested scope is invalid, unknown, or malformed: Check the `this-scope-doesnt-exist` scope/)
+    await expect(tokenResponse).rejects.toThrowError(
+      /The requested scope is invalid, unknown, or malformed: Check the `this-scope-doesnt-exist` scope/,
+    );
   });
 
   it("throws if missing secret", async () => {
@@ -150,10 +151,10 @@ describe("client credentials grant", () => {
     const accessTokenTTL = new DateInterval("PT1H");
 
     // act
-    const clientCredentialsResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(clientCredentialsResponse).rejects.toThrowError(/Client authentication failed/);
+    await expect(tokenResponse).rejects.toThrowError(/Client authentication failed/);
   });
 
   it("throws if missing grant_type", async () => {
@@ -167,9 +168,9 @@ describe("client credentials grant", () => {
     const accessTokenTTL = new DateInterval("PT1H");
 
     // act
-    const clientCredentialsResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(clientCredentialsResponse).rejects.toThrowError(/The request is missing a required parameter/);
+    await expect(tokenResponse).rejects.toThrowError(/The request is missing a required parameter/);
   });
 });

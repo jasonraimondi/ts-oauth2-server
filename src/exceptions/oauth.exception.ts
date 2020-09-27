@@ -69,7 +69,7 @@ export class OAuthException extends Error {
    * this error indicates an invalid scope value in the request.
    */
   static invalidScope(scope?: string, redirectUri?: string) {
-    let message = "The requested scope is invalid, unknown, or malformed";
+    const message = "The requested scope is invalid, unknown, or malformed";
     let hint = "Specify a scope in the request or set a default scope";
     if (scope) {
       hint = `Check the \`${scope}\` scope`;
