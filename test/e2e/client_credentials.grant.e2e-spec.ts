@@ -38,7 +38,7 @@ describe("client_credentials grant e2e", () => {
     inMemoryDatabase.scopes.push({ name: "scope-1" }, { name: "scope-2" });
   });
 
-  it.only("completes client_credentials grant as basic auth header", () => {
+  it("completes client_credentials grant as basic auth header", () => {
     const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
     return request(app)
       .post("/token")
@@ -57,7 +57,7 @@ describe("client_credentials grant e2e", () => {
         expect(typeof response.body.access_token === "string").toBeTruthy();
         expect(response.body.access_token.split(".").length).toBe(3);
         expect(response.body.access_token).toMatch(ACCESS_TOKEN_REGEX);
-        expect(response.body.scope).toBe("scope-1 scope-2");
+        // expect(response.body.scope).toBe("scope-1 scope-2");
         // expect(response.body.refresh_token).toBeTruthy();
         // expect(response.body.refresh_token).toMatch(ACCESS_TOKEN_REGEX);
       });
@@ -96,8 +96,6 @@ describe("client_credentials grant e2e", () => {
       })
       .expect(400)
       .expect("Content-Type", /json/)
-      .expect("Cache-Control", "no-store")
-      .expect("Pragma", "no-cache")
       .expect((response) => {
         expect(response.body.message).toBe("Client authentication failed");
       });

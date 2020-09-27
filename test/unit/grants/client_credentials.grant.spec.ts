@@ -96,7 +96,30 @@ describe("client credentials grant", () => {
     expectTokenResponse(clientCredentialsResponse);
   });
 
-  it.skip("can grant with scopes", async () => {
+  it("can grant using body with scopes", async () => {
+    // arrange
+    inMemoryDatabase.scopes.push({ name: "scope-1" });
+    inMemoryDatabase.scopes.push({ name: "scope-2" });
+    request = new OAuthRequest({
+      body: {
+        grant_type: "client_credentials",
+        client_id: client.id,
+        client_secret: client.secret,
+        scope: "scope-1 scope-2"
+      },
+    });
+    const accessTokenTTL = new DateInterval("PT1H");
+
+    // act
+    const clientCredentialsResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+
+    // assert
+    expectTokenResponse(clientCredentialsResponse);
+    expect(clientCredentialsResponse.body.scope).toBe("scope-1 scope-2")
+  });
+
+
+  it("throws for invalid scope", async () => {
     // arrange
     inMemoryDatabase.scopes.push({ name: "scope-1" });
     request = new OAuthRequest({
@@ -104,7 +127,7 @@ describe("client credentials grant", () => {
         grant_type: "client_credentials",
         client_id: client.id,
         client_secret: client.secret,
-        scope: "invalid-scope"
+        scope: "scope-1 this-scope-doesnt-exist"
       },
     });
     const accessTokenTTL = new DateInterval("PT1H");
@@ -113,7 +136,7 @@ describe("client credentials grant", () => {
     const clientCredentialsResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(clientCredentialsResponse).rejects.toThrowError(/Invalid scopes/)
+    await expect(clientCredentialsResponse).rejects.toThrowError(/The requested scope is invalid, unknown, or malformed: Check the `this-scope-doesnt-exist` scope/)
   });
 
   it("throws if missing secret", async () => {

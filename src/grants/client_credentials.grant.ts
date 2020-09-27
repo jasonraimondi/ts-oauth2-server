@@ -25,7 +25,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const client = await this.clientRepository.getClientByIdentifier(clientId);
 
-    const bodyScopes = request.body?.scopes ?? [];
+    const bodyScopes = this.getRequestParameter("scope", request, []);
 
     const validScopes = await this.validateScopes(bodyScopes);
 

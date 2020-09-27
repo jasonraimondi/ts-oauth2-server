@@ -33,7 +33,6 @@ export const inMemoryClientRepository: OAuthClientRepository = {
       return client.secret === clientSecret;
     }
 
-    console.log({ isClientValid: false });
     return false;
   },
 };
