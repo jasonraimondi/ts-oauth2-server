@@ -24,8 +24,8 @@ describe.skip("auth_code grant e2e", () => {
 
     app = inMemoryExpressApp;
 
-    inMemoryDatabase.clients.push(client);
-    inMemoryDatabase.scopes.push({ name: "scope-1" }, { name: "scope-2" });
+    inMemoryDatabase.clients[client.id] = client;
+    inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
   });
 
   it("completes auth_code grant with pkce s256", async () => {

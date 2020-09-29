@@ -55,7 +55,7 @@ describe("client_credentials grant", () => {
       new JWT("secret-key"),
     );
 
-    inMemoryDatabase.clients.push(client);
+    inMemoryDatabase.clients[client.id] = client;
   });
 
   it("successfully grants using basic auth", async () => {
@@ -98,8 +98,8 @@ describe("client_credentials grant", () => {
 
   it("successfully grants using body with scopes", async () => {
     // arrange
-    inMemoryDatabase.scopes.push({ name: "scope-1" });
-    inMemoryDatabase.scopes.push({ name: "scope-2" });
+    inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
+    inMemoryDatabase.scopes["scope-2"] = { name: "scope-2" };
     request = new OAuthRequest({
       body: {
         grant_type: "client_credentials",
@@ -120,7 +120,7 @@ describe("client_credentials grant", () => {
 
   it("throws for invalid scope", async () => {
     // arrange
-    inMemoryDatabase.scopes.push({ name: "scope-1" });
+    inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
     request = new OAuthRequest({
       body: {
         grant_type: "client_credentials",

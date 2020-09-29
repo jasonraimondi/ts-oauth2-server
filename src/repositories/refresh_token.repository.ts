@@ -2,9 +2,13 @@ import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 
 export interface OAuthRefreshTokenRepository {
-  getNewToken(accessToken: OAuthAccessToken): Promise<OAuthRefreshToken | undefined>;
+  createRefreshTokenInstance(accessToken: OAuthAccessToken): Promise<OAuthRefreshToken | undefined>;
 
-  persistNewRefreshToken(refreshToken: OAuthRefreshToken): Promise<void>;
+  persistRefreshToken(refreshToken: OAuthRefreshToken): Promise<void>;
 
-  isRefreshTokenRevoked(refreshTokenToken: string): Promise<boolean>;
+  isRefreshTokenRevoked(refreshToken: OAuthRefreshToken): Promise<boolean>;
+
+  revokeRefreshToken(refreshToken: OAuthRefreshToken): Promise<void>;
+
+  getRefreshToken(refreshTokenToken: string): Promise<OAuthRefreshToken>;
 }

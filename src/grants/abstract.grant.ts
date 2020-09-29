@@ -23,7 +23,11 @@ import { JwtService } from "~/utils/jwt";
 export abstract class AbstractGrant implements GrantInterface {
   protected readonly scopeDelimiterString = " ";
 
-  protected readonly supportedGrantTypes: GrantIdentifier[] = ["client_credentials", "authorization_code"];
+  protected readonly supportedGrantTypes: GrantIdentifier[] = [
+    "client_credentials",
+    "authorization_code",
+    "refresh_token",
+  ];
 
   abstract readonly identifier: GrantIdentifier;
 
@@ -37,7 +41,7 @@ export abstract class AbstractGrant implements GrantInterface {
     protected readonly jwt: JwtService,
   ) {}
 
-  protected async makeBearerTokenResponse(
+  async makeBearerTokenResponse(
     client: OAuthClient,
     accessToken: OAuthAccessToken,
     refreshToken?: OAuthRefreshToken,
@@ -213,13 +217,13 @@ export abstract class AbstractGrant implements GrantInterface {
   }
 
   protected async issueRefreshToken(accessToken: OAuthAccessToken): Promise<OAuthRefreshToken | undefined> {
-    const refreshToken = await this.refreshTokenRepository.getNewToken(accessToken);
+    const refreshToken = await this.refreshTokenRepository.createRefreshTokenInstance(accessToken);
 
     if (!refreshToken) {
       return;
     }
 
-    await this.refreshTokenRepository.persistNewRefreshToken(refreshToken);
+    await this.refreshTokenRepository.persistRefreshToken(refreshToken);
 
     return refreshToken;
   }

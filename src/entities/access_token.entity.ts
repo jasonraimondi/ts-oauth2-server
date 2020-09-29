@@ -6,11 +6,10 @@ import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 export interface OAuthAccessToken {
   token: string;
   client: OAuthClient;
-  clientId: string;
   user?: OAuthUser;
   userId?: string;
   refreshToken?: OAuthRefreshToken;
   refreshTokenToken?: string;
   expiresAt: Date;
-  scopes?: OAuthScope[];
+  scopes: OAuthScope[];
 }

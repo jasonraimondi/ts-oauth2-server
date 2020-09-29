@@ -52,7 +52,7 @@ describe("authorization_code grant", () => {
       new JWT("secret-key"),
     );
 
-    inMemoryDatabase.clients.push(client);
+    inMemoryDatabase.clients[client.id] = client;
   });
 
   describe("can respond to authorization request", () => {
@@ -123,7 +123,7 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful with plain pkce", async () => {
-      inMemoryDatabase.scopes.push({ name: "scope-1" });
+      inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
       const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
       request = new OAuthRequest({
         query: {
@@ -211,11 +211,7 @@ describe("authorization_code grant", () => {
           code_verifier: codeVerifier,
         },
       });
-      const accessTokenResponse = await grant.respondToAccessTokenRequest(
-        request,
-        response,
-        new DateInterval("1h"),
-      );
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
 
       // assert
       expectTokenResponse(accessTokenResponse);

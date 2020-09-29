@@ -22,7 +22,7 @@ export interface ResponseInterface {
 
 export class OAuthResponse implements ResponseInterface {
   status = 200;
-  body: object = {};
+  body: Record<string, unknown> = {};
   headers: Headers = {};
 
   constructor(responseOptions: Options = { headers: {} }) {

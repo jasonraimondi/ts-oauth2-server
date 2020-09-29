@@ -32,6 +32,10 @@ export class DateInterval {
   getSeconds(): number {
     return Math.ceil(this.ms / 1000);
   }
+
+  static getDateEnd(ms: string) {
+    return new DateInterval(ms).getEndDate();
+  }
 }
 
 export class AuthorizationServer {
