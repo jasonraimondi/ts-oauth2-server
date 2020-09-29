@@ -1,10 +1,10 @@
 import { DateInterval } from "@jmondi/date-interval";
 
-import { GrantInterface } from "./grants";
-import { OAuthException } from "./exceptions";
-import { AuthorizationRequest } from "./requests";
-import { ResponseInterface } from "./responses/response";
-import { RequestInterface } from "./requests/request";
+import { OAuthException } from "~/exceptions/oauth.exception";
+import { GrantInterface } from "~/grants/grant.interface";
+import { AuthorizationRequest } from "~/requests/authorization.request";
+import { RequestInterface } from "~/requests/request";
+import { ResponseInterface } from "~/responses/response";
 
 export class AuthorizationServer {
   private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};

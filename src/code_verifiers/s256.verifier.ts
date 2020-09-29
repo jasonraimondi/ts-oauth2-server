@@ -1,6 +1,7 @@
 import crypto from "crypto";
-import { base64urlencode } from "../utils";
-import { ICodeChallenge } from "./verifier";
+
+import { base64urlencode } from "~/utils/base64";
+import { ICodeChallenge } from "~/code_verifiers/verifier";
 
 export class S256Verifier implements ICodeChallenge {
   public readonly method = "S256";

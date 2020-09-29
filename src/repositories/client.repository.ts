@@ -1,8 +1,8 @@
-import { GrantIdentifier } from "../grants";
-import { OAuthClient } from "../entities";
+import { OAuthClient } from "~/entities/client.entity";
+import { GrantIdentifier } from "~/grants/grant.interface";
 
 export interface OAuthClientRepository {
   getClientByIdentifier(clientId: string): Promise<OAuthClient>;
 
-  isClientValid(grantType: GrantIdentifier, clientId: string, clientSecret?: string): Promise<boolean>;
+  isClientValid(grantType: GrantIdentifier, client: OAuthClient, clientSecret?: string): Promise<boolean>;
 }

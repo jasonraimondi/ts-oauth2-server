@@ -22,11 +22,9 @@
     "sourceMap": true,
     "strictFunctionTypes": true,
     "strictNullChecks": true,
-    "baseUrl": "./src",
+    "baseUrl": "./",
     "paths": {
       "~/*": ["src/*"]
     }
-  },
-  "include": ["src/**/*", "examples/**/*", "test/**/*"],
-  "exclude": ["node_modules"]
+  }
 }

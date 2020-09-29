@@ -1,4 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { pathsToModuleNameMapper } = require("ts-jest/utils");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { compilerOptions } = require("./tsconfig");
 
 module.exports = {
@@ -8,9 +10,9 @@ module.exports = {
     "ts",
   ],
   modulePathIgnorePatterns: ['<rootDir>/dist'],
-  // moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
-  //   prefix: "<rootDir>/",
-  // }),
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
+    prefix: "<rootDir>/",
+  }),
   rootDir: "./",
   testRegex: ".spec.ts$",
   transform: {

@@ -1,4 +1,7 @@
-import { AuthCodeGrant, AuthorizationServer, ClientCredentialsGrant, JwtService } from "../../src";
+import { AuthorizationServer } from "~/authorization_server";
+import { AuthCodeGrant } from "~/grants/auth_code.grant";
+import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
+import { JWT } from "~/utils/jwt";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
@@ -15,40 +18,9 @@ const authCodeRepository = inMemoryAuthCodeRepository;
 const scopeRepository = inMemoryScopeRepository;
 const userRepository = inMemoryUserRepository;
 
-import jwt, { Secret, VerifyOptions } from "jsonwebtoken";
-
-export class JWT implements JwtService {
-  constructor(private readonly secretOrPrivateKey: Secret) {}
-
-  // Asynchronously verify given token using a secret or a public key to get a decoded token
-  verify(token: string, options: VerifyOptions): Promise<object> {
-    return new Promise((resolve, reject) => {
-      jwt.verify(token, this.secretOrPrivateKey, (err, decoded) => {
-        if (decoded) resolve(decoded);
-        else reject(err);
-      });
-    });
-  }
-
-  // Returns the decoded payload without verifying if the signature is valid.
-  decode(encryptedData: string): null | { [key: string]: any } | string {
-    return jwt.decode(encryptedData);
-  }
-
-  // Sign the given payload into a JSON Web Token string
-  sign(payload: string | Buffer | object): Promise<string> {
-    return new Promise((resolve, reject) => {
-      jwt.sign(payload, this.secretOrPrivateKey, (err, encoded) => {
-        if (encoded) resolve(encoded);
-        else reject(err);
-      });
-    });
-  }
-}
-
 const jwtService = new JWT("secret secret secret");
 
-const clientCredentialsGrant = new ClientCredentialsGrant(
+export const clientCredentialsGrant = new ClientCredentialsGrant(
   clientRepository,
   accessTokenRepository,
   refreshTokenRepository,
@@ -58,7 +30,7 @@ const clientCredentialsGrant = new ClientCredentialsGrant(
   jwtService,
 );
 
-const authCodeGrant = new AuthCodeGrant(
+export const authCodeGrant = new AuthCodeGrant(
   clientRepository,
   accessTokenRepository,
   refreshTokenRepository,

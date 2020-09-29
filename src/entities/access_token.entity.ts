@@ -1,7 +1,7 @@
-import { OAuthUser } from "./user.entity";
-import { OAuthRefreshToken } from "./refresh_token.entity";
-import { OAuthClient } from "./client.entity";
-import { OAuthScope } from "./scope.entity";
+import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthClient } from "~/entities/client.entity";
+import { OAuthUser } from "~/entities/user.entity";
+import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 
 export interface OAuthAccessToken {
   token: string;

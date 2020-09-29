@@ -1,5 +1,6 @@
-import { OAuthClient, OAuthScope } from "../entities";
-import { GrantIdentifier } from "../grants/grant.interface";
+import { OAuthClient } from "~/entities/client.entity";
+import { OAuthScope } from "~/entities/scope.entity";
+import { GrantIdentifier } from "~/grants/grant.interface";
 
 export interface OAuthScopeRepository {
   getScopesByIdentifier(scopeNames: string[]): Promise<OAuthScope[]>;

@@ -1,22 +1,18 @@
 import { DateInterval } from "@jmondi/date-interval";
 
-import {
-  OAuthAccessTokenRepository,
-  OAuthAuthCodeRepository,
-  OAuthClientRepository,
-  OAuthRefreshTokenRepository,
-  OAuthScopeRepository,
-  OAuthUserRepository,
-} from "../../src/repositories";
-import {
-  OAuthAccessToken,
-  OAuthAuthCode,
-  OAuthClient,
-  OAuthRefreshToken,
-  OAuthScope,
-  OAuthUser,
-} from "../../src/entities";
-import { GrantIdentifier } from "../../src/grants";
+import { OAuthAccessToken } from "~/entities/access_token.entity";
+import { OAuthAuthCode } from "~/entities/auth_code.entity";
+import { OAuthClient } from "~/entities/client.entity";
+import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
+import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthUser } from "~/entities/user.entity";
+import { GrantIdentifier } from "~/grants/grant.interface";
+import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
+import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
+import { OAuthClientRepository } from "~/repositories/client.repository";
+import { OAuthRefreshTokenRepository } from "~/repositories/refresh_token.repository";
+import { OAuthScopeRepository } from "~/repositories/scope.repository";
+import { OAuthUserRepository } from "~/repositories/user.repository";
 import { inMemoryDatabase } from "./database";
 
 const oneHourInFuture = new DateInterval({ hours: 1 }).end();
@@ -26,14 +22,16 @@ export const inMemoryClientRepository: OAuthClientRepository = {
     return inMemoryDatabase.clients.filter((client) => client.id === clientId)[0];
   },
 
-  async isClientValid(grantType: GrantIdentifier, clientId: string, clientSecret?: string): Promise<boolean> {
-    const client = await this.getClientByIdentifier(clientId);
-
-    if (grantType === "client_credentials" && client.secret && clientSecret) {
-      return client.secret === clientSecret;
+  async isClientValid(grantType: GrantIdentifier, client: OAuthClient, clientSecret?: string): Promise<boolean> {
+    if (client.secret !== clientSecret) {
+      return false;
     }
 
-    return false;
+    if (!client.allowedGrants.includes(grantType)) {
+      return false;
+    }
+
+    return true;
   },
 };
 

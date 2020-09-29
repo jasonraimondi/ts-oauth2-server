@@ -1,14 +1,18 @@
 import { DateInterval } from "@jmondi/date-interval";
 
-import { AbstractAuthorizedGrant } from "./abstract_authorized.grant";
-import { base64decode } from "../utils";
-import { AuthorizationRequest } from "../requests";
-import { ICodeChallenge, PlainVerifier, S256Verifier } from "../code_verifiers";
-import { OAuthException } from "../exceptions";
-import { OAuthClient, OAuthScope } from "../entities";
-import { GrantIdentifier } from "./grant.interface";
-import { OAuthResponse, ResponseInterface } from "../responses/response";
-import { RequestInterface } from "../requests/request";
+import { PlainVerifier } from "~/code_verifiers/plain.verifier";
+import { S256Verifier } from "~/code_verifiers/s256.verifier";
+import { CodeChallengeMethod, ICodeChallenge } from "~/code_verifiers/verifier";
+import { OAuthClient } from "~/entities/client.entity";
+import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthException } from "~/exceptions/oauth.exception";
+import { AbstractAuthorizedGrant } from "~/grants/abstract_authorized.grant";
+import { GrantIdentifier } from "~/grants/grant.interface";
+import { AuthorizationRequest } from "~/requests/authorization.request";
+import { RequestInterface } from "~/requests/request";
+import { RedirectResponse } from "~/responses/redirect.response";
+import { ResponseInterface } from "~/responses/response";
+import { base64decode } from "~/utils/base64";
 
 export interface IAuthCodePayload {
   client_id: string;
@@ -21,10 +25,11 @@ export interface IAuthCodePayload {
   code_challenge_method?: string;
 }
 
-export const REGEXP_CODE_CHALLENGE = /^[A-Za-z0-9-._~]{43,128}$/g;
+export const REGEXP_CODE_CHALLENGE = /^[A-Za-z0-9-._~]{43,128}$/;
 
-export const REGEXP_CODE_VERIFIER  = /^[A-Za-z0-9-._~]{43,128}$/g;
+export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
 
+export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-\._~\+\/]+=*/g;
 
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantIdentifier = "authorization_code";
@@ -43,110 +48,79 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     response: ResponseInterface,
     accessTokenTTL: DateInterval,
   ): Promise<ResponseInterface> {
-    const [clientId] = this.getClientCredentials(request);
-
-    const client = await this.clientRepository.getClientByIdentifier(clientId);
-
-    if (client.isConfidential) await this.validateClient(request);
+    const client = await this.validateClient(request);
 
     const encryptedAuthCode = this.getRequestParameter("code", request);
 
-    if (!encryptedAuthCode) {
-      throw OAuthException.invalidRequest("code");
-    }
+    if (!encryptedAuthCode) throw OAuthException.invalidRequest("code");
 
-    let validatedPayload: any;
+    const decryptedCode = await this.decrypt(encryptedAuthCode);
+
+    const validatedPayload = await this.validateAuthorizationCode(decryptedCode, client, request);
+
+    const userId = validatedPayload.user_id;
+
+    const user = userId ? await this.userRepository.getByUserIdentifier(userId) : undefined;
+
     const scopes: OAuthScope[] = [];
-    try {
-      validatedPayload = await this.validateAuthorizationCode(this.decrypt(encryptedAuthCode), client, request);
-    } catch (e) {
-      throw OAuthException.invalidRequest("code", "cannot decrypt the authorization code");
-    }
 
     try {
       const finalizedScopes = await this.scopeRepository.finalizeScopes(
         await this.validateScopes(validatedPayload.scopes ?? []),
         this.identifier,
         client,
-        validatedPayload.user_id,
+        userId,
       );
       finalizedScopes.forEach((scope) => scopes.push(scope));
     } catch (e) {
-      throw OAuthException.invalidRequest("code", "cannot verify scopes");
+      throw OAuthException.invalidRequest("code", "Cannot verify scopes");
     }
 
     const authCode = await this.authCodeRepository.getAuthCodeByIdentifier(validatedPayload.auth_code_id);
 
-    /**
-     * If the authorization server requires public clients to use PKCE,
-     * and the authorization request is missing the code challenge,
-     * then the server should return the error response with
-     * error=invalid_request and the error_description or error_uri
-     * should explain the nature of the error.
-     */
+    if (!validatedPayload.code_challenge) throw OAuthException.invalidRequest("code_challenge");
+
     if (authCode.codeChallenge !== validatedPayload.code_challenge) {
       throw OAuthException.invalidRequest("code_challenge", "Provided code challenge does not match auth code");
     }
 
-    if (validatedPayload.code_challenge) {
-      const codeVerifier = this.getRequestParameter("code_verifier", request);
+    const codeVerifier = this.getRequestParameter("code_verifier", request);
 
-      if (!codeVerifier) {
-        throw OAuthException.invalidRequest("code_verifier");
-      }
-
-      // Validate code_verifier according to RFC-7636
-      // @see: https://tools.ietf.org/html/rfc7636#section-4.1
-      if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
-        throw OAuthException.invalidRequest(
-          "code_verifier",
-          "Code verifier must follow the specifications of RFS-7636",
-        );
-      }
-
-      if (validatedPayload.code_challenge_method) {
-        let verifier: ICodeChallenge;
-
-        if (validatedPayload.code_challenge_method.toLowerCase() === "s256") {
-          verifier = this.codeChallengeVerifiers.S256;
-        } else if (validatedPayload.code_challenge_method.toLowerCase() === "plain") {
-          verifier = this.codeChallengeVerifiers.plain;
-        } else {
-          throw OAuthException.invalidRequest(
-            "code_challenge_method",
-            "Code challenge method must be one of `plain` or `s256`",
-          );
-        }
-
-        if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
-          throw OAuthException.invalidGrant("Failed to verify code challenge.");
-        }
-      }
+    if (!codeVerifier) {
+      throw OAuthException.invalidRequest("code_verifier");
     }
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, validatedPayload.user_id, scopes);
+    // Validate code_verifier according to RFC-7636
+    // @see: https://tools.ietf.org/html/rfc7636#section-4.1
+    if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
+      throw OAuthException.invalidRequest("code_verifier", "Code verifier must follow the specifications of RFS-7636");
+    }
+
+    const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method;
+
+    let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
+
+    if (codeChallengeMethod?.toLowerCase() === "s256") {
+      verifier = this.codeChallengeVerifiers.S256;
+    }
+
+    if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
+      throw OAuthException.invalidGrant("Failed to verify code challenge.");
+    }
+
+    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user?.identifier, scopes);
 
     const refreshToken = await this.issueRefreshToken(accessToken);
 
     await this.authCodeRepository.revokeAuthCode(validatedPayload.auth_code_id);
 
-    response.body = {
-      token_type: "Bearer",
-      expires_in: Math.ceil((accessToken.expiresAt.getTime() - Date.now()) / 1000),
-      access_token: accessToken.token, // @todo this needs to be a JWT
-      refresh_token: refreshToken?.refreshToken,
-    };
-
-    response.set("Cache-Control", "no-store");
-    response.set("Pragma", "no-cache");
-
-    return response;
+    return await this.makeBearerTokenResponse(client, accessToken, refreshToken, user?.identifier, scopes);
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
-    const response_type = this.getQueryStringParameter("response_type", request);
-    const client_id = this.getQueryStringParameter("client_id", request);
-    return response_type === "code" && !!client_id;
+    const responseType = this.getQueryStringParameter("response_type", request);
+    const hasClientId = !!this.getQueryStringParameter("client_id", request);
+    return responseType === "code" && hasClientId;
   }
 
   async validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
@@ -165,7 +139,6 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     // @todo this might only need to be run if the redirect uri is actually here aka redirect url might be allowed to be null
     this.validateRedirectUri(redirectUri, client);
 
-    // @todo add test for scopes as string or string[]
     const bodyScopes = this.getQueryStringParameter("scope", request, []);
 
     const scopes = await this.validateScopes(bodyScopes);
@@ -194,11 +167,12 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     if (!REGEXP_CODE_CHALLENGE.test(base64decode(codeChallenge))) {
       throw OAuthException.invalidRequest(
         "code_challenge",
-        "Code challenge must follow the specifications of RFC-7636 and match ${codeChallengeRegExp.toString()}.",
+        `Code challenge must follow the specifications of RFC-7636 and match ${REGEXP_CODE_CHALLENGE.toString()}.`,
       );
     }
 
     authorizationRequest.codeChallenge = codeChallenge;
+
     authorizationRequest.codeChallengeMethod = codeChallengeMethod;
 
     return authorizationRequest;
@@ -238,15 +212,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         state: authorizationRequest.state,
       });
 
-      const response = new OAuthResponse();
-
-      response.redirect(finalRedirectUri);
-
-      return response;
+      return new RedirectResponse(finalRedirectUri);
     }
 
     // @todo what exception should I throw here?
-    throw OAuthException.invalidGrant();
+    throw OAuthException.invalidRequest("isAuthorizationApproved");
   }
 
   private async validateAuthorizationCode(payload: any, client: OAuthClient, request: RequestInterface) {

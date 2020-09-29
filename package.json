@@ -55,7 +55,7 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
-    "@jmondi/date-interval": "^0.2.0",
+    "@jmondi/date-interval": "0.0.4-beta.0",
     "jsonwebtoken": "^8.5.1"
   }
 }

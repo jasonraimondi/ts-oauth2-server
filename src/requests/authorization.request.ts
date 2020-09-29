@@ -1,5 +1,7 @@
-import { OAuthClient, OAuthScope, OAuthUser } from "../entities";
-import { GrantIdentifier } from "../grants/grant.interface";
+import { OAuthClient } from "~/entities/client.entity";
+import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthUser } from "~/entities/user.entity";
+import { GrantIdentifier } from "~/grants/grant.interface";
 
 export class AuthorizationRequest {
   scopes: OAuthScope[] = [];

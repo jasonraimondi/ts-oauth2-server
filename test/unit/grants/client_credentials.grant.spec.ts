@@ -1,6 +1,13 @@
 import { DateInterval } from "@jmondi/date-interval";
 
-import { ClientCredentialsGrant } from "../../../src/grants";
+import { OAuthClient } from "~/entities/client.entity";
+import { REGEX_ACCESS_TOKEN } from "~/grants/auth_code.grant";
+import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
+import { OAuthRequest } from "~/requests/request";
+import { OAuthResponse, ResponseInterface } from "~/responses/response";
+import { base64encode } from "~/utils/base64";
+import { JWT } from "~/utils/jwt";
+import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
@@ -9,12 +16,16 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
-import { JWT } from "../../../examples/in_memory/oauth_authorization_server";
-import { OAuthRequest } from "../../../src/requests/request";
-import { OAuthResponse, ResponseInterface } from "../../../src/responses/response";
-import { base64encode } from "../../../src/utils";
-import { OAuthClient } from "../../../src/entities";
-import { inMemoryDatabase } from "../../../examples/in_memory/database";
+
+export function expectTokenResponse(tokenResponse: ResponseInterface) {
+  expect(tokenResponse.status).toBe(200);
+  expect(tokenResponse.headers["cache-control"]).toBe("no-store");
+  expect(tokenResponse.headers["pragma"]).toBe("no-cache");
+  expect(tokenResponse.body.token_type).toBe("Bearer");
+  expect(tokenResponse.body.expires_in).toBe(3600);
+  expect(tokenResponse.body.access_token).toMatch(REGEX_ACCESS_TOKEN);
+  expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
+}
 
 describe("client_credentials grant", () => {
   let client: OAuthClient;
@@ -29,7 +40,6 @@ describe("client_credentials grant", () => {
 
     client = {
       id: "1",
-      isConfidential: false,
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
@@ -49,24 +59,15 @@ describe("client_credentials grant", () => {
     inMemoryDatabase.clients.push(client);
   });
 
-  function expectTokenResponse(tokenResponse: ResponseInterface) {
-    expect(tokenResponse.status).toBe(200);
-    expect(tokenResponse.headers["cache-control"]).toBe("no-store");
-    expect(tokenResponse.headers["pragma"]).toBe("no-cache");
-    expect(tokenResponse.body.token_type).toBe("Bearer");
-    expect(tokenResponse.body.expires_in).toBe(3600);
-    expect(typeof tokenResponse.body.access_token === "string").toBeTruthy();
-  }
-
-  it("can grant using basic auth", async () => {
+  it("successfully grants using basic auth", async () => {
     // arrange
     const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
     request = new OAuthRequest({
-      body: {
-        grant_type: "client_credentials",
-      },
       headers: {
         authorization: basicAuth,
+      },
+      body: {
+        grant_type: "client_credentials",
       },
     });
     const accessTokenTTL = new DateInterval("PT1H");
@@ -78,7 +79,7 @@ describe("client_credentials grant", () => {
     expectTokenResponse(tokenResponse);
   });
 
-  it("can grant using body", async () => {
+  it("successfully grants using body", async () => {
     // arrange
     request = new OAuthRequest({
       body: {
@@ -96,7 +97,7 @@ describe("client_credentials grant", () => {
     expectTokenResponse(tokenResponse);
   });
 
-  it("can grant using body with scopes", async () => {
+  it("successfully grants using body with scopes", async () => {
     // arrange
     inMemoryDatabase.scopes.push({ name: "scope-1" });
     inMemoryDatabase.scopes.push({ name: "scope-2" });

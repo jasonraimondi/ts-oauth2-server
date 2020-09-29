@@ -1,12 +1,10 @@
-import type { Request } from "express";
+import { Headers, Options } from "~/responses/response";
 
 export interface RequestInterface {
   headers: { [key: string]: any };
   query: { [key: string]: any };
   body: { [key: string]: any };
 }
-
-import { Headers, Options } from "../responses/response";
 
 export class OAuthRequest implements RequestInterface {
   body: { [key: string]: any };

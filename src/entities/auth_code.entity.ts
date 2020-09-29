@@ -1,6 +1,6 @@
-import { OAuthUser } from "./user.entity";
-import { OAuthClient } from "./client.entity";
-import { OAuthScope } from "./scope.entity";
+import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthUser } from "~/entities/user.entity";
+import { OAuthClient } from "~/entities/client.entity";
 
 export interface OAuthAuthCode {
   token: string;

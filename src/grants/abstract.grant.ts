@@ -1,20 +1,25 @@
 import { DateInterval } from "@jmondi/date-interval";
 
-import { AuthorizationRequest } from "../requests";
-import {
-  OAuthAccessTokenRepository,
-  OAuthAuthCodeRepository,
-  OAuthClientRepository,
-  OAuthRefreshTokenRepository,
-  OAuthScopeRepository,
-  OAuthUserRepository,
-} from "../repositories";
-import { OAuthAccessToken, OAuthAuthCode, OAuthClient, OAuthRefreshToken, OAuthScope } from "../entities";
-import { OAuthException } from "../exceptions";
-import { arrayDiff, base64decode, JwtService } from "../utils";
-import { GrantIdentifier, GrantInterface } from "./grant.interface";
-import { ResponseInterface } from "../responses/response";
-import { RequestInterface } from "../requests/request";
+import { OAuthAccessToken } from "~/entities/access_token.entity";
+import { OAuthAuthCode } from "~/entities/auth_code.entity";
+import { OAuthClient } from "~/entities/client.entity";
+import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
+import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthException } from "~/exceptions/oauth.exception";
+import { GrantIdentifier, GrantInterface } from "~/grants/grant.interface";
+import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
+import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
+import { OAuthClientRepository } from "~/repositories/client.repository";
+import { OAuthRefreshTokenRepository } from "~/repositories/refresh_token.repository";
+import { OAuthScopeRepository } from "~/repositories/scope.repository";
+import { OAuthUserRepository } from "~/repositories/user.repository";
+import { AuthorizationRequest } from "~/requests/authorization.request";
+import { RequestInterface } from "~/requests/request";
+import { BearerTokenResponse } from "~/responses/bearer_token.response";
+import { ResponseInterface } from "~/responses/response";
+import { arrayDiff } from "~/utils/array";
+import { base64decode } from "~/utils/base64";
+import { JwtService } from "~/utils/jwt";
 
 export abstract class AbstractGrant implements GrantInterface {
   protected readonly scopeDelimiterString = " ";
@@ -33,32 +38,96 @@ export abstract class AbstractGrant implements GrantInterface {
     protected readonly jwt: JwtService,
   ) {}
 
+  protected async makeBearerTokenResponse(
+    client: OAuthClient,
+    accessToken: OAuthAccessToken,
+    refreshToken?: OAuthRefreshToken,
+    userId?: string | undefined,
+    scopes: OAuthScope[] = [],
+  ) {
+    const scope = scopes.map((scope) => scope.name).join(this.scopeDelimiterString);
+
+    const bearerTokenResponse = new BearerTokenResponse(accessToken);
+
+    const expiresAtMs = accessToken.expiresAt.getTime();
+    const expiresIn = Math.ceil((expiresAtMs - Date.now()) / 1000);
+
+    const encryptedAccessToken = await this.encrypt({
+      iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
+      sub: userId, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
+      aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
+      exp: Math.ceil(expiresAtMs / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
+      nbf: Math.ceil(Date.now() / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
+      iat: Math.ceil(Date.now() / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
+      jti: accessToken.token, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
+
+      // non standard claims
+      cid: client.name,
+      scope,
+    });
+
+    let encryptedRefreshToken: string | undefined = undefined;
+
+    if (refreshToken) {
+      encryptedRefreshToken = await this.encrypt({
+        client_id: client.id,
+        access_token_id: accessToken.token,
+        refresh_token_id: refreshToken.refreshToken,
+        scope,
+        user_id: userId,
+        expire_time: Math.ceil(expiresAtMs / 1000),
+      });
+    }
+
+    bearerTokenResponse.body = {
+      token_type: "Bearer",
+      expires_in: expiresIn,
+      access_token: encryptedAccessToken,
+      refresh_token: encryptedRefreshToken,
+      scope,
+    };
+
+    return bearerTokenResponse;
+  }
+
   protected async validateClient(request: RequestInterface): Promise<OAuthClient> {
     const [clientId, clientSecret] = this.getClientCredentials(request);
 
-    const isClientValid = await this.clientRepository.isClientValid(this.identifier, clientId, clientSecret);
+    const grantType = this.getGrantType(request);
 
-    if (!isClientValid) {
+    const client = await this.clientRepository.getClientByIdentifier(clientId);
+
+    const userValidationSuccess = await this.clientRepository.isClientValid(grantType, client, clientSecret);
+
+    if (!userValidationSuccess) {
       throw OAuthException.invalidClient();
     }
 
-    return this.clientRepository.getClientByIdentifier(clientId);
+    if (grantType === "client_credentials") {
+      if (!client.secret || !clientSecret || client.secret !== clientSecret) {
+        console.log({ grantType, clientSecret });
+        throw OAuthException.invalidClient();
+      }
+    }
+
+    return client;
   }
 
   protected getClientCredentials(request: RequestInterface): [string, string | undefined] {
     const [basicAuthUser, basicAuthPass] = this.getBasicAuthCredentials(request);
 
-    // @todo is this being body okay?
-    let clientId = request.body?.["client_id"] ?? basicAuthUser;
+    let clientId = this.getRequestParameter("client_id", request, basicAuthUser);
 
-    if (!clientId) throw OAuthException.invalidRequest("client_id");
+    if (!clientId) {
+      console.log({ clientId });
+      throw OAuthException.invalidRequest("client_id");
+    }
 
-    // @todo is this being body okay?
-    let clientSecret = request.body?.["client_secret"] ?? basicAuthPass;
+    let clientSecret = this.getRequestParameter("client_secret", request, basicAuthPass);
 
-    if (Array.isArray(clientId)) clientId = clientId[0];
+    if (Array.isArray(clientId) && clientId.length > 0) clientId = clientId[0];
 
-    if (Array.isArray(clientSecret)) clientSecret = clientSecret[0];
+    if (Array.isArray(clientSecret) && clientSecret.length > 0) clientSecret = clientSecret[0];
 
     return [clientId, clientSecret];
   }
@@ -156,16 +225,18 @@ export abstract class AbstractGrant implements GrantInterface {
     return refreshToken;
   }
 
-  // protected generateUniqueIdentifier(len = 40) {
-  //   return crypto.randomBytes(len).toString("hex");
-  // }
-
   protected getGrantType(request: RequestInterface): GrantIdentifier {
     const result =
       this.getRequestParameter("grant_type", request) ?? this.getQueryStringParameter("grant_type", request);
+
     if (!result || !this.supportedGrantTypes.includes(result)) {
       throw OAuthException.invalidRequest("grant_type");
     }
+
+    if (this.identifier !== result) {
+      throw OAuthException.invalidRequest("grant_type", "something went wrong"); // @todo remove the something went wrong
+    }
+
     return result;
   }
 
@@ -177,16 +248,16 @@ export abstract class AbstractGrant implements GrantInterface {
     return request.query?.[param] ?? defaultValue;
   }
 
-  protected encrypt(unencryptedData: string): Promise<string> {
+  protected encrypt(unencryptedData: string | Buffer | object): Promise<string> {
     return this.jwt.sign(unencryptedData);
   }
 
-  protected decrypt(encryptedData: string) {
-    return this.jwt.decode(encryptedData);
+  protected async decrypt(encryptedData: string) {
+    return await this.jwt.verify(encryptedData);
   }
 
   validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
-    throw new Error("not implemented error");
+    throw new Error("Grant does not support the request");
   }
 
   canRespondToAccessTokenRequest(request: RequestInterface): boolean {
@@ -198,16 +269,14 @@ export abstract class AbstractGrant implements GrantInterface {
   }
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
-    throw new Error("not implemented error");
+    throw new Error("Grant does not support the request");
   }
-
-  // not included in phpoauth
 
   async respondToAccessTokenRequest(
     request: RequestInterface,
     response: ResponseInterface,
     accessTokenTTL: DateInterval,
   ): Promise<ResponseInterface> {
-    throw new Error("not implemented error");
+    throw new Error("Grant does not support the request");
   }
 }

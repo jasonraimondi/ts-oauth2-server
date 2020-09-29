@@ -1,9 +1,11 @@
-import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
+import * as path from "path";
 
 const pkg = require("./package.json");
 
+const projectRoot = path.join(__dirname, "./");
+
 module.exports = {
-  entry: "./src/index.ts",
+  entry: projectRoot + "src/index.ts",
   target: "node",
   mode: "production",
   devtool: "source-map",
@@ -14,6 +16,7 @@ module.exports = {
         use: [{
           loader: "ts-loader",
           options: {
+            colors: true,
             configFile: "tsconfig.build.json",
           },
         }],
@@ -22,8 +25,10 @@ module.exports = {
     ],
   },
   resolve: {
+    alias: {
+      "~": projectRoot + "/src",
+    },
     extensions: [".ts", ".js"],
-    plugins: [new TsconfigPathsPlugin()],
   },
   output: {
     filename: pkg.main.replace("dist/", ""),
@@ -32,6 +37,5 @@ module.exports = {
   },
   optimization: {
     minimize: false,
-    // runtimeChunk: true,
   },
 };

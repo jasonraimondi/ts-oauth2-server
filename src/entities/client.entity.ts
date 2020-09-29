@@ -1,4 +1,4 @@
-import { GrantIdentifier } from "../grants/grant.interface";
+import { GrantIdentifier } from "~/grants/grant.interface";
 
 export interface OAuthClient {
   id: string;
@@ -6,5 +6,8 @@ export interface OAuthClient {
   name: string;
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
-  isConfidential: boolean;
+}
+
+export function isClientConfidential(client: OAuthClient): boolean {
+  return !!client.secret;
 }

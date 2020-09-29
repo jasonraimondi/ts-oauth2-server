@@ -1,4 +1,4 @@
-import { OAuthAccessToken } from "./access_token.entity";
+import { OAuthAccessToken } from "~/entities/access_token.entity";
 
 export interface OAuthRefreshToken {
   refreshToken: string;

@@ -17,7 +17,6 @@ npm install @jmondi/oauth2-server
 ## @TODO
 
 * fix: failure responses
-* fix: client isConfidential / pkce
 * tests: better (some) unit tests
 * feat: token introspection
 * feat: refresh grant

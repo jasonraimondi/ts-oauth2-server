@@ -1,4 +1,4 @@
-import { ICodeChallenge } from "./verifier";
+import { ICodeChallenge } from "~/code_verifiers/verifier";
 
 export class PlainVerifier implements ICodeChallenge {
   public readonly method = "plain";

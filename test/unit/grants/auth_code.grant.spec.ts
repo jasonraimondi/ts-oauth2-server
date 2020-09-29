@@ -1,7 +1,15 @@
+import { DateInterval } from "@jmondi/date-interval";
 import querystring from "querystring";
 import { decode } from "jsonwebtoken";
 
-import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "../../../src/grants";
+import { OAuthClient } from "~/entities/client.entity";
+import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
+import { AuthorizationRequest } from "~/requests/authorization.request";
+import { OAuthRequest } from "~/requests/request";
+import { OAuthResponse } from "~/responses/response";
+import { base64urlencode } from "~/utils/base64";
+import { JWT } from "~/utils/jwt";
+import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
@@ -10,12 +18,7 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
-import { JWT } from "../../../examples/in_memory/oauth_authorization_server";
-import { OAuthRequest } from "../../../src/requests/request";
-import { OAuthResponse } from "../../../src/responses";
-import { OAuthClient } from "../../../src/entities";
-import { inMemoryDatabase } from "../../../examples/in_memory/database";
-import { AuthorizationRequest } from "../../../src/requests";
+import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("authorization_code grant", () => {
   let client: OAuthClient;
@@ -33,9 +36,8 @@ describe("authorization_code grant", () => {
 
     client = {
       id: "authcodeclient",
-      isConfidential: false,
       name: "test auth code client",
-      secret: "super-secret-secret",
+      secret: undefined,
       redirectUris: ["http://localhost"],
       allowedGrants: ["authorization_code"],
     };
@@ -54,7 +56,50 @@ describe("authorization_code grant", () => {
   });
 
   describe("can respond to authorization request", () => {
-    it("succeeds with pkce s256", async () => {
+    let validQueryData: any;
+
+    beforeEach(() => {
+      validQueryData = {
+        response_type: "code",
+        client_id: client.id,
+        redirect_uri: "http://localhost",
+        state: "state-is-a-secret",
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+      };
+    });
+
+    it("returns true for valid request", async () => {
+      request = new OAuthRequest({ query: validQueryData });
+
+      expect(grant.canRespondToAuthorizationRequest(request)).toBe(true);
+    });
+
+    it("returns false for missing client_id", async () => {
+      request = new OAuthRequest({
+        query: {
+          ...validQueryData,
+          client_id: undefined,
+        },
+      });
+
+      expect(grant.canRespondToAuthorizationRequest(request)).toBe(false);
+    });
+
+    it("returns false when response_type !== code", async () => {
+      request = new OAuthRequest({
+        query: {
+          ...validQueryData,
+          response_type: undefined,
+        },
+      });
+
+      expect(grant.canRespondToAuthorizationRequest(request)).toBe(false);
+    });
+  });
+
+  describe("validate authorization request", () => {
+    it("is successful with s256 pkce", async () => {
       request = new OAuthRequest({
         query: {
           response_type: "code",
@@ -70,16 +115,59 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
       expect(authorizationRequest.client.id).toBe(client.id);
       expect(authorizationRequest.client.name).toBe(client.name);
-      expect(authorizationRequest.redirectUri).toBe("http://localhost")
-      expect(authorizationRequest.state).toBe("state-is-a-secret")
-      expect(authorizationRequest.codeChallenge).toBe(codeChallenge)
-      expect(authorizationRequest.codeChallengeMethod).toBe("S256")
-      expect(authorizationRequest.scopes).toStrictEqual([])
+      expect(authorizationRequest.redirectUri).toBe("http://localhost");
+      expect(authorizationRequest.state).toBe("state-is-a-secret");
+      expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
+      expect(authorizationRequest.codeChallengeMethod).toBe("S256");
+      expect(authorizationRequest.scopes).toStrictEqual([]);
+    });
+
+    it("is successful with plain pkce", async () => {
+      inMemoryDatabase.scopes.push({ name: "scope-1" });
+      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://localhost",
+          scope: "scope-1",
+          state: "state-is-a-secret",
+          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
+          code_challenge_method: "plain",
+        },
+      });
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.isAuthorizationApproved).toBe(false);
+      expect(authorizationRequest.client.id).toBe(client.id);
+      expect(authorizationRequest.client.name).toBe(client.name);
+      expect(authorizationRequest.redirectUri).toBe("http://localhost");
+      expect(authorizationRequest.state).toBe("state-is-a-secret");
+      expect(authorizationRequest.codeChallenge).toBe(base64urlencode(plainCodeChallenge));
+      expect(authorizationRequest.codeChallengeMethod).toBe("plain");
+      expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
+    });
+
+    it("throws when missing code_challenge pkce", async () => {
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://localhost",
+          state: "state-is-a-secret",
+          code_challenge_method: "plain",
+        },
+      });
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(
+        /The authorization server requires public clients to use PKCE RFC-7636/,
+      );
     });
   });
 
-  describe("validate authorization request", () => {
-    it("oh yeah", async () => {
+  describe("complete authorization request", () => {
+    it("is successful", async () => {
       const authorizationRequest = new AuthorizationRequest("authorization_code", client);
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.codeChallengeMethod = "S256";
@@ -94,10 +182,77 @@ describe("authorization_code grant", () => {
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://localhost");
       expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);
-    })
+    });
   });
 
-  // describe("complete authorization request", () => {});
+  describe("respond to access token request with code", () => {
+    let authorizationRequest: AuthorizationRequest;
+    let authorizationCode: string;
 
-  // describe("retrieve access token from code", () => {});
+    beforeEach(async () => {
+      authorizationRequest = new AuthorizationRequest("authorization_code", client);
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.redirectUri = "http://localhost";
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location);
+      authorizationCode = String(authorizeResponseQuery.code);
+    });
+
+    it("is successful with s256 pkce", async () => {
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeVerifier,
+        },
+      });
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(
+        request,
+        response,
+        new DateInterval({ hours: 1 }),
+      );
+
+      // assert
+      expectTokenResponse(accessTokenResponse);
+    });
+
+    // it("is successful with s256 pkce", async () => {
+    //   // act
+    //   request = new OAuthRequest({
+    //     body: {
+    //       grant_type: "authorization_code",
+    //       code: authorizationCode,
+    //       redirect_uri: authorizationRequest.redirectUri,
+    //       client_id: client.id,
+    //       code_verifier: codeVerifier,
+    //     },
+    //   });
+    //   const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval({ hours: 1 }));
+    //
+    //   // assert
+    //   expectTokenResponse(accessTokenResponse)
+    // });
+
+    it("throws for invalid code_verifier", async () => {
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeVerifier + "invalid",
+        },
+      });
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval({ hours: 1 }));
+
+      // assert
+      await expect(accessTokenResponse).rejects.toThrowError(/Failed to verify code challenge/);
+    });
+  });
 });

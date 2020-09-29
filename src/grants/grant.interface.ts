@@ -1,7 +1,8 @@
 import { DateInterval } from "@jmondi/date-interval";
-import { AuthorizationRequest } from "../requests";
-import { ResponseInterface } from "../responses/response";
-import { RequestInterface } from "../requests/request";
+
+import { AuthorizationRequest } from "~/requests/authorization.request";
+import { RequestInterface } from "~/requests/request";
+import { ResponseInterface } from "~/responses/response";
 
 export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token";
 

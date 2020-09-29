@@ -1,10 +1,10 @@
 import request from "supertest";
 import { Application } from "express";
 
-import { OAuthClient } from "../../src/entities";
+import { OAuthClient } from "~/entities/client.entity";
+import { REGEX_ACCESS_TOKEN } from "~/grants/auth_code.grant";
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import { inMemoryExpressApp } from "../../examples/in_memory/main";
-import { ACCESS_TOKEN_REGEX } from "./auth_code.grant.e2e-spec";
 
 describe.skip("refresh_token grant e2e", () => {
   let client: OAuthClient;
@@ -17,7 +17,6 @@ describe.skip("refresh_token grant e2e", () => {
 
     client = {
       id: "1",
-      isConfidential: false,
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
@@ -45,9 +44,9 @@ describe.skip("refresh_token grant e2e", () => {
         expect(response.body.expires_in).toBe(3600);
         expect(typeof response.body.access_token === "string").toBeTruthy();
         expect(response.body.access_token.split(".").length).toBe(3);
-        expect(response.body.access_token).toMatch(ACCESS_TOKEN_REGEX);
+        expect(response.body.access_token).toMatch(REGEX_ACCESS_TOKEN);
         expect(response.body.refresh_token).toBeTruthy();
-        expect(response.body.refresh_token).toMatch(ACCESS_TOKEN_REGEX);
+        expect(response.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
         // expect(response.body.scope).toBe("scope-1 scope-2")
       });
   });

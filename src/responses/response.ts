@@ -18,8 +18,6 @@ export interface ResponseInterface {
   get(field: string): string;
 
   set(field: string, value: string): void;
-
-  redirect(location: string): void;
 }
 
 export class OAuthResponse implements ResponseInterface {
@@ -37,11 +35,6 @@ export class OAuthResponse implements ResponseInterface {
     console.log({ headers: this.headers, field });
     return "";
     // return this.headers[field.toLowerCase()];
-  }
-
-  redirect(location: string): void {
-    this.set("Location", location);
-    this.status = 302;
   }
 
   set(fieldOrHeaders: string, value: any): void {

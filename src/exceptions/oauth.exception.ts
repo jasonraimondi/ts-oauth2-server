@@ -1,11 +1,9 @@
-import { RequestInterface } from "../requests/request";
-
 export const HttpStatus = {
   NOT_ACCEPTABLE: 406,
   BAD_REQUEST: 400,
-  FORBIDDEN: 403, // @todo check is this right
   UNAUTHORIZED: 401,
   INTERNAL_SERVER_ERROR: 500,
+  OK: 200,
 };
 
 export enum ErrorType {
@@ -38,8 +36,8 @@ export class OAuthException extends Error {
    */
   static invalidRequest(parameter: string, hint?: string): OAuthException {
     let message = "The request is missing a required parameter, includes an invalid parameter value, ";
-    message += "includes a parameter more than once, or is otherwise malformed.";
-    hint = hint ? `Check the \`${parameter}\` parameter` : hint;
+    message += "includes a parameter more than once, or is otherwise malformed";
+    hint = hint ? hint : `Check the \`${parameter}\` parameter`;
     return new OAuthException(message, ErrorType.InvalidRequest, hint, undefined, HttpStatus.NOT_ACCEPTABLE);
   }
 
@@ -60,7 +58,7 @@ export class OAuthException extends Error {
     let message = "The provided authorization grant (e.g., authorization_code, client_credentials) or refresh token ";
     message +=
       "is invalid, expired, revoked, or does not match the redirection URI used in the authorization request, ";
-    message += "or was issued to another client.";
+    message += "or was issued to another client";
     return new OAuthException(message, ErrorType.InvalidGrant, hint);
   }
 
