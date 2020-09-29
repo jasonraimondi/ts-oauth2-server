@@ -1,5 +1,4 @@
-import { DateInterval } from "@jmondi/date-interval";
-
+import { DateInterval } from "~/authorization_server";
 import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { OAuthClient } from "~/entities/client.entity";
@@ -185,7 +184,7 @@ export abstract class AbstractGrant implements GrantInterface {
   ): Promise<OAuthAccessToken> {
     const accessToken = await this.accessTokenRepository.getNewToken(client, scopes, userId);
 
-    accessToken.expiresAt = accessTokenTTL.end();
+    accessToken.expiresAt = accessTokenTTL.getEndDate();
 
     await this.accessTokenRepository.persistNewAccessToken(accessToken);
 
@@ -204,7 +203,7 @@ export abstract class AbstractGrant implements GrantInterface {
     const user = userIdentifier ? await this.userRepository.getByUserIdentifier(userIdentifier) : undefined;
 
     const authCode = await this.authCodeRepository.getNewAuthCode(client, user, scopes);
-    authCode.expiresAt = authCodeTTL.end();
+    authCode.expiresAt = authCodeTTL.getEndDate();
     authCode.redirectUri = redirectUri;
     authCode.codeChallenge = codeChallenge;
     authCode.codeChallengeMethod = codeChallengeMethod;

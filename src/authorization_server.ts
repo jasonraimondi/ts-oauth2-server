@@ -1,4 +1,4 @@
-import { DateInterval } from "@jmondi/date-interval";
+import ms from "ms";
 
 import { OAuthException } from "~/exceptions/oauth.exception";
 import { GrantInterface } from "~/grants/grant.interface";
@@ -6,12 +6,40 @@ import { AuthorizationRequest } from "~/requests/authorization.request";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";
 
+export type DateIntervalType = string;
+
+export class DateInterval {
+  public readonly init: number;
+  public readonly ms: number;
+
+  constructor(private readonly interval: DateIntervalType) {
+    this.init = Date.now();
+    this.ms = ms(interval);
+  }
+
+  getEndDate(): Date {
+    return new Date(this.getEndTimeMs());
+  }
+
+  getEndTimeMs(): number {
+    return this.init + this.ms;
+  }
+
+  getEndTimeSeconds(): number {
+    return Math.ceil(this.getEndTimeMs() / 1000);
+  }
+
+  getSeconds(): number {
+    return Math.ceil(this.ms / 1000);
+  }
+}
+
 export class AuthorizationServer {
   private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};
   private readonly grantTypeAccessTokenTTL: { [key: string]: DateInterval } = {};
 
   enableGrantType(grantType: GrantInterface, accessTokenTTL?: DateInterval) {
-    if (!accessTokenTTL) accessTokenTTL = new DateInterval("PT1H");
+    if (!accessTokenTTL) accessTokenTTL = new DateInterval("1h");
     this.enabledGrantTypes[grantType.identifier] = grantType;
     this.grantTypeAccessTokenTTL[grantType.identifier] = accessTokenTTL;
   }

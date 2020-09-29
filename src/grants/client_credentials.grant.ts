@@ -1,5 +1,4 @@
-import { DateInterval } from "@jmondi/date-interval";
-
+import { DateInterval } from "~/authorization_server";
 import { AbstractGrant } from "~/grants/abstract.grant";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";

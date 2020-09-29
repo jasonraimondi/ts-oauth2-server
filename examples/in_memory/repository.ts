@@ -1,5 +1,4 @@
-import { DateInterval } from "@jmondi/date-interval";
-
+import { DateInterval } from "~/authorization_server";
 import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { OAuthClient } from "~/entities/client.entity";
@@ -15,7 +14,7 @@ import { OAuthScopeRepository } from "~/repositories/scope.repository";
 import { OAuthUserRepository } from "~/repositories/user.repository";
 import { inMemoryDatabase } from "./database";
 
-const oneHourInFuture = new DateInterval({ hours: 1 }).end();
+const oneHourInFuture = (new DateInterval("1h")).getEndDate();
 
 export const inMemoryClientRepository: OAuthClientRepository = {
   async getClientByIdentifier(clientId: string): Promise<OAuthClient> {

@@ -1,5 +1,4 @@
-import { DateInterval } from "@jmondi/date-interval";
-
+import { DateInterval } from "~/authorization_server";
 import { PlainVerifier } from "~/code_verifiers/plain.verifier";
 import { S256Verifier } from "~/code_verifiers/s256.verifier";
 import { CodeChallengeMethod, ICodeChallenge } from "~/code_verifiers/verifier";
@@ -34,9 +33,7 @@ export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-\._~\+\/]+=*/g;
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantIdentifier = "authorization_code";
 
-  protected readonly authCodeTTL: DateInterval = new DateInterval({
-    minutes: 15,
-  });
+  protected readonly authCodeTTL: DateInterval = new DateInterval("15m");
 
   private codeChallengeVerifiers = {
     plain: new PlainVerifier(),
@@ -198,7 +195,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         auth_code_id: authCode.token,
         scopes: authCode.scopes.map((scope) => scope.name),
         user_id: authCode.userId,
-        expire_time: this.authCodeTTL.end().getTime() / 1000,
+        expire_time: this.authCodeTTL.getEndTimeSeconds(),
         code_challenge: authorizationRequest.codeChallenge,
         code_challenge_method: authorizationRequest.codeChallengeMethod,
       };

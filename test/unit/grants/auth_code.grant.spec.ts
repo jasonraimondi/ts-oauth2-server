@@ -1,6 +1,6 @@
-import { DateInterval } from "@jmondi/date-interval";
 import querystring from "querystring";
 import { decode } from "jsonwebtoken";
+import { DateInterval } from "~/authorization_server";
 
 import { OAuthClient } from "~/entities/client.entity";
 import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
@@ -214,7 +214,7 @@ describe("authorization_code grant", () => {
       const accessTokenResponse = await grant.respondToAccessTokenRequest(
         request,
         response,
-        new DateInterval({ hours: 1 }),
+        new DateInterval("1h"),
       );
 
       // assert
@@ -249,7 +249,7 @@ describe("authorization_code grant", () => {
           code_verifier: codeVerifier + "invalid",
         },
       });
-      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval({ hours: 1 }));
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
 
       // assert
       await expect(accessTokenResponse).rejects.toThrowError(/Failed to verify code challenge/);

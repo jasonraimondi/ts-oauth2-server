@@ -1,5 +1,4 @@
-import { DateInterval } from "@jmondi/date-interval";
-
+import { DateInterval } from "~/authorization_server";
 import { OAuthClient } from "~/entities/client.entity";
 import { REGEX_ACCESS_TOKEN } from "~/grants/auth_code.grant";
 import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
@@ -70,7 +69,7 @@ describe("client_credentials grant", () => {
         grant_type: "client_credentials",
       },
     });
-    const accessTokenTTL = new DateInterval("PT1H");
+    const accessTokenTTL = new DateInterval("1h");
 
     // act
     const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
@@ -88,7 +87,7 @@ describe("client_credentials grant", () => {
         client_secret: client.secret,
       },
     });
-    const accessTokenTTL = new DateInterval("PT1H");
+    const accessTokenTTL = new DateInterval("1h");
 
     // act
     const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
@@ -109,7 +108,7 @@ describe("client_credentials grant", () => {
         scope: "scope-1 scope-2",
       },
     });
-    const accessTokenTTL = new DateInterval("PT1H");
+    const accessTokenTTL = new DateInterval("1h");
 
     // act
     const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
@@ -130,7 +129,7 @@ describe("client_credentials grant", () => {
         scope: "scope-1 this-scope-doesnt-exist",
       },
     });
-    const accessTokenTTL = new DateInterval("PT1H");
+    const accessTokenTTL = new DateInterval("1h");
 
     // act
     const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
@@ -149,7 +148,7 @@ describe("client_credentials grant", () => {
         client_id: client.id,
       },
     });
-    const accessTokenTTL = new DateInterval("PT1H");
+    const accessTokenTTL = new DateInterval("1h");
 
     // act
     const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
@@ -166,7 +165,7 @@ describe("client_credentials grant", () => {
         client_id: client.id,
       },
     });
-    const accessTokenTTL = new DateInterval("PT1H");
+    const accessTokenTTL = new DateInterval("1h");
 
     // act
     const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
