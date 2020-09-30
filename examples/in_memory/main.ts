@@ -46,7 +46,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
   const response = new OAuthResponse(res);
   try {
-    const oauthResponse = await inMemoryAuthorizationServer.respondToAccessTokenRequest(req, response);
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
     return handleResponse(req, res, oauthResponse);
   } catch (e) {
     handleError(e, res);

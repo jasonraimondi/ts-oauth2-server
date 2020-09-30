@@ -1,32 +1,106 @@
 # Typescript OAuth2 Server
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/Tests?label=tests&style=flat-square)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/Tests?label=tests&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/test_coverage)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/maintainability)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
-![npm](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)
-
-
-## :construction_worker: This project is under development :construction:
+[![npm](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
 
 ## Installing
 
-```
+```bash
 npm install @jmondi/oauth2-server
 ```
 
 ## @TODO
 
-* fix: failure responses
-* tests: better (some) unit tests
+:construction_worker: This project is under development :construction:
+
 * feat: token introspection
-* feat: refresh grant
 * chore: documentation
+
+## Implementation
+
+See the [In Memory example that uses Express](./examples/in_memory)
+
+The server uses two endpoints, `GET /authorize` and `POST /token`. 
+
+```typescript
+const authorizationServer = new AuthorizationServer();
+authorizationServer.enableGrantType(new ClientCredentialsGrant(...);
+authorizationServer.enableGrantType(new AuthCodeGrant(...);
+authorizationServer.enableGrantType(new RefreshTokenGrant(...);
+```
+
+### Using in Express
+
+```typescript
+const app = Express();
+
+app.use(json());
+app.use(urlencoded({ extended: false }));
+```
+
+### The `/token` endpoint
+
+The `/token` endpoint is a back channel endpoint that issues an a useable access token.
+
+```typescript
+app.post("/token", async (req: Express.Request, res: Express.Response) => {
+  const response = new OAuthResponse(res);
+  try {
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
+    return handleResponse(req, res, oauthResponse);
+  } catch (e) {
+    handleError(e, res);
+    return;
+  }
+});
+```
+
+### The `/authorize` endpoint
+
+The `/authorize` endpoint is a front channel endpoint that issues an authorization code. The authorization code can then be exchanged to the `AuthorizationServer` endpoint for a useable access token.
+
+The endpoint should redirect the user to login, and then to accept the scopes requested by the application, and only when the user accepts, should it send the user back to the clients redirect uri. 
+
+
+```typescript
+app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
+  const request = new OAuthRequest(req);
+
+  try {
+    // Validate the HTTP request and return an AuthorizationRequest object.
+    const authRequest = await authorizationServer.validateAuthorizationRequest(request);
+
+    // The auth request object can be serialized and saved into a user's session.
+    // You will probably want to redirect the user at this point to a login endpoint.
+
+    // Once the user has logged in set the user on the AuthorizationRequest
+    console.log("Once the user has logged in set the user on the AuthorizationRequest");
+    const user = { identifier: "abc", email: "user@example.com" };
+    authRequest.user = user;
+
+    // At this point you should redirect the user to an authorization page.
+    // This form will ask the user to approve the client and the scopes requested.
+
+    // Once the user has approved or denied the client update the status
+    // (true = approved, false = denied)
+    authRequest.isAuthorizationApproved = true;
+
+    // Return the HTTP redirect response
+    const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
+    return handleResponse(req, res, oauthResponse);
+  } catch (e) {
+    handleError(e, res);
+  }
+});
+```
 
 ## Grants
 
 * `client_credentials` - when applications request an access token to access their own resources, not on behalf of a user.
 * `authorization_code` - a temporary code that the client will exchange for an access token. The user authorizes the application, they are redirected back to the application with a temporary code in the URL. The application exchanges that code for the access token. 
-* `refresh_token`
+* `refresh_token` - Access tokens eventually expire. The refresh_token enables the client to refresh the access token.
 
 ### Which Grant?
 
@@ -38,14 +112,28 @@ Deciding which grant to use depends on the type of client the end user will be u
 +-------+
     V
     |
+    
     |
-+---------------------+                +--------------------------+
-| Access token owner? |>---Machine---->| Client Credentials Grant |
-+---------------------+                +--------------------------+
++------------------------+              +-----------------------+
+| Have a refresh token?  |>----Yes----->|  Refresh Token Grant  |
++------------------------+              +-----------------------+
+    V
+    |
+    No
+    |
++---------------------+                
+|     Who is the      |                  +--------------------------+
+| Access token owner? |>---A Machine---->| Client Credentials Grant |
++---------------------+                  +--------------------------+
     V
     |
     |
-   User
+   A User
+    |
+    |
++----------------------+                
+| What type of client? |   
++----------------------+     
     |
     |                                 +---------------------------+
     |>-----------Server App---------->| Auth Code Grant with PKCE |
@@ -93,7 +181,7 @@ Pragma: no-cache
 
 ### Authorization Code Grant with PKCE
 
-read this 
+If the client is unable to keep a secret, the client secret should be undefined and **should not** be used during the authorization_code flow.
 
 - **response_type=code** – indicates that your server expects to receive an authorization code
 - **client_id=** – The client ID you received when you first created the application
@@ -181,6 +269,10 @@ Content-Type: application/json; charset=utf-8
 ```
 
 ## Sources
+
+This project was heavily influenced by the [PHP League OAuth2 Server](https://oauth2.thephpleague.com/) and shares a lot of the same ideas.
+
+https://github.com/thephpleague/oauth2-server
 
 https://tools.ietf.org/html/rfc6749#section-4.4
 
