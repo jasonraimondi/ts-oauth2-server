@@ -20,6 +20,7 @@ describe.skip("auth_code grant e2e", () => {
       secret: undefined,
       redirectUris: ["http://localhost"],
       allowedGrants: ["authorization_code"],
+      scopes: [],
     };
 
     app = inMemoryExpressApp;

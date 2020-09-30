@@ -40,6 +40,7 @@ describe("authorization_code grant", () => {
       secret: undefined,
       redirectUris: ["http://localhost"],
       allowedGrants: ["authorization_code"],
+      scopes: [],
     };
 
     grant = new AuthCodeGrant(
@@ -164,6 +165,24 @@ describe("authorization_code grant", () => {
         /The authorization server requires public clients to use PKCE RFC-7636/,
       );
     });
+
+    it("throws for invalid code_challenge pkce format", async () => {
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://localhost",
+          state: "state-is-a-secret",
+          code_challenge: "invalid-format(with!Invalid~characters",
+          code_challenge_method: "S256",
+        },
+      });
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(
+        /Code challenge must follow the specifications of RFC-7636 and match/,
+      );
+    });
   });
 
   describe("complete authorization request", () => {
@@ -183,6 +202,8 @@ describe("authorization_code grant", () => {
       expect(decodedCode.redirect_uri).toBe("http://localhost");
       expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);
     });
+
+    // it("uses clients redirect url if request ", async () => {});
   });
 
   describe("respond to access token request with code", () => {
@@ -217,24 +238,39 @@ describe("authorization_code grant", () => {
       expectTokenResponse(accessTokenResponse);
     });
 
-    // it("is successful with s256 pkce", async () => {
-    //   // act
-    //   request = new OAuthRequest({
-    //     body: {
-    //       grant_type: "authorization_code",
-    //       code: authorizationCode,
-    //       redirect_uri: authorizationRequest.redirectUri,
-    //       client_id: client.id,
-    //       code_verifier: codeVerifier,
-    //     },
-    //   });
-    //   const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval({ hours: 1 }));
-    //
-    //   // assert
-    //   expectTokenResponse(accessTokenResponse)
-    // });
+    it("is successful with s256 plain", async () => {
+      authorizationRequest = new AuthorizationRequest("authorization_code", client);
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "plain";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.redirectUri = "http://localhost";
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location);
+      authorizationCode = String(authorizeResponseQuery.code);
 
-    it("throws for invalid code_verifier", async () => {
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeChallenge,
+        },
+      });
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+
+      // assert
+      expectTokenResponse(accessTokenResponse);
+    });
+
+    it("throws for confidential client when no secret is included in request", async () => {
+      client = {
+        ...client,
+        secret: "auth-code-with-seccret",
+      };
+      inMemoryDatabase.clients[client.id] = client;
+
       // act
       request = new OAuthRequest({
         body: {
@@ -243,6 +279,42 @@ describe("authorization_code grant", () => {
           redirect_uri: authorizationRequest.redirectUri,
           client_id: client.id,
           code_verifier: codeVerifier + "invalid",
+        },
+      });
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+
+      // assert
+      await expect(accessTokenResponse).rejects.toThrowError(/Client authentication failed/);
+    });
+
+    it("throws for invalid code_verifier format", async () => {
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: "invalid",
+        },
+      });
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+
+      // assert
+      await expect(accessTokenResponse).rejects.toThrowError(
+        /Code verifier must follow the specifications of RFS-7636/,
+      );
+    });
+
+    it("throws for incorrect code_verifier", async () => {
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeVerifier + "broken",
         },
       });
       const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));

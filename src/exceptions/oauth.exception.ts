@@ -34,19 +34,25 @@ export class OAuthException extends Error {
    * may also be returned if the request includes an unsupported parameter or repeats a
    * parameter.
    */
-  static invalidRequest(parameter: string, hint?: string): OAuthException {
+  static invalidRequest(parameter: string, errorDescription?: string): OAuthException {
     let message = "The request is missing a required parameter, includes an invalid parameter value, ";
     message += "includes a parameter more than once, or is otherwise malformed";
-    hint = hint ? hint : `Check the \`${parameter}\` parameter`;
-    return new OAuthException(message, ErrorType.InvalidRequest, hint, undefined, HttpStatus.NOT_ACCEPTABLE);
+    errorDescription = errorDescription ? errorDescription : `Check the \`${parameter}\` parameter`;
+    return new OAuthException(message, ErrorType.InvalidRequest, errorDescription);
   }
 
   /**
    * Client authentication failed, such as if the request contains an invalid client ID or
    * secret. Send an HTTP 401 response in this case.
    */
-  static invalidClient() {
-    return new OAuthException("Client authentication failed", ErrorType.InvalidClient);
+  static invalidClient(errorDescription?: string) {
+    return new OAuthException(
+      "Client authentication failed",
+      ErrorType.InvalidClient,
+      errorDescription,
+      undefined,
+      HttpStatus.UNAUTHORIZED,
+    );
   }
 
   /**
@@ -54,12 +60,12 @@ export class OAuthException extends Error {
    * expired. This is also the error you would return if the redirect URL given in the
    * authorization grant does not match the URL provided in this access token request.
    */
-  static invalidGrant(hint?: string) {
+  static invalidGrant(errorDescription?: string) {
     let message = "The provided authorization grant (e.g., authorization_code, client_credentials) or refresh token ";
     message +=
       "is invalid, expired, revoked, or does not match the redirection URI used in the authorization request, ";
     message += "or was issued to another client";
-    return new OAuthException(message, ErrorType.InvalidGrant, hint);
+    return new OAuthException(message, ErrorType.InvalidGrant, errorDescription);
   }
 
   /**

@@ -2,13 +2,13 @@ import { DateInterval } from "~/authorization_server";
 import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
-import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
+import { OAuthScope } from "~/entities/scope.entity";
 import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { JWT } from "~/utils/jwt";
+
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
-import { clientCredentialsGrant } from "../../../examples/in_memory/oauth_authorization_server";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
@@ -21,6 +21,11 @@ import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("refresh_token grant", () => {
   let client: OAuthClient;
+  let accessToken: OAuthAccessToken;
+  let refreshToken: OAuthRefreshToken;
+  let scope1: OAuthScope;
+  let scope2: OAuthScope;
+
   let grant: RefreshTokenGrant;
 
   let request: OAuthRequest;
@@ -30,13 +35,32 @@ describe("refresh_token grant", () => {
     request = new OAuthRequest();
     response = new OAuthResponse();
 
+    scope1 = { name: "scope-1" };
+    scope2 = { name: "scope-2" };
     client = {
       id: "a854eb18-c3df-41a3-ab6b-5d96f787f105",
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["refresh_token"],
+      scopes: [scope1, scope2],
     };
+    accessToken = {
+      client,
+      expiresAt: DateInterval.getDateEnd("1h"),
+      scopes: [scope1, scope2],
+      token: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
+    };
+    refreshToken = {
+      refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
+      accessToken,
+      expiresAt: DateInterval.getDateEnd("1h"),
+    };
+    inMemoryDatabase.scopes[scope1.name] = scope1;
+    inMemoryDatabase.scopes[scope2.name] = scope2;
+    inMemoryDatabase.clients[client.id] = client;
+    inMemoryDatabase.accessTokens[accessToken.token] = accessToken;
+    inMemoryDatabase.refreshTokens[refreshToken.refreshToken] = refreshToken;
 
     grant = new RefreshTokenGrant(
       inMemoryClientRepository,
@@ -47,33 +71,18 @@ describe("refresh_token grant", () => {
       inMemoryUserRepository,
       new JWT("secret-key"),
     );
-
-    inMemoryDatabase.clients[client.id] = client;
   });
 
-  it("successfully grants using basic auth", async () => {
+  it("successful with scope", async () => {
     // arrange
-    const accessToken: OAuthAccessToken = {
-      client,
-      expiresAt: DateInterval.getDateEnd("1h"),
-      scopes: [],
-      token: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
-    };
-    const refreshToken: OAuthRefreshToken = {
-      refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
-      accessToken,
-      expiresAt: DateInterval.getDateEnd("1h"),
-    };
-    inMemoryDatabase.accessTokens[accessToken.token] = accessToken;
-    inMemoryDatabase.refreshTokens[refreshToken.refreshToken] = refreshToken;
     const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken, refreshToken);
-
     request = new OAuthRequest({
       body: {
         grant_type: "refresh_token",
         client_id: client.id,
         client_secret: client.secret,
         refresh_token: bearerResponse.body.refresh_token,
+        scope: "scope-1",
       },
     });
     const accessTokenTTL = new DateInterval("1h");
@@ -83,6 +92,34 @@ describe("refresh_token grant", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.scope).toBe("scope-1");
+  });
+
+  it("throws for resigned token", async () => {
+    // arrange
+    const jwt = new JWT("different secret");
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken, refreshToken);
+    // @ts-ignore
+    const decoded: any = await jwt.decode(bearerResponse.body.refresh_token);
+    decoded.expire_time = decoded.expire_time + 10000000; // extend the expire date
+    decoded.scope = "admin made-up-scope";
+    const reEncodedToken = await jwt.sign(decoded);
+
+    request = new OAuthRequest({
+      body: {
+        grant_type: "refresh_token",
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: reEncodedToken,
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+
+    // assert
+    await expect(tokenResponse).rejects.toThrowError(/Cannot verify the refresh token/);
   });
 
   it("throws for invalid refresh token format", async () => {

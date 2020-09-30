@@ -1,7 +1,7 @@
 import { DateInterval } from "~/authorization_server";
 import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
-import { OAuthClient } from "~/entities/client.entity";
+import { isClientConfidential, OAuthClient } from "~/entities/client.entity";
 import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthException } from "~/exceptions/oauth.exception";
@@ -99,6 +99,10 @@ export abstract class AbstractGrant implements GrantInterface {
     const grantType = this.getGrantType(request);
 
     const client = await this.clientRepository.getClientByIdentifier(clientId);
+
+    if (isClientConfidential(client) && !clientSecret) {
+      throw OAuthException.invalidClient("Confidential clients require client_secret.");
+    }
 
     const userValidationSuccess = await this.clientRepository.isClientValid(grantType, client, clientSecret);
 
@@ -251,7 +255,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return request.query?.[param] ?? defaultValue;
   }
 
-  protected encrypt(unencryptedData: string | Buffer | object): Promise<string> {
+  protected encrypt(unencryptedData: string | Buffer | Record<string, unknown>): Promise<string> {
     return this.jwt.sign(unencryptedData);
   }
 
@@ -259,6 +263,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return await this.jwt.verify(encryptedData);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
     throw new Error("Grant does not support the request");
   }
@@ -267,18 +272,20 @@ export abstract class AbstractGrant implements GrantInterface {
     return this.getRequestParameter("grant_type", request) === this.identifier;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
     return false;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
 
   async respondToAccessTokenRequest(
-    request: RequestInterface,
-    response: ResponseInterface,
-    accessTokenTTL: DateInterval,
+    req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }

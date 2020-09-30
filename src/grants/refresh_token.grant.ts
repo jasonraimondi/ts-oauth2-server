@@ -52,7 +52,14 @@ export class RefreshTokenGrant extends AbstractGrant {
     try {
       refreshTokenData = await this.decrypt(encryptedRefreshToken);
     } catch (e) {
+      if (e.message === "invalid signature") {
+        throw OAuthException.invalidRequest("refresh_token", "Cannot verify the refresh token");
+      }
       throw OAuthException.invalidRequest("refresh_token", "Cannot decrypt the refresh token");
+    }
+
+    if (!refreshTokenData?.refresh_token_id) {
+      throw OAuthException.invalidRequest("refresh_token", "Token missing");
     }
 
     if (refreshTokenData?.client_id !== clientId) {
@@ -61,10 +68,6 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     if (Date.now() / 1000 > refreshTokenData?.expire_time) {
       throw OAuthException.invalidRequest("refresh_token", "Token has expired");
-    }
-
-    if (!refreshTokenData?.refresh_token_id) {
-      throw OAuthException.invalidRequest("refresh_token", "Token missing");
     }
 
     const refreshToken = await this.refreshTokenRepository.getRefreshToken(refreshTokenData.refresh_token_id);

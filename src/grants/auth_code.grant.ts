@@ -176,7 +176,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
-    const redirectUri = authorizationRequest.redirectUri ?? this.getClientRedirectUri(authorizationRequest);
+    const redirectUri = authorizationRequest.redirectUri;
+
+    if (!redirectUri) {
+      throw OAuthException.invalidRequest("redirect_uri");
+    }
 
     if (authorizationRequest.isAuthorizationApproved) {
       const authCode = await this.issueAuthCode(
@@ -221,12 +225,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("code", "Authorization code malformed");
     }
 
-    if (Date.now() / 1000 > payload.expire_time) {
-      throw OAuthException.invalidRequest("code", "Authorization code has expired");
-    }
-
-    if (await this.authCodeRepository.isAuthCodeRevoked(payload.auth_code_id)) {
-      throw OAuthException.invalidRequest("code", "Authorization code has expired");
+    if (
+      Date.now() / 1000 > payload.expire_time ||
+      (await this.authCodeRepository.isAuthCodeRevoked(payload.auth_code_id))
+    ) {
+      throw OAuthException.invalidRequest("code", "Authorization code is expired or revoked");
     }
 
     if (payload.client_id !== client.id) {
@@ -242,10 +245,5 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("redirect_uri", "Invalid redirect URI");
     }
     return payload;
-  }
-
-  private getClientRedirectUri(authorizationRequest: AuthorizationRequest): string {
-    if (authorizationRequest.client.redirectUris.length === 0) throw OAuthException.invalidRequest("redirect_uri");
-    return authorizationRequest.client.redirectUris[0];
   }
 }
