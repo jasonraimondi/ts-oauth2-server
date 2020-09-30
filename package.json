@@ -1,5 +1,5 @@
 {
-  "version": "0.0.3-beta.2",
+  "version": "0.1.0-beta.0",
   "license": "MIT",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi",
