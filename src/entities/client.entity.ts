@@ -1,5 +1,5 @@
 import { OAuthScope } from "~/entities/scope.entity";
-import { GrantIdentifier } from "~/grants/grant.interface";
+import { GrantIdentifier } from "~/grants/abstract/grant.interface";
 
 export interface OAuthClient {
   id: string;

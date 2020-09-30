@@ -5,7 +5,7 @@ import { isClientConfidential, OAuthClient } from "~/entities/client.entity";
 import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthException } from "~/exceptions/oauth.exception";
-import { GrantIdentifier, GrantInterface } from "~/grants/grant.interface";
+import { GrantIdentifier, GrantInterface } from "~/grants/abstract/grant.interface";
 import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
 import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
 import { OAuthClientRepository } from "~/repositories/client.repository";

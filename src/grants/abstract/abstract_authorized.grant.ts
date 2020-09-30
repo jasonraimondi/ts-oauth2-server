@@ -1,6 +1,6 @@
 import querystring, { ParsedUrlQueryInput } from "querystring";
 
-import { AbstractGrant } from "~/grants/abstract.grant";
+import { AbstractGrant } from "~/grants/abstract/abstract.grant";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   makeRedirectUrl(uri: string, params: ParsedUrlQueryInput, queryDelimiter = "?") {

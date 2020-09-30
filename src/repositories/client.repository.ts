@@ -1,5 +1,5 @@
 import { OAuthClient } from "~/entities/client.entity";
-import { GrantIdentifier } from "~/grants/grant.interface";
+import { GrantIdentifier } from "~/grants/abstract/grant.interface";
 
 export interface OAuthClientRepository {
   getClientByIdentifier(clientId: string): Promise<OAuthClient>;

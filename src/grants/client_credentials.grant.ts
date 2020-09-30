@@ -1,5 +1,5 @@
 import { DateInterval } from "~/authorization_server";
-import { AbstractGrant } from "~/grants/abstract.grant";
+import { AbstractGrant } from "~/grants/abstract/abstract.grant";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";
 

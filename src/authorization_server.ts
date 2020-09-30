@@ -1,7 +1,7 @@
 import ms from "ms";
 
 import { OAuthException } from "~/exceptions/oauth.exception";
-import { GrantInterface } from "~/grants/grant.interface";
+import { GrantInterface } from "~/grants/abstract/grant.interface";
 import { AuthorizationRequest } from "~/requests/authorization.request";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";

@@ -5,7 +5,7 @@ import { OAuthClient } from "~/entities/client.entity";
 import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthUser } from "~/entities/user.entity";
-import { GrantIdentifier } from "~/grants/grant.interface";
+import { GrantIdentifier } from "~/grants/abstract/grant.interface";
 import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
 import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
 import { OAuthClientRepository } from "~/repositories/client.repository";

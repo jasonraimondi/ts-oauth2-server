@@ -1,7 +1,7 @@
 import { DateInterval } from "~/authorization_server";
 import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 import { OAuthException } from "~/exceptions/oauth.exception";
-import { AbstractGrant } from "~/grants/abstract.grant";
+import { AbstractGrant } from "~/grants/abstract/abstract.grant";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";
 
