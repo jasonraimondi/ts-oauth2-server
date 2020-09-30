@@ -117,7 +117,14 @@ export const inMemoryAuthCodeRepository: OAuthAuthCodeRepository = {
 };
 
 export const inMemoryUserRepository: OAuthUserRepository = {
-  async getByUserIdentifier(userIdentifier: string): Promise<OAuthUser> {
-    return inMemoryDatabase.users[userIdentifier];
+  async getByUserEntityByCredentials(
+    identifier: string,
+    password?: string,
+    grantType?: GrantIdentifier,
+    client?: OAuthClient,
+  ): Promise<OAuthUser|undefined> {
+    const user = inMemoryDatabase.users[identifier];
+    if (user?.password !== password) return;
+    return user;
   },
 };

@@ -172,6 +172,6 @@ describe("client_credentials grant", () => {
     const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(tokenResponse).rejects.toThrowError(/The request is missing a required parameter/);
+    await expect(tokenResponse).rejects.toThrowError(/Check the `grant_type` parameter/);
   });
 });

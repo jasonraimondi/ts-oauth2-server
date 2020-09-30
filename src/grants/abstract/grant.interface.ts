@@ -3,7 +3,7 @@ import { AuthorizationRequest } from "~/requests/authorization.request";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";
 
-export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token";
+export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token" | "password" | "implicit";
 
 export interface GrantInterface {
   identifier: GrantIdentifier;

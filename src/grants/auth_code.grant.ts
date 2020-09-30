@@ -57,7 +57,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const userId = validatedPayload.user_id;
 
-    const user = userId ? await this.userRepository.getByUserIdentifier(userId) : undefined;
+    const user = userId ? await this.userRepository.getByUserEntityByCredentials(userId) : undefined;
 
     const scopes: OAuthScope[] = [];
 

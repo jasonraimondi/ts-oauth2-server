@@ -27,6 +27,8 @@ export abstract class AbstractGrant implements GrantInterface {
     "client_credentials",
     "authorization_code",
     "refresh_token",
+    "password",
+    "implicit",
   ];
 
   abstract readonly identifier: GrantIdentifier;
@@ -208,7 +210,7 @@ export abstract class AbstractGrant implements GrantInterface {
     codeChallengeMethod?: string,
     scopes: OAuthScope[] = [],
   ): Promise<OAuthAuthCode> {
-    const user = userIdentifier ? await this.userRepository.getByUserIdentifier(userIdentifier) : undefined;
+    const user = userIdentifier ? await this.userRepository.getByUserEntityByCredentials(userIdentifier) : undefined;
 
     const authCode = await this.authCodeRepository.getNewAuthCode(client, user, scopes);
     authCode.expiresAt = authCodeTTL.getEndDate();
