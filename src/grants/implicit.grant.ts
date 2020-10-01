@@ -10,7 +10,7 @@ import { getSecondsUntil } from "~/utils/time";
 export class ImplicitGrant extends AbstractAuthorizedGrant {
   readonly identifier = "implicit";
 
-  protected accessTokenTTL: DateInterval = new DateInterval("1h");
+  private accessTokenTTL: DateInterval = new DateInterval("1h");
 
   set tokenTTL(interval: DateInterval) {
     this.accessTokenTTL = interval;
@@ -71,6 +71,10 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       finalRedirectUri = authorizationRequest.client?.redirectUris[0];
     }
 
+    if (!finalRedirectUri) {
+      throw OAuthException.invalidRequest("redirect_uri", "Neither the request nor the client contain a valid refresh token")
+    }
+
     if (!authorizationRequest.isAuthorizationApproved) {
       throw OAuthException.accessDenied();
     }
@@ -83,7 +87,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     );
 
     const accessToken = await this.issueAccessToken(
-      this.tokenTTL,
+      this.accessTokenTTL,
       authorizationRequest.client,
       authorizationRequest.user,
       finalizedScopes,

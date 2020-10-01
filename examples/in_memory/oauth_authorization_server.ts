@@ -6,14 +6,12 @@ import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
-  inMemoryRefreshTokenRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "./repository";
 
 const clientRepository = inMemoryClientRepository;
 const accessTokenRepository = inMemoryAccessTokenRepository;
-const refreshTokenRepository = inMemoryRefreshTokenRepository;
 const authCodeRepository = inMemoryAuthCodeRepository;
 const scopeRepository = inMemoryScopeRepository;
 const userRepository = inMemoryUserRepository;
@@ -23,7 +21,6 @@ const jwtService = new JWT("secret secret secret");
 export const clientCredentialsGrant = new ClientCredentialsGrant(
   clientRepository,
   accessTokenRepository,
-  refreshTokenRepository,
   authCodeRepository,
   scopeRepository,
   userRepository,
@@ -33,7 +30,6 @@ export const clientCredentialsGrant = new ClientCredentialsGrant(
 export const authCodeGrant = new AuthCodeGrant(
   clientRepository,
   accessTokenRepository,
-  refreshTokenRepository,
   authCodeRepository,
   scopeRepository,
   userRepository,

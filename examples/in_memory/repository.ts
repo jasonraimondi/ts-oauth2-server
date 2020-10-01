@@ -67,7 +67,7 @@ export const inMemoryAccessTokenRepository: OAuthAccessTokenRepository = {
   },
   // @todo
   async getRefreshToken(refreshTokenToken: string): Promise<OAuthAccessToken> {
-    const token = Object.values(inMemoryDatabase.tokens).find(token => token.refreshToken === refreshTokenToken);
+    const token = Object.values(inMemoryDatabase.tokens).find((token) => token.refreshToken === refreshTokenToken);
     if (!token) throw new Error("token not found");
     return token;
   },

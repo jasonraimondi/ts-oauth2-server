@@ -18,7 +18,19 @@ import { ResponseInterface } from "~/responses/response";
 import { arrayDiff } from "~/utils/array";
 import { base64decode } from "~/utils/base64";
 import { JwtService } from "~/utils/jwt";
-import { getSecondsUntil } from "~/utils/time";
+import { getSecondsUntil, roundToSeconds } from "~/utils/time";
+
+export interface ITokenData {
+  iss: undefined;
+  sub: string | undefined;
+  aud: undefined;
+  exp: number;
+  nbf: number;
+  iat: number;
+  jti: string;
+  cid: string;
+  scope: string;
+}
 
 export abstract class AbstractGrant implements GrantInterface {
   protected readonly scopeDelimiterString = " ";
@@ -80,14 +92,13 @@ export abstract class AbstractGrant implements GrantInterface {
   }
 
   protected encryptAccessToken(client: OAuthClient, accessToken: OAuthAccessToken, scopes: OAuthScope[]) {
-    const expiresAtMs = accessToken.accessTokenExpiresAt.getTime();
-    return this.encrypt({
+    return this.encrypt(<ITokenData | any>{
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
       sub: accessToken.user?.identifier, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
-      exp: Math.ceil(expiresAtMs / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
-      nbf: Math.ceil(Date.now() / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
-      iat: Math.ceil(Date.now() / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
+      exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
+      nbf: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
+      iat: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
       jti: accessToken.accessToken, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
 
       // non standard claims

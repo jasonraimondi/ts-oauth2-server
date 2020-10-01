@@ -1,4 +1,8 @@
 export function getSecondsUntil(date: Date) {
-  const expiresAtMs = date.getTime();
-  return Math.ceil((expiresAtMs - Date.now()) / 1000);
+  return roundToSeconds(date.getTime() - Date.now());
+}
+
+export function roundToSeconds(ms: Date | number) {
+  if (ms instanceof Date) ms = ms.getTime();
+  return Math.ceil(ms / 1000);
 }
