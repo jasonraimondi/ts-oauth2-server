@@ -174,7 +174,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
   protected validateRedirectUri(redirectUri: string, client: OAuthClient) {
     if (redirectUri === "" || !client.redirectUris.includes(redirectUri)) {
-      throw OAuthException.invalidClient();
+      throw OAuthException.invalidClient("Invalid redirect_uri");
     }
   }
 

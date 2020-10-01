@@ -77,7 +77,7 @@ export class OAuthException extends Error {
     const message = "The requested scope is invalid, unknown, or malformed";
     let hint = "Specify a scope in the request or set a default scope";
     if (scope) {
-      hint = `Check the \`${scope}\` scope`;
+      hint = `Check the \`${scope}\` scope(s)`;
     }
     return new OAuthException(message, ErrorType.InvalidScope, hint, redirectUri);
   }
