@@ -19,6 +19,7 @@ import { ResponseInterface } from "~/responses/response";
 import { arrayDiff } from "~/utils/array";
 import { base64decode } from "~/utils/base64";
 import { JwtService } from "~/utils/jwt";
+import { getSecondsUntil } from "~/utils/time";
 
 export abstract class AbstractGrant implements GrantInterface {
   protected readonly scopeDelimiterString = " ";
@@ -43,23 +44,48 @@ export abstract class AbstractGrant implements GrantInterface {
     protected readonly jwt: JwtService,
   ) {}
 
-  async makeBearerTokenResponse(
-    client: OAuthClient,
-    accessToken: OAuthAccessToken,
-    refreshToken?: OAuthRefreshToken,
-    userId?: string | undefined,
-    scopes: OAuthScope[] = [],
-  ) {
+  async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthAccessToken, scopes: OAuthScope[] = []) {
     const scope = scopes.map((scope) => scope.name).join(this.scopeDelimiterString);
+
+    const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes);
+
+    let encryptedRefreshToken: string | undefined = undefined;
+
+    if (accessToken.refreshToken) {
+      encryptedRefreshToken = await this.encryptRefreshToken(client, accessToken.refreshToken, scopes);
+    }
 
     const bearerTokenResponse = new BearerTokenResponse(accessToken);
 
-    const expiresAtMs = accessToken.expiresAt.getTime();
-    const expiresIn = Math.ceil((expiresAtMs - Date.now()) / 1000);
+    bearerTokenResponse.body = {
+      token_type: "Bearer",
+      expires_in: getSecondsUntil(accessToken.expiresAt),
+      access_token: encryptedAccessToken,
+      refresh_token: encryptedRefreshToken,
+      scope,
+    };
 
-    const encryptedAccessToken = await this.encrypt({
+    return bearerTokenResponse;
+  }
+
+  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthRefreshToken, scopes: OAuthScope[]) {
+    const expiresAtMs = refreshToken.expiresAt.getTime();
+    return this.encrypt({
+      client_id: client.id,
+      access_token_id: refreshToken.accessToken.token,
+      refresh_token_id: refreshToken.refreshToken,
+      scope: scopes.map((scope) => scope.name).join(this.scopeDelimiterString),
+      user_id: refreshToken.accessToken.user?.identifier,
+      expire_time: Math.ceil(expiresAtMs / 1000),
+      // token_version: 1, // @todo token version?
+    });
+  }
+
+  protected encryptAccessToken(client: OAuthClient, accessToken: OAuthAccessToken, scopes: OAuthScope[]) {
+    const expiresAtMs = accessToken.expiresAt.getTime();
+    return this.encrypt({
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
-      sub: userId, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
+      sub: accessToken.user?.identifier, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
       exp: Math.ceil(expiresAtMs / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
       nbf: Math.ceil(Date.now() / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
@@ -68,31 +94,8 @@ export abstract class AbstractGrant implements GrantInterface {
 
       // non standard claims
       cid: client.name,
-      scope,
+      scope: scopes.map((scope) => scope.name).join(this.scopeDelimiterString),
     });
-
-    let encryptedRefreshToken: string | undefined = undefined;
-
-    if (refreshToken) {
-      encryptedRefreshToken = await this.encrypt({
-        client_id: client.id,
-        access_token_id: accessToken.token,
-        refresh_token_id: refreshToken.refreshToken,
-        scope,
-        user_id: userId,
-        expire_time: Math.ceil(expiresAtMs / 1000),
-      });
-    }
-
-    bearerTokenResponse.body = {
-      token_type: "Bearer",
-      expires_in: expiresIn,
-      access_token: encryptedAccessToken,
-      refresh_token: encryptedRefreshToken,
-      scope,
-    };
-
-    return bearerTokenResponse;
   }
 
   protected async validateClient(request: RequestInterface): Promise<OAuthClient> {
@@ -128,7 +131,6 @@ export abstract class AbstractGrant implements GrantInterface {
     let clientId = this.getRequestParameter("client_id", request, basicAuthUser);
 
     if (!clientId) {
-      console.log({ clientId });
       throw OAuthException.invalidRequest("client_id");
     }
 
@@ -167,7 +169,7 @@ export abstract class AbstractGrant implements GrantInterface {
     }
   }
 
-  protected async validateScopes(scopes: string | string[], redirectUri?: string): Promise<OAuthScope[]> {
+  protected async validateScopes(scopes: string | string[] = [], redirectUri?: string): Promise<OAuthScope[]> {
     if (typeof scopes === "string") {
       scopes = scopes.split(this.scopeDelimiterString);
     }

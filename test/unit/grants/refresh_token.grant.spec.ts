@@ -56,6 +56,7 @@ describe("refresh_token grant", () => {
       accessToken,
       expiresAt: DateInterval.getDateEnd("1h"),
     };
+    accessToken.refreshToken = refreshToken;
     inMemoryDatabase.scopes[scope1.name] = scope1;
     inMemoryDatabase.scopes[scope2.name] = scope2;
     inMemoryDatabase.clients[client.id] = client;
@@ -75,7 +76,7 @@ describe("refresh_token grant", () => {
 
   it("successful with scope", async () => {
     // arrange
-    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken, refreshToken);
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
     request = new OAuthRequest({
       body: {
         grant_type: "refresh_token",
@@ -98,7 +99,7 @@ describe("refresh_token grant", () => {
   it("throws for resigned token", async () => {
     // arrange
     const jwt = new JWT("different secret");
-    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken, refreshToken);
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
     // @ts-ignore
     const decoded: any = await jwt.decode(bearerResponse.body.refresh_token);
     decoded.expire_time = decoded.expire_time + 10000000; // extend the expire date

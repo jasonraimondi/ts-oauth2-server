@@ -75,8 +75,9 @@ export const inMemoryRefreshTokenRepository: OAuthRefreshTokenRepository = {
   async isRefreshTokenRevoked(refreshToken: OAuthRefreshToken): Promise<boolean> {
     return Date.now() > refreshToken.expiresAt.getTime();
   },
-  async createRefreshTokenInstance(): Promise<OAuthRefreshToken | undefined> {
+  async createRefreshTokenInstance(accessToken: OAuthAccessToken): Promise<OAuthRefreshToken | undefined> {
     return {
+      accessToken,
       refreshToken: "this-is-my-super-secret-refresh-token",
       expiresAt: oneHourInFuture,
     } as OAuthRefreshToken;
@@ -122,7 +123,7 @@ export const inMemoryUserRepository: OAuthUserRepository = {
     password?: string,
     grantType?: GrantIdentifier,
     client?: OAuthClient,
-  ): Promise<OAuthUser|undefined> {
+  ): Promise<OAuthUser | undefined> {
     const user = inMemoryDatabase.users[identifier];
     if (user?.password !== password) return;
     return user;

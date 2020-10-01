@@ -13,6 +13,7 @@ export enum ErrorType {
   InvalidScope = "invalid_scope",
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
+  AccessDenied = "access_denied",
 }
 
 export class OAuthException extends Error {
@@ -97,5 +98,19 @@ export class OAuthException extends Error {
    */
   static unsupportedGrantType() {
     return new OAuthException("unsupported grant_type", ErrorType.UnsupportedGrantType);
+  }
+
+  static logicException(message: string) {
+    return new OAuthException(message, ErrorType.InvalidRequest);
+  }
+
+  static accessDenied(errorDescription?: string) {
+    return new OAuthException(
+      "The resource owner or authorization server denied the request",
+      ErrorType.AccessDenied,
+      errorDescription,
+      undefined,
+      HttpStatus.UNAUTHORIZED,
+    );
   }
 }

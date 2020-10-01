@@ -32,8 +32,8 @@ describe("password grant", () => {
 
     user = {
       identifier: "512ab9a4-c786-48a6-8ad6-94c53a8dc651",
-      password: "password123"
-    }
+      password: "password123",
+    };
     client = {
       id: "35615f2f-13fa-4731-83a1-9e34556ab390",
       name: "test client",
@@ -109,7 +109,7 @@ describe("password grant", () => {
     const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(tokenResponse).rejects.toThrowError(/Check the `username` parameter/)
+    await expect(tokenResponse).rejects.toThrowError(/Check the `username` parameter/);
   });
 
   it("throws when missing password", async () => {
@@ -128,7 +128,7 @@ describe("password grant", () => {
     const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(tokenResponse).rejects.toThrowError(/Check the `password` parameter/)
+    await expect(tokenResponse).rejects.toThrowError(/Check the `password` parameter/);
   });
 
   it("throws if no user is returned", async () => {
@@ -139,7 +139,7 @@ describe("password grant", () => {
         client_id: client.id,
         client_secret: client.secret,
         username: "this user does not exist",
-        password: "password123"
+        password: "password123",
       },
     });
     const accessTokenTTL = new DateInterval("1h");
@@ -148,6 +148,8 @@ describe("password grant", () => {
     const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
 
     // assert
-    await expect(tokenResponse).rejects.toThrowError(/The provided authorization grant \(e\.g\., authorization_code, client_credentials\) or refresh token is invalid/)
+    await expect(tokenResponse).rejects.toThrowError(
+      /The provided authorization grant \(e\.g\., authorization_code, client_credentials\) or refresh token is invalid/,
+    );
   });
 });

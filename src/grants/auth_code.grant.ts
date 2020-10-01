@@ -33,12 +33,16 @@ export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-\._~\+\/]+=*/g;
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantIdentifier = "authorization_code";
 
-  protected readonly authCodeTTL: DateInterval = new DateInterval("15m");
+  protected authCodeTTL: DateInterval = new DateInterval("15m");
 
   private codeChallengeVerifiers = {
     plain: new PlainVerifier(),
     S256: new S256Verifier(),
   };
+
+  set codeTTL(interval: DateInterval) {
+    this.authCodeTTL = interval;
+  }
 
   async respondToAccessTokenRequest(
     request: RequestInterface,
@@ -107,11 +111,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const accessToken = await this.issueAccessToken(accessTokenTTL, client, user?.identifier, scopes);
 
-    const refreshToken = await this.issueRefreshToken(accessToken);
+    accessToken.refreshToken = await this.issueRefreshToken(accessToken);
 
     await this.authCodeRepository.revokeAuthCode(validatedPayload.auth_code_id);
 
-    return await this.makeBearerTokenResponse(client, accessToken, refreshToken, user?.identifier, scopes);
+    return await this.makeBearerTokenResponse(client, accessToken, scopes);
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
