@@ -14,7 +14,6 @@ import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
-  inMemoryRefreshTokenRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
@@ -46,7 +45,6 @@ describe("authorization_code grant", () => {
     grant = new AuthCodeGrant(
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryRefreshTokenRepository,
       inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,

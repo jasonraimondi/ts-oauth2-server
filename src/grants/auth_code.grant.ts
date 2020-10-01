@@ -109,9 +109,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidGrant("Failed to verify code challenge.");
     }
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user?.identifier, scopes);
+    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
-    accessToken.refreshToken = await this.issueRefreshToken(accessToken);
+    const [refreshToken, refreshTokenExpiresAt] = await this.issueRefreshToken();
+
+    accessToken.refreshToken = refreshToken;
+
+    accessToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
 
     await this.authCodeRepository.revokeAuthCode(validatedPayload.auth_code_id);
 

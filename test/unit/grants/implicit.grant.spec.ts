@@ -1,6 +1,5 @@
 import { decode } from "jsonwebtoken";
 import querystring from "querystring";
-import { DateInterval } from "~/authorization_server";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthUser } from "~/entities/user.entity";
 import { IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
@@ -15,12 +14,11 @@ import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
-  inMemoryRefreshTokenRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
 
-describe("implicit grant", () => {
+describe.skip("implicit grant", () => {
   let user: OAuthUser;
   let client: OAuthClient;
 
@@ -49,7 +47,6 @@ describe("implicit grant", () => {
     grant = new ImplicitGrant(
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryRefreshTokenRepository,
       inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,

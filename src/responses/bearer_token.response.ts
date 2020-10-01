@@ -1,4 +1,4 @@
-import { OAuthAccessToken } from "~/entities/access_token.entity";
+import { OAuthAccessToken } from "~/entities/token.entity";
 import { HttpStatus } from "~/exceptions/oauth.exception";
 import { OAuthResponse, Options } from "~/responses/response";
 

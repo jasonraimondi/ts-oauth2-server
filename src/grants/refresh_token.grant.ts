@@ -1,5 +1,5 @@
 import { DateInterval } from "~/authorization_server";
-import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
+import { OAuthAccessToken } from "~/entities/token.entity";
 import { OAuthException } from "~/exceptions/oauth.exception";
 import { AbstractGrant } from "~/grants/abstract/abstract.grant";
 import { RequestInterface } from "~/requests/request";
@@ -15,32 +15,32 @@ export class RefreshTokenGrant extends AbstractGrant {
   ): Promise<ResponseInterface> {
     const client = await this.validateClient(request);
 
-    const oldRefreshToken = await this.validateOldRefreshToken(request, client.id);
+    const oldToken = await this.validateOldRefreshToken(request, client.id);
 
-    const userId = oldRefreshToken.accessToken.user?.id;
+    const user = oldToken.user;
 
-    const scopes = await this.validateScopes(
-      this.getRequestParameter("scope", request, oldRefreshToken.accessToken.scopes),
-    );
+    const scopes = await this.validateScopes(this.getRequestParameter("scope", request, oldToken.scopes));
 
     scopes.forEach((scope) => {
-      if (!oldRefreshToken.accessToken.scopes.map((scope) => scope.name).includes(scope.name)) {
+      if (!oldToken.scopes.map((scope) => scope.name).includes(scope.name)) {
         throw OAuthException.invalidScope(scope.name);
       }
     });
 
-    await this.accessTokenRepository.revokeAccessToken(oldRefreshToken.accessToken);
+    await this.accessTokenRepository.revokeToken(oldToken);
 
-    await this.refreshTokenRepository.revokeRefreshToken(oldRefreshToken);
+    const newToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, userId, scopes);
+    const [refreshToken, refreshTokenExpiresAt] = await this.issueRefreshToken();
 
-    accessToken.refreshToken = await this.issueRefreshToken(accessToken);
+    newToken.refreshToken = refreshToken;
 
-    return await this.makeBearerTokenResponse(client, accessToken, scopes);
+    newToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
+
+    return await this.makeBearerTokenResponse(client, newToken, scopes);
   }
 
-  private async validateOldRefreshToken(request: RequestInterface, clientId: string): Promise<OAuthRefreshToken> {
+  private async validateOldRefreshToken(request: RequestInterface, clientId: string): Promise<OAuthAccessToken> {
     const encryptedRefreshToken = this.getRequestParameter("refresh_token", request);
 
     if (!encryptedRefreshToken) {
@@ -70,9 +70,9 @@ export class RefreshTokenGrant extends AbstractGrant {
       throw OAuthException.invalidRequest("refresh_token", "Token has expired");
     }
 
-    const refreshToken = await this.refreshTokenRepository.getRefreshToken(refreshTokenData.refresh_token_id);
+    const refreshToken = await this.accessTokenRepository.getRefreshToken(refreshTokenData.refresh_token_id);
 
-    if (await this.refreshTokenRepository.isRefreshTokenRevoked(refreshToken)) {
+    if (await this.accessTokenRepository.isRefreshTokenRevoked(refreshToken)) {
       throw OAuthException.invalidRequest("refresh_token", "Token has been revoked");
     }
 

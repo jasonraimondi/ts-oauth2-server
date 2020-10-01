@@ -17,11 +17,11 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
   }
 
   respondToAccessTokenRequest(
-    req: RequestInterface,
-    res: ResponseInterface,
-    tokenTTL: DateInterval,
+    req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<ResponseInterface> {
-    throw OAuthException.logicException("This grant does not use this method");
+    throw OAuthException.logicException("The implicit grant can't respond to access token requests");
   }
 
   canRespondToAccessTokenRequest(request: RequestInterface): boolean {
@@ -85,7 +85,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     const accessToken = await this.issueAccessToken(
       this.tokenTTL,
       authorizationRequest.client,
-      authorizationRequest.user.identifier,
+      authorizationRequest.user,
       finalizedScopes,
     );
 
@@ -99,7 +99,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       this.makeRedirectUrl(finalRedirectUri, {
         access_token: encryptedAccessToken,
         token_type: "Bearer",
-        expires_in: getSecondsUntil(accessToken.expiresAt),
+        expires_in: getSecondsUntil(accessToken.accessTokenExpiresAt),
         state: authorizationRequest.state,
       }),
     );

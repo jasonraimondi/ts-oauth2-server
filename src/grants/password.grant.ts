@@ -27,9 +27,12 @@ export class PasswordGrant extends AbstractGrant {
       user.identifier,
     );
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user.identifier, finalizedScopes);
+    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, finalizedScopes);
 
-    accessToken.refreshToken = await this.issueRefreshToken(accessToken);
+    const [refreshToken, refreshTokenExpiresAt] = await this.issueRefreshToken();
+
+    accessToken.refreshToken = refreshToken;
+    accessToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
 
     return await this.makeBearerTokenResponse(client, accessToken, finalizedScopes);
   }

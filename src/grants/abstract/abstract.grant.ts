@@ -1,15 +1,14 @@
 import { DateInterval } from "~/authorization_server";
-import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { isClientConfidential, OAuthClient } from "~/entities/client.entity";
-import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthAccessToken } from "~/entities/token.entity";
+import { OAuthUser } from "~/entities/user.entity";
 import { OAuthException } from "~/exceptions/oauth.exception";
 import { GrantIdentifier, GrantInterface } from "~/grants/abstract/grant.interface";
 import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
 import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
 import { OAuthClientRepository } from "~/repositories/client.repository";
-import { OAuthRefreshTokenRepository } from "~/repositories/refresh_token.repository";
 import { OAuthScopeRepository } from "~/repositories/scope.repository";
 import { OAuthUserRepository } from "~/repositories/user.repository";
 import { AuthorizationRequest } from "~/requests/authorization.request";
@@ -37,7 +36,6 @@ export abstract class AbstractGrant implements GrantInterface {
   constructor(
     protected readonly clientRepository: OAuthClientRepository,
     protected readonly accessTokenRepository: OAuthAccessTokenRepository,
-    protected readonly refreshTokenRepository: OAuthRefreshTokenRepository,
     protected readonly authCodeRepository: OAuthAuthCodeRepository,
     protected readonly scopeRepository: OAuthScopeRepository,
     protected readonly userRepository: OAuthUserRepository,
@@ -52,14 +50,14 @@ export abstract class AbstractGrant implements GrantInterface {
     let encryptedRefreshToken: string | undefined = undefined;
 
     if (accessToken.refreshToken) {
-      encryptedRefreshToken = await this.encryptRefreshToken(client, accessToken.refreshToken, scopes);
+      encryptedRefreshToken = await this.encryptRefreshToken(client, accessToken, scopes);
     }
 
     const bearerTokenResponse = new BearerTokenResponse(accessToken);
 
     bearerTokenResponse.body = {
       token_type: "Bearer",
-      expires_in: getSecondsUntil(accessToken.expiresAt),
+      expires_in: getSecondsUntil(accessToken.accessTokenExpiresAt),
       access_token: encryptedAccessToken,
       refresh_token: encryptedRefreshToken,
       scope,
@@ -68,21 +66,21 @@ export abstract class AbstractGrant implements GrantInterface {
     return bearerTokenResponse;
   }
 
-  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthRefreshToken, scopes: OAuthScope[]) {
-    const expiresAtMs = refreshToken.expiresAt.getTime();
+  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthAccessToken, scopes: OAuthScope[]) {
+    const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime() ?? refreshToken.accessTokenExpiresAt.getTime();
     return this.encrypt({
       client_id: client.id,
-      access_token_id: refreshToken.accessToken.token,
+      access_token_id: refreshToken.accessToken,
       refresh_token_id: refreshToken.refreshToken,
       scope: scopes.map((scope) => scope.name).join(this.scopeDelimiterString),
-      user_id: refreshToken.accessToken.user?.identifier,
+      user_id: refreshToken.user?.identifier,
       expire_time: Math.ceil(expiresAtMs / 1000),
       // token_version: 1, // @todo token version?
     });
   }
 
   protected encryptAccessToken(client: OAuthClient, accessToken: OAuthAccessToken, scopes: OAuthScope[]) {
-    const expiresAtMs = accessToken.expiresAt.getTime();
+    const expiresAtMs = accessToken.accessTokenExpiresAt.getTime();
     return this.encrypt({
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
       sub: accessToken.user?.identifier, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
@@ -90,7 +88,7 @@ export abstract class AbstractGrant implements GrantInterface {
       exp: Math.ceil(expiresAtMs / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
       nbf: Math.ceil(Date.now() / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
       iat: Math.ceil(Date.now() / 1000), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
-      jti: accessToken.token, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
+      jti: accessToken.accessToken, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
 
       // non standard claims
       cid: client.name,
@@ -191,14 +189,14 @@ export abstract class AbstractGrant implements GrantInterface {
   protected async issueAccessToken(
     accessTokenTTL: DateInterval,
     client: OAuthClient,
-    userId?: string,
+    user?: OAuthUser,
     scopes: OAuthScope[] = [],
   ): Promise<OAuthAccessToken> {
-    const accessToken = await this.accessTokenRepository.getNewToken(client, scopes, userId);
+    const accessToken = await this.accessTokenRepository.getNewToken(client, scopes, user);
 
-    accessToken.expiresAt = accessTokenTTL.getEndDate();
+    accessToken.accessTokenExpiresAt = accessTokenTTL.getEndDate();
 
-    await this.accessTokenRepository.persistNewAccessToken(accessToken);
+    await this.accessTokenRepository.persistNewToken(accessToken);
 
     return accessToken;
   }
@@ -224,16 +222,8 @@ export abstract class AbstractGrant implements GrantInterface {
     return authCode;
   }
 
-  protected async issueRefreshToken(accessToken: OAuthAccessToken): Promise<OAuthRefreshToken | undefined> {
-    const refreshToken = await this.refreshTokenRepository.createRefreshTokenInstance(accessToken);
-
-    if (!refreshToken) {
-      return;
-    }
-
-    await this.refreshTokenRepository.persistRefreshToken(refreshToken);
-
-    return refreshToken;
+  protected async issueRefreshToken(): Promise<[string, Date] | [undefined, undefined]> {
+    return await this.accessTokenRepository.createRefreshTokenInstance();
   }
 
   protected getGrantType(request: RequestInterface): GrantIdentifier {

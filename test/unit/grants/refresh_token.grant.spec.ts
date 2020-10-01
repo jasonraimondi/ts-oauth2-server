@@ -1,7 +1,6 @@
 import { DateInterval } from "~/authorization_server";
-import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthClient } from "~/entities/client.entity";
-import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
+import { OAuthAccessToken } from "~/entities/token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
 import { OAuthRequest } from "~/requests/request";
@@ -13,7 +12,6 @@ import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
-  inMemoryRefreshTokenRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
@@ -22,7 +20,6 @@ import { expectTokenResponse } from "./client_credentials.grant.spec";
 describe("refresh_token grant", () => {
   let client: OAuthClient;
   let accessToken: OAuthAccessToken;
-  let refreshToken: OAuthRefreshToken;
   let scope1: OAuthScope;
   let scope2: OAuthScope;
 
@@ -46,27 +43,21 @@ describe("refresh_token grant", () => {
       scopes: [scope1, scope2],
     };
     accessToken = {
-      client,
-      expiresAt: DateInterval.getDateEnd("1h"),
-      scopes: [scope1, scope2],
-      token: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
-    };
-    refreshToken = {
+      accessToken: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
+      accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
       refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
-      accessToken,
-      expiresAt: DateInterval.getDateEnd("1h"),
+      refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
+      client,
+      scopes: [scope1, scope2],
     };
-    accessToken.refreshToken = refreshToken;
     inMemoryDatabase.scopes[scope1.name] = scope1;
     inMemoryDatabase.scopes[scope2.name] = scope2;
     inMemoryDatabase.clients[client.id] = client;
-    inMemoryDatabase.accessTokens[accessToken.token] = accessToken;
-    inMemoryDatabase.refreshTokens[refreshToken.refreshToken] = refreshToken;
+    inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
 
     grant = new RefreshTokenGrant(
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryRefreshTokenRepository,
       inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,

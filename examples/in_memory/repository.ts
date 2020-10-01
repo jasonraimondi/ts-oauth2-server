@@ -1,15 +1,13 @@
 import { DateInterval } from "~/authorization_server";
-import { OAuthAccessToken } from "~/entities/access_token.entity";
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { OAuthClient } from "~/entities/client.entity";
-import { OAuthRefreshToken } from "~/entities/refresh_token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
+import { OAuthAccessToken } from "~/entities/token.entity";
 import { OAuthUser } from "~/entities/user.entity";
 import { GrantIdentifier } from "~/grants/abstract/grant.interface";
 import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
 import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
 import { OAuthClientRepository } from "~/repositories/client.repository";
-import { OAuthRefreshTokenRepository } from "~/repositories/refresh_token.repository";
 import { OAuthScopeRepository } from "~/repositories/scope.repository";
 import { OAuthUserRepository } from "~/repositories/user.repository";
 import { inMemoryDatabase } from "./database";
@@ -49,41 +47,35 @@ export const inMemoryScopeRepository: OAuthScopeRepository = {
 };
 
 export const inMemoryAccessTokenRepository: OAuthAccessTokenRepository = {
-  async revokeAccessToken(accessToken: OAuthAccessToken): Promise<void> {
-    inMemoryDatabase.accessTokens[accessToken.token].expiresAt = new Date(0);
+  async revokeToken(accessToken: OAuthAccessToken): Promise<void> {
+    const token = inMemoryDatabase.tokens[accessToken.accessToken];
+    token.accessTokenExpiresAt = new Date(0);
+    token.refreshTokenExpiresAt = new Date(0);
+    inMemoryDatabase.tokens[accessToken.accessToken] = token;
   },
-  async getNewToken(client: OAuthClient, scopes: OAuthScope[], userId: string | undefined): Promise<OAuthAccessToken> {
-    return {
-      token: "new token",
+  async getNewToken(client: OAuthClient, scopes: OAuthScope[], user: OAuthUser): Promise<OAuthAccessToken> {
+    return <OAuthAccessToken>{
+      accessToken: "new token",
+      accessTokenExpiresAt: oneHourInFuture,
       client,
-      userId: userId,
-      expiresAt: oneHourInFuture,
-    } as OAuthAccessToken;
+      user,
+      scopes: [],
+    };
   },
-  async persistNewAccessToken(accessToken: OAuthAccessToken): Promise<void> {
-    inMemoryDatabase.accessTokens[accessToken.token] = accessToken;
+  async persistNewToken(accessToken: OAuthAccessToken): Promise<void> {
+    inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
   },
-};
-
-export const inMemoryRefreshTokenRepository: OAuthRefreshTokenRepository = {
-  async revokeRefreshToken(refreshToken: OAuthRefreshToken): Promise<void> {
-    inMemoryDatabase.refreshTokens[refreshToken.refreshToken].expiresAt = new Date(0);
+  // @todo
+  async getRefreshToken(refreshTokenToken: string): Promise<OAuthAccessToken> {
+    const token = Object.values(inMemoryDatabase.tokens).find(token => token.refreshToken === refreshTokenToken);
+    if (!token) throw new Error("token not found");
+    return token;
   },
-  async getRefreshToken(refreshTokenToken: string): Promise<OAuthRefreshToken> {
-    return inMemoryDatabase.refreshTokens[refreshTokenToken];
+  async isRefreshTokenRevoked(token: OAuthAccessToken): Promise<boolean> {
+    return Date.now() > (token.refreshTokenExpiresAt?.getTime() ?? 0);
   },
-  async isRefreshTokenRevoked(refreshToken: OAuthRefreshToken): Promise<boolean> {
-    return Date.now() > refreshToken.expiresAt.getTime();
-  },
-  async createRefreshTokenInstance(accessToken: OAuthAccessToken): Promise<OAuthRefreshToken | undefined> {
-    return {
-      accessToken,
-      refreshToken: "this-is-my-super-secret-refresh-token",
-      expiresAt: oneHourInFuture,
-    } as OAuthRefreshToken;
-  },
-  async persistRefreshToken(refreshToken: OAuthRefreshToken): Promise<void> {
-    inMemoryDatabase.refreshTokens[refreshToken.refreshToken] = refreshToken;
+  async createRefreshTokenInstance(): Promise<[string, Date]> {
+    return ["this-is-my-super-secret-refresh-token", oneHourInFuture];
   },
 };
 

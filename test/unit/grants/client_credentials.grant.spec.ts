@@ -11,7 +11,6 @@ import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
-  inMemoryRefreshTokenRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
@@ -49,7 +48,6 @@ describe("client_credentials grant", () => {
     grant = new ClientCredentialsGrant(
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryRefreshTokenRepository,
       inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,

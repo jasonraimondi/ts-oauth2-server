@@ -17,12 +17,14 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const validScopes = await this.validateScopes(bodyScopes);
 
-    const userId = undefined;
+    const user = undefined;
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, userId, validScopes);
+    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, validScopes);
 
-    accessToken.refreshToken = await this.issueRefreshToken(accessToken);
+    const [refreshToken, refreshTokenExpiresAt] = await this.issueRefreshToken();
 
+    accessToken.refreshToken = refreshToken;
+    accessToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
     return await this.makeBearerTokenResponse(client, accessToken, validScopes);
   }
 }
