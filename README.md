@@ -11,12 +11,15 @@
 npm install @jmondi/oauth2-server
 ```
 
-## @TODO
 
-:construction_worker: This project is under development :construction:
+## Supported Grants
 
-* feat: token introspection
-* chore: documentation
+
+* :heavy_check_mark: [refresh_token](#refresh-token-grant)
+* :heavy_check_mark: [client_credentials](#client-credentials-grant)
+* :heavy_check_mark: [authorization_code](#authorization-code-grant-with-pkce)
+* :x: [implicit](#implicit-grant) 
+* :x: [password](#password-grant)
 
 ## Implementation
 
@@ -96,15 +99,10 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 });
 ```
 
-## Grants
-
-* `client_credentials` - when applications request an access token to access their own resources, not on behalf of a user.
-* `authorization_code` - a temporary code that the client will exchange for an access token. The user authorizes the application, they are redirected back to the application with a temporary code in the URL. The application exchanges that code for the access token. 
-* `refresh_token` - Access tokens eventually expire. The refresh_token enables the client to refresh the access token.
-
-### Which Grant?
+## Which Grant?
 
 Deciding which grant to use depends on the type of client the end user will be using.
+
 
 ```
 +-------+
@@ -153,6 +151,9 @@ Deciding which grant to use depends on the type of client the end user will be u
 
 For machine to machine communications
 
+When applications request an access token to access their own resources, not on behalf of a user.
+
+
 ```http request
 POST /token HTTP/1.1
 Host: example.com
@@ -180,6 +181,8 @@ Pragma: no-cache
 ```
 
 ### Authorization Code Grant with PKCE
+
+A temporary code that the client will exchange for an access token. The user authorizes the application, they are redirected back to the application with a temporary code in the URL. The application exchanges that code for the access token. 
 
 If the client is unable to keep a secret, the client secret should be undefined and **should not** be used during the authorization_code flow.
 
@@ -226,6 +229,8 @@ grant_type=authorization_code
 
 ### Refresh Token Grant
 
+Access tokens eventually expire. The refresh_token enables the client to refresh the access token.
+
 A complete refresh token request will include the following parameters:
 
 ```http request
@@ -239,6 +244,16 @@ grant_type=refresh_token
 &client_secret=only-required-if-client-has-secret
 &scope=xxxxxxxxxx
 ```
+
+### Implicit Grant
+
+// @todo document
+
+Industry best practice recommends using the Authorization Code Grant without a client secret for native and browser-based apps.
+
+### Password Grant
+
+// @todo document
 
 ### Token Introspection Endpoint
 
@@ -267,6 +282,14 @@ Content-Type: application/json; charset=utf-8
   "exp": 1437275311
 }
 ```
+
+## @TODO
+
+:construction_worker: This project is under development :construction:
+
+* feat: flag for require code_challenge for public clients
+* feat: token introspection
+* chore: documentation
 
 ## Sources
 
