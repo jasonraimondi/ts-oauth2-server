@@ -14,12 +14,11 @@ npm install @jmondi/oauth2-server
 
 ## Supported Grants
 
-
-* :heavy_check_mark: [refresh_token](#refresh-token-grant)
-* :heavy_check_mark: [client_credentials](#client-credentials-grant)
-* :heavy_check_mark: [authorization_code](#authorization-code-grant-with-pkce)
-* :x: [implicit](#implicit-grant) 
-* :x: [password](#password-grant)
+- :heavy_check_mark: [refresh_token](#refresh-token-grant)
+- :heavy_check_mark: [client_credentials](#client-credentials-grant)
+- :heavy_check_mark: [authorization_code](#authorization-code-grant-with-pkce)
+- :heavy_check_mark: [implicit](#implicit-grant) 
+- :heavy_check_mark: [password](#password-grant)
 
 ## Implementation
 
