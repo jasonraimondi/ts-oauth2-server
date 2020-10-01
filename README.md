@@ -1,24 +1,33 @@
-# Typescript OAuth2 Server
+# @jmondi/oauth2-server
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/Tests?label=tests&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/test_coverage)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/maintainability)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
 [![npm](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
 
+`@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server, written in TypeScript. 
+
+Out of the box it supports the following grants:
+
+- [Authorization code grant](#authorization-code-grant-with-pkce)
+- [Implicit grant](#implicit-grant) 
+- [Client credentials grant](#client-credentials-grant)
+- [Resource owner password credentials grant](#password-grant)
+- [Refresh grant](#refresh-token-grant)
+
+The following RFCs are implemented:
+
+- [RFC6749 “OAuth 2.0”](https://tools.ietf.org/html/rfc6749)
+- [RFC6750 “ The OAuth 2.0 Authorization Framework: Bearer Token Usage”](https://tools.ietf.org/html/rfc6750)
+- [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
+- [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
+
+
 ## Installing
 
 ```bash
 npm install @jmondi/oauth2-server
 ```
-
-
-## Supported Grants
-
-- :heavy_check_mark: [refresh_token](#refresh-token-grant)
-- :heavy_check_mark: [client_credentials](#client-credentials-grant)
-- :heavy_check_mark: [authorization_code](#authorization-code-grant-with-pkce)
-- :heavy_check_mark: [implicit](#implicit-grant) 
-- :heavy_check_mark: [password](#password-grant)
 
 ## Implementation
 
