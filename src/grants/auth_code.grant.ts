@@ -1,4 +1,3 @@
-import { DateInterval } from "~/authorization_server";
 import { PlainVerifier } from "~/code_verifiers/plain.verifier";
 import { S256Verifier } from "~/code_verifiers/s256.verifier";
 import { CodeChallengeMethod, ICodeChallenge } from "~/code_verifiers/verifier";
@@ -12,6 +11,7 @@ import { RequestInterface } from "~/requests/request";
 import { RedirectResponse } from "~/responses/redirect.response";
 import { ResponseInterface } from "~/responses/response";
 import { base64decode } from "~/utils/base64";
+import { DateInterval } from "~/utils/date_interval";
 
 export interface IAuthCodePayload {
   client_id: string;

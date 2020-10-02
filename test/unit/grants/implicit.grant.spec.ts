@@ -1,6 +1,5 @@
 import { decode } from "jsonwebtoken";
 import querystring from "querystring";
-import { DateInterval } from "~/authorization_server";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthUser } from "~/entities/user.entity";
@@ -10,6 +9,7 @@ import { ImplicitGrant } from "~/grants/implicit.grant";
 import { AuthorizationRequest } from "~/requests/authorization.request";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
+import { DateInterval } from "~/utils/date_interval";
 import { JWT } from "~/utils/jwt";
 import { roundToSeconds } from "~/utils/time";
 

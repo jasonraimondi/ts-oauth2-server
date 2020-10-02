@@ -1,10 +1,10 @@
-import { DateInterval } from "~/authorization_server";
 import { OAuthException } from "~/exceptions/oauth.exception";
 import { AbstractAuthorizedGrant } from "~/grants/abstract/abstract_authorized.grant";
 import { AuthorizationRequest } from "~/requests/authorization.request";
 import { RequestInterface } from "~/requests/request";
 import { RedirectResponse } from "~/responses/redirect.response";
 import { ResponseInterface } from "~/responses/response";
+import { DateInterval } from "~/utils/date_interval";
 import { getSecondsUntil } from "~/utils/time";
 
 export class ImplicitGrant extends AbstractAuthorizedGrant {

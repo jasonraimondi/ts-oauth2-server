@@ -1,42 +1,9 @@
-import ms from "ms";
-
 import { OAuthException } from "~/exceptions/oauth.exception";
 import { GrantInterface } from "~/grants/abstract/grant.interface";
 import { AuthorizationRequest } from "~/requests/authorization.request";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";
-
-export type DateIntervalType = string;
-
-export class DateInterval {
-  public readonly init: number;
-  public readonly ms: number;
-
-  constructor(private readonly interval: DateIntervalType) {
-    this.init = Date.now();
-    this.ms = ms(interval);
-  }
-
-  getEndDate(): Date {
-    return new Date(this.getEndTimeMs());
-  }
-
-  getEndTimeMs(): number {
-    return this.init + this.ms;
-  }
-
-  getEndTimeSeconds(): number {
-    return Math.ceil(this.getEndTimeMs() / 1000);
-  }
-
-  getSeconds(): number {
-    return Math.ceil(this.ms / 1000);
-  }
-
-  static getDateEnd(ms: string) {
-    return new DateInterval(ms).getEndDate();
-  }
-}
+import { DateInterval } from "~/utils/date_interval";
 
 export class AuthorizationServer {
   private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};

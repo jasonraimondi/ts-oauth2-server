@@ -1,4 +1,3 @@
-import { DateInterval } from "~/authorization_server";
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
@@ -10,6 +9,7 @@ import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
 import { OAuthClientRepository } from "~/repositories/client.repository";
 import { OAuthScopeRepository } from "~/repositories/scope.repository";
 import { OAuthUserRepository } from "~/repositories/user.repository";
+import { DateInterval } from "~/utils/date_interval";
 import { inMemoryDatabase } from "./database";
 
 const oneHourInFuture = new DateInterval("1h").getEndDate();
@@ -34,7 +34,7 @@ export const inMemoryClientRepository: OAuthClientRepository = {
 
 export const inMemoryScopeRepository: OAuthScopeRepository = {
   async getScopesByIdentifier(scopeNames: string[]): Promise<OAuthScope[]> {
-    return Object.values(inMemoryDatabase.scopes).filter((scope) => scopeNames.includes(scope.name));
+    return Object.values(inMemoryDatabase.scopes).filter(scope => scopeNames.includes(scope.name));
   },
   async finalizeScopes(
     scopes: OAuthScope[],
@@ -67,7 +67,7 @@ export const inMemoryAccessTokenRepository: OAuthAccessTokenRepository = {
   },
   // @todo
   async getRefreshToken(refreshTokenToken: string): Promise<OAuthAccessToken> {
-    const token = Object.values(inMemoryDatabase.tokens).find((token) => token.refreshToken === refreshTokenToken);
+    const token = Object.values(inMemoryDatabase.tokens).find(token => token.refreshToken === refreshTokenToken);
     if (!token) throw new Error("token not found");
     return token;
   },

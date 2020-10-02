@@ -1,4 +1,3 @@
-import { DateInterval } from "~/authorization_server";
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { isClientConfidential, OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
@@ -17,6 +16,7 @@ import { BearerTokenResponse } from "~/responses/bearer_token.response";
 import { ResponseInterface } from "~/responses/response";
 import { arrayDiff } from "~/utils/array";
 import { base64decode } from "~/utils/base64";
+import { DateInterval } from "~/utils/date_interval";
 import { JwtService } from "~/utils/jwt";
 import { getSecondsUntil, roundToSeconds } from "~/utils/time";
 

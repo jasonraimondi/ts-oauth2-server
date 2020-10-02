@@ -1,10 +1,10 @@
-import { DateInterval } from "~/authorization_server";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthAccessToken } from "~/entities/token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
+import { DateInterval } from "~/utils/date_interval";
 import { JWT } from "~/utils/jwt";
 
 import { inMemoryDatabase } from "../../../examples/in_memory/database";

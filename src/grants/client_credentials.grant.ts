@@ -1,7 +1,7 @@
-import { DateInterval } from "~/authorization_server";
 import { AbstractGrant } from "~/grants/abstract/abstract.grant";
 import { RequestInterface } from "~/requests/request";
 import { ResponseInterface } from "~/responses/response";
+import { DateInterval } from "~/utils/date_interval";
 
 export class ClientCredentialsGrant extends AbstractGrant {
   readonly identifier = "client_credentials";

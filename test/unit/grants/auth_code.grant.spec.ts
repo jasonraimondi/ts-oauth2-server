@@ -1,6 +1,5 @@
 import querystring from "querystring";
 import { decode } from "jsonwebtoken";
-import { DateInterval } from "~/authorization_server";
 
 import { OAuthClient } from "~/entities/client.entity";
 import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
@@ -8,6 +7,7 @@ import { AuthorizationRequest } from "~/requests/authorization.request";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { base64urlencode } from "~/utils/base64";
+import { DateInterval } from "~/utils/date_interval";
 import { JWT } from "~/utils/jwt";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
