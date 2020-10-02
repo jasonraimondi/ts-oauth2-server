@@ -7,6 +7,14 @@ export class S256Verifier implements ICodeChallenge {
   public readonly method = "S256";
 
   verifyCodeChallenge(codeVerifier: string, codeChallenge: string): boolean {
-    return codeChallenge === base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest("hex"));
+    return (
+      codeChallenge ===
+      base64urlencode(
+        crypto
+          .createHash("sha256")
+          .update(codeVerifier)
+          .digest("hex"),
+      )
+    );
   }
 }

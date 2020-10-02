@@ -58,7 +58,7 @@ describe.skip("client_credentials grant e2e", () => {
         scopes: ["scope-1", "scope-2"],
       })
       .expect("Content-Type", /json/)
-      .expect((response) => {
+      .expect(response => {
         console.log(response.body);
 
         expect(response.get("cache-control")).toBe("no-store");
@@ -79,7 +79,7 @@ describe.skip("client_credentials grant e2e", () => {
         scopes: ["scope-1"],
       })
       .expect("Content-Type", /json/)
-      .expect((response) => {
+      .expect(response => {
         console.log(response.body);
 
         expect(response.get("cache-control")).toBe("no-store");
@@ -105,7 +105,7 @@ describe.skip("client_credentials grant e2e", () => {
       })
       .expect(400)
       .expect("Content-Type", /json/)
-      .expect((response) => {
+      .expect(response => {
         expect(response.body.message).toBe("Client authentication failed");
       });
   });

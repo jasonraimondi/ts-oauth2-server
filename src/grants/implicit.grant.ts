@@ -72,7 +72,10 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     }
 
     if (!finalRedirectUri) {
-      throw OAuthException.invalidRequest("redirect_uri", "Neither the request nor the client contain a valid refresh token")
+      throw OAuthException.invalidRequest(
+        "redirect_uri",
+        "Neither the request nor the client contain a valid refresh token",
+      );
     }
 
     if (!authorizationRequest.isAuthorizationApproved) {

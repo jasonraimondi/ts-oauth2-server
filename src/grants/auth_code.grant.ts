@@ -72,7 +72,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         client,
         userId,
       );
-      finalizedScopes.forEach((scope) => scopes.push(scope));
+      finalizedScopes.forEach(scope => scopes.push(scope));
     } catch (e) {
       throw OAuthException.invalidRequest("code", "Cannot verify scopes");
     }
@@ -205,7 +205,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         client_id: authCode.client.id,
         redirect_uri: authCode.redirectUri,
         auth_code_id: authCode.token,
-        scopes: authCode.scopes.map((scope) => scope.name),
+        scopes: authCode.scopes.map(scope => scope.name),
         user_id: authCode.userId,
         expire_time: this.authCodeTTL.getEndTimeSeconds(),
         code_challenge: authorizationRequest.codeChallenge,

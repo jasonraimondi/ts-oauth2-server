@@ -3,7 +3,7 @@ import querystring from "querystring";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthUser } from "~/entities/user.entity";
-import { ITokenData} from "~/grants/abstract/abstract.grant";
+import { ITokenData } from "~/grants/abstract/abstract.grant";
 import { IAuthCodePayload, REGEX_ACCESS_TOKEN, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
 import { ImplicitGrant } from "~/grants/implicit.grant";
 import { AuthorizationRequest } from "~/requests/authorization.request";
@@ -78,10 +78,8 @@ describe("implicit grant", () => {
         },
       });
 
-
       // act
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
-
 
       // assert
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
@@ -102,14 +100,12 @@ describe("implicit grant", () => {
           client_id: client.id,
           redirect_uri: "http://localhost",
           state: "f2ae4dc5-b535-4949-aaed-54ebbf08e876",
-          scope: "scope-1 scope-2"
+          scope: "scope-1 scope-2",
         },
       });
 
-
       // act
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
-
 
       // assert
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
@@ -130,13 +126,11 @@ describe("implicit grant", () => {
         },
       });
 
-
       // act
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
-
       // assert
-      await expect(authorizationRequest).rejects.toThrowError(/Check the `client_id` parameter/)
+      await expect(authorizationRequest).rejects.toThrowError(/Check the `client_id` parameter/);
     });
 
     it("throws if missing redirect_uri", async () => {
@@ -144,17 +138,15 @@ describe("implicit grant", () => {
       request = new OAuthRequest({
         query: {
           response_type: "token",
-          client_id: client.id
+          client_id: client.id,
         },
       });
-
 
       // act
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
-
       // assert
-      await expect(authorizationRequest).rejects.toThrowError(/Client authentication failed: Invalid redirect_uri/)
+      await expect(authorizationRequest).rejects.toThrowError(/Client authentication failed: Invalid redirect_uri/);
     });
 
     it("throws when passed invalid scopes", async () => {
@@ -164,16 +156,15 @@ describe("implicit grant", () => {
           response_type: "token",
           client_id: client.id,
           redirect_uri: "http://localhost",
-          scope: "scope-1 non-existant non-existant-2"
+          scope: "scope-1 non-existant non-existant-2",
         },
       });
 
       // act
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
-
       // assert
-      await expect(authorizationRequest).rejects.toThrowError(/Check the `non-existant, non-existant-2` scope\(s\)/)
+      await expect(authorizationRequest).rejects.toThrowError(/Check the `non-existant, non-existant-2` scope\(s\)/);
     });
   });
 
@@ -186,12 +177,10 @@ describe("implicit grant", () => {
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.redirectUri = "http://localhost";
 
-
       // act
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
       const authorizeResponseQuery = querystring.parse(response.headers.location);
       const decodedCode = <ITokenData>decode(String(authorizeResponseQuery.access_token));
-
 
       // assert
       expect(decodedCode.sub).toBe(user.identifier);
@@ -200,7 +189,6 @@ describe("implicit grant", () => {
       expect(decodedCode.iat).toBe(now);
     });
 
-
     it("will not complete if isAuthorizationApproved=false", async () => {
       // arrange
       const authorizationRequest = new AuthorizationRequest("implicit", client);
@@ -208,15 +196,12 @@ describe("implicit grant", () => {
       authorizationRequest.isAuthorizationApproved = false;
       authorizationRequest.redirectUri = "http://localhost";
 
-
       // act
       const response = grant.completeAuthorizationRequest(authorizationRequest);
-
 
       //assert
       await expect(response).rejects.toThrowError(/The resource owner or authorization server denied the request/);
     });
-
 
     // it("uses clients redirect url if request ", async () => {});
   });
@@ -228,34 +213,31 @@ describe("implicit grant", () => {
         query: {
           response_type: "token",
           client_id: client.id,
-        }
-      })
-
+        },
+      });
 
       // act
       const canRespond = grant.canRespondToAccessTokenRequest(request);
 
-
       // assert
       expect(canRespond).toBeTruthy();
-    })
+    });
 
     it("invalid request cannot respond", async () => {
       // act
       const canRespond = grant.canRespondToAccessTokenRequest(request);
 
-
       // assert
       expect(canRespond).toBeFalsy();
-    })
-  })
+    });
+  });
 
   describe("respondToAccessTokenRequest", () => {
     it("throws because implicit grant cannot respond to access token requests", async () => {
       // assert
-      expect(
-        () => grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"))
-      ).toThrowError(/The implicit grant can't respond to access token requests/)
-    })
-  })
+      expect(() => grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"))).toThrowError(
+        /The implicit grant can't respond to access token requests/,
+      );
+    });
+  });
 });

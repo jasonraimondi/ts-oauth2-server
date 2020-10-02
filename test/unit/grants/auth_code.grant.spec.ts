@@ -184,7 +184,6 @@ describe("authorization_code grant", () => {
   });
 
   describe("complete authorization request", () => {
-
     // @todo add test is successful with user, and probably a whole bunch more
     it("is successful", async () => {
       const authorizationRequest = new AuthorizationRequest("authorization_code", client);

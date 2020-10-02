@@ -1,30 +1,27 @@
 {
-  "version": "0.2.0-beta.0",
-  "license": "MIT",
+  "version": "0.2.0-beta.6",
   "name": "@jmondi/oauth2-server",
-  "author": "Jason Raimondi",
-  "module": "dist/jmondi-oauth2-server.js",
-  "main": "dist/jmondi-oauth2-server.js",
+  "author": "Jason Raimondi <jason@raimondi.us>",
+  "module": "dist/oauth2-server.esm.js",
+  "license": "MIT",
+  "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
     "src"
   ],
   "engines": {
-    "node": ">=12"
+    "node": ">=10"
   },
   "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "cross-env TS_NODE_PROJECT=tsconfig.webpack.json webpack --config webpack.config.ts",
-    "build:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=tsconfig.webpack.json webpack --config webpack.config.ts",
-    "start": "rollup -c rollup.config.ts -w",
-    "format": "prettier --write \"{src,test,examples}/**/*.(t|j)s*\"",
-    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
+    "clean": "rimraf dist",
+    "create-exports": "barrelsby -d src/ --delete",
+    "prebuild": "run-s clean create-exports",
+    "build": "tsdx build --tsconfig tsconfig.build.json",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "prepare": "npm run build"
+    "format": "prettier --write \"**/*.ts\"",
+    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
+    "prepare": "run-s build"
   },
   "peerDependencies": {},
   "devDependencies": {
@@ -41,23 +38,24 @@
     "eslint": "^7.9.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
-    "express": "^4.17.1",
     "jest": "^26.4.2",
     "jest-date-mock": "^1.0.8",
-    "prettier": "^2.1.2",
-    "rimraf": "^3.0.2",
+    "npm-run-all": "^4.1.5",
     "supertest": "^5.0.0",
-    "ts-jest": "^26.4.0",
-    "ts-loader": "^8.0.4",
-    "ts-node": "^9.0.0",
-    "ts-node-dev": "^1.0.0-pre.63",
-    "tsconfig-paths-webpack-plugin": "^3.3.0",
-    "typescript": "^4.0.3",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12"
+    "ts-jest": "^26.4.1",
+    "tsdx": "^0.14.0",
+    "tslib": "^2.0.1",
+    "typescript": "^4.0.3"
   },
   "dependencies": {
     "jsonwebtoken": "^8.5.1",
     "ms": "^2.1.2"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "semi": true,
+    "singleQuote": false,
+    "tabWidth": 2,
+    "trailingComma": "all"
   }
 }

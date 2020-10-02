@@ -55,7 +55,7 @@ export abstract class AbstractGrant implements GrantInterface {
   ) {}
 
   async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthAccessToken, scopes: OAuthScope[] = []) {
-    const scope = scopes.map((scope) => scope.name).join(this.scopeDelimiterString);
+    const scope = scopes.map(scope => scope.name).join(this.scopeDelimiterString);
 
     const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes);
 
@@ -84,7 +84,7 @@ export abstract class AbstractGrant implements GrantInterface {
       client_id: client.id,
       access_token_id: refreshToken.accessToken,
       refresh_token_id: refreshToken.refreshToken,
-      scope: scopes.map((scope) => scope.name).join(this.scopeDelimiterString),
+      scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
       user_id: refreshToken.user?.identifier,
       expire_time: Math.ceil(expiresAtMs / 1000),
       // token_version: 1, // @todo token version?
@@ -103,7 +103,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
       // non standard claims
       cid: client.name,
-      scope: scopes.map((scope) => scope.name).join(this.scopeDelimiterString),
+      scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
     });
   }
 
@@ -187,7 +187,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
     const invalidScopes = arrayDiff(
       scopes,
-      validScopes.map((scope) => scope.name),
+      validScopes.map(scope => scope.name),
     );
 
     if (invalidScopes.length > 0) {
@@ -228,7 +228,7 @@ export abstract class AbstractGrant implements GrantInterface {
     authCode.redirectUri = redirectUri;
     authCode.codeChallenge = codeChallenge;
     authCode.codeChallengeMethod = codeChallengeMethod;
-    scopes.forEach((scope) => (authCode.scopes ? authCode.scopes.push(scope) : (authCode.scopes = [scope])));
+    scopes.forEach(scope => (authCode.scopes ? authCode.scopes.push(scope) : (authCode.scopes = [scope])));
     await this.authCodeRepository.persistNewAuthCode(authCode);
     return authCode;
   }

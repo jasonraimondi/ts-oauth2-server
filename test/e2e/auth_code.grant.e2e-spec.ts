@@ -33,15 +33,17 @@ describe.skip("auth_code grant e2e", () => {
     const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
     const codeChallenge = "ODQwZGM4YzZlNzMyMjQyZDAxYjE5MWZkY2RkNjJmMTllMmI0NzI0ZDlkMGJlYjFlMmMxOWY2ZDI1ZDdjMjMwYg"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest("hex"));
 
-    const authorizeResponse = await request(app).get("/authorize").query({
-      response_type: "code",
-      client_id: client.id,
-      redirect_uri: "http://localhost",
-      scope: "scope-1 scope-2",
-      state: "state-is-a-secret",
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-    });
+    const authorizeResponse = await request(app)
+      .get("/authorize")
+      .query({
+        response_type: "code",
+        client_id: client.id,
+        redirect_uri: "http://localhost",
+        scope: "scope-1 scope-2",
+        state: "state-is-a-secret",
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+      });
 
     const authorizeResponseQuery = querystring.parse(authorizeResponse.headers.location);
     const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
@@ -52,13 +54,15 @@ describe.skip("auth_code grant e2e", () => {
     expect(decodedCode.expire_time).toBeGreaterThan(Date.now() / 1000);
     expect(authorizeResponseQuery.state).toBe("state-is-a-secret");
 
-    const tokenResponse = await request(app).post("/token").send({
-      grant_type: "authorization_code",
-      code: authorizeResponseQuery.code,
-      redirect_uri: "http://localhost",
-      client_id: client.id,
-      code_verifier: codeVerifier,
-    });
+    const tokenResponse = await request(app)
+      .post("/token")
+      .send({
+        grant_type: "authorization_code",
+        code: authorizeResponseQuery.code,
+        redirect_uri: "http://localhost",
+        client_id: client.id,
+        code_verifier: codeVerifier,
+      });
 
     expect(tokenResponse.status).toBe(200);
     expect(tokenResponse.body.token_type).toBe("Bearer");
