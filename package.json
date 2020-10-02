@@ -19,6 +19,7 @@
     "prebuild": "run-s clean create-exports",
     "build": "tsdx build --tsconfig tsconfig.build.json",
     "test": "jest",
+    "test:cov": "jest --coverage",
     "format": "prettier --write \"**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "prepare": "run-s build"
