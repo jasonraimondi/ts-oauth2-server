@@ -17,7 +17,7 @@ import { ResponseInterface } from "~/responses/response";
 import { arrayDiff } from "~/utils/array";
 import { base64decode } from "~/utils/base64";
 import { DateInterval } from "~/utils/date_interval";
-import { JwtService } from "~/utils/jwt";
+import { JwtInterface } from "~/utils/jwt";
 import { getSecondsUntil, roundToSeconds } from "~/utils/time";
 
 export interface ITokenData {
@@ -46,12 +46,12 @@ export abstract class AbstractGrant implements GrantInterface {
   abstract readonly identifier: GrantIdentifier;
 
   constructor(
-    protected readonly clientRepository: OAuthClientRepository,
-    protected readonly accessTokenRepository: OAuthTokenRepository,
     protected readonly authCodeRepository: OAuthAuthCodeRepository,
+    protected readonly clientRepository: OAuthClientRepository,
+    protected readonly tokenRepository: OAuthTokenRepository,
     protected readonly scopeRepository: OAuthScopeRepository,
     protected readonly userRepository: OAuthUserRepository,
-    protected readonly jwt: JwtService,
+    protected readonly jwt: JwtInterface,
   ) {}
 
   async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[] = []) {
@@ -197,14 +197,14 @@ export abstract class AbstractGrant implements GrantInterface {
     user?: OAuthUser,
     scopes: OAuthScope[] = [],
   ): Promise<OAuthToken> {
-    const accessToken = await this.accessTokenRepository.issueToken(client, scopes, user);
+    const accessToken = await this.tokenRepository.issueToken(client, scopes, user);
     accessToken.accessTokenExpiresAt = accessTokenTTL.getEndDate();
-    await this.accessTokenRepository.persist(accessToken);
+    await this.tokenRepository.persist(accessToken);
     return accessToken;
   }
 
   protected async issueRefreshToken(): Promise<[string, Date] | [undefined, undefined]> {
-    return await this.accessTokenRepository.issueRefreshToken();
+    return await this.tokenRepository.issueRefreshToken();
   }
 
   private getGrantType(request: RequestInterface): GrantIdentifier {

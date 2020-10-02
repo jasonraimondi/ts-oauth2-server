@@ -1,12 +1,12 @@
 import jwt, { Secret, SignOptions, VerifyOptions } from "jsonwebtoken";
 
-export interface JwtService {
+export interface JwtInterface {
   verify(token: string, options?: VerifyOptions): Promise<Record<string, unknown>>;
   decode(encryptedData: string): null | { [key: string]: any } | string;
   sign(payload: string | Buffer | Record<string, unknown>, options?: SignOptions): Promise<string>;
 }
 
-export class JWT implements JwtService {
+export class JwtService implements JwtInterface {
   constructor(private readonly secretOrPrivateKey: Secret) {}
 
   /**

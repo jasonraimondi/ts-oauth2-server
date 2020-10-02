@@ -27,7 +27,7 @@ export class RefreshTokenGrant extends AbstractGrant {
       }
     });
 
-    await this.accessTokenRepository.revoke(oldToken);
+    await this.tokenRepository.revoke(oldToken);
 
     const newToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
@@ -70,9 +70,9 @@ export class RefreshTokenGrant extends AbstractGrant {
       throw OAuthException.invalidRequest("refresh_token", "Token has expired");
     }
 
-    const refreshToken = await this.accessTokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
+    const refreshToken = await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
 
-    if (await this.accessTokenRepository.isRefreshTokenRevoked(refreshToken)) {
+    if (await this.tokenRepository.isRefreshTokenRevoked(refreshToken)) {
       throw OAuthException.invalidRequest("refresh_token", "Token has been revoked");
     }
 

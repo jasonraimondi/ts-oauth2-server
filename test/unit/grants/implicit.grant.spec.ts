@@ -10,7 +10,7 @@ import { AuthorizationRequest } from "~/requests/authorization.request";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { DateInterval } from "~/utils/date_interval";
-import { JWT } from "~/utils/jwt";
+import { JwtService } from "~/utils/jwt";
 import { roundToSeconds } from "~/utils/time";
 
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
@@ -53,12 +53,12 @@ describe("implicit grant", () => {
     scope2 = { name: "scope-2" };
 
     grant = new ImplicitGrant(
+      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,
-      new JWT("secret-key"),
+      new JwtService("secret-key"),
     );
 
     inMemoryDatabase.clients[client.id] = client;

@@ -14,7 +14,7 @@ import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { base64encode } from "~/utils/base64";
 import { DateInterval } from "~/utils/date_interval";
-import { JWT } from "~/utils/jwt";
+import { JwtService } from "~/utils/jwt";
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
@@ -38,57 +38,20 @@ describe("authorization_server", () => {
   let scope2: OAuthScope;
 
   beforeEach(() => {
-    const jwtService = new JWT("secret");
-    authorizationServer = new AuthorizationServer();
-    refreshGrant = new RefreshTokenGrant(
+    authorizationServer = new AuthorizationServer(
+      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,
-      jwtService,
+      new JwtService("secret-key"),
     );
-    authorizationServer.enableGrantType(
-      new ClientCredentialsGrant(
-        inMemoryClientRepository,
-        inMemoryAccessTokenRepository,
-        inMemoryAuthCodeRepository,
-        inMemoryScopeRepository,
-        inMemoryUserRepository,
-        jwtService,
-      ),
-    );
-    authorizationServer.enableGrantType(
-      new AuthCodeGrant(
-        inMemoryClientRepository,
-        inMemoryAccessTokenRepository,
-        inMemoryAuthCodeRepository,
-        inMemoryScopeRepository,
-        inMemoryUserRepository,
-        jwtService,
-      ),
-    );
-    authorizationServer.enableGrantType(refreshGrant);
-    authorizationServer.enableGrantType(
-      new PasswordGrant(
-        inMemoryClientRepository,
-        inMemoryAccessTokenRepository,
-        inMemoryAuthCodeRepository,
-        inMemoryScopeRepository,
-        inMemoryUserRepository,
-        jwtService,
-      ),
-    );
-    authorizationServer.enableGrantType(
-      new ImplicitGrant(
-        inMemoryClientRepository,
-        inMemoryAccessTokenRepository,
-        inMemoryAuthCodeRepository,
-        inMemoryScopeRepository,
-        inMemoryUserRepository,
-        jwtService,
-      ),
-    );
+    refreshGrant = authorizationServer.getGrant("refresh_token");
+    authorizationServer.enableGrantType("authorization_code");
+    authorizationServer.enableGrantType("client_credentials");
+    authorizationServer.enableGrantType("implicit");
+    authorizationServer.enableGrantType("password");
+    authorizationServer.enableGrantType("refresh_token");
 
     scope1 = { name: "scope-1" };
     scope2 = { name: "scope-2" };
@@ -221,7 +184,6 @@ describe("authorization_server", () => {
     const authorizeResponseQuery = querystring.parse(response.headers.location);
     const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
 
-    // console.log(decodedCode);
     expect(decodedCode.client_id).toBe(client.id);
     expect(decodedCode.redirect_uri).toBe("http://localhost");
     expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);

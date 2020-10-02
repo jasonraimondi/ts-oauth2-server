@@ -4,7 +4,7 @@ import { OAuthClient } from "~/entities/client.entity";
 
 export interface OAuthAuthCode {
   code: string;
-  redirectUri?: string; // @todo check why refresh token here
+  redirectUri?: string;
   codeChallenge?: string;
   codeChallengeMethod?: string;
   expiresAt: Date;

@@ -4,7 +4,7 @@ import { PasswordGrant } from "~/grants/password.grant";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { DateInterval } from "~/utils/date_interval";
-import { JWT } from "~/utils/jwt";
+import { JwtService } from "~/utils/jwt";
 
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
@@ -43,12 +43,12 @@ describe("password grant", () => {
     };
 
     grant = new PasswordGrant(
+      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,
-      new JWT("secret-key"),
+      new JwtService("secret-key"),
     );
 
     inMemoryDatabase.clients[client.id] = client;

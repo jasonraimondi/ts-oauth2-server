@@ -1,10 +1,6 @@
 import { AuthorizationServer } from "~/authorization_server";
-import { AuthCodeGrant } from "~/grants/auth_code.grant";
-import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
-import { ImplicitGrant } from "~/grants/implicit.grant";
-import { PasswordGrant } from "~/grants/password.grant";
-import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
-import { JWT } from "~/utils/jwt";
+import { DateInterval } from "~/utils/date_interval";
+import { JwtService } from "~/utils/jwt";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
@@ -14,63 +10,26 @@ import {
 } from "./repository";
 
 const clientRepository = inMemoryClientRepository;
-const accessTokenRepository = inMemoryAccessTokenRepository;
 const authCodeRepository = inMemoryAuthCodeRepository;
+const tokenRepository = inMemoryAccessTokenRepository;
 const scopeRepository = inMemoryScopeRepository;
 const userRepository = inMemoryUserRepository;
 
-const jwtService = new JWT("secret secret secret");
+const jwtService = new JwtService("secret secret secret");
 
-export const clientCredentialsGrant = new ClientCredentialsGrant(
-  clientRepository,
-  accessTokenRepository,
+const authorizationServer = new AuthorizationServer(
   authCodeRepository,
+  clientRepository,
+  tokenRepository,
   scopeRepository,
   userRepository,
   jwtService,
 );
 
-export const authCodeGrant = new AuthCodeGrant(
-  clientRepository,
-  accessTokenRepository,
-  authCodeRepository,
-  scopeRepository,
-  userRepository,
-  jwtService,
-);
-
-export const refreshTokenGrant = new RefreshTokenGrant(
-  clientRepository,
-  accessTokenRepository,
-  authCodeRepository,
-  scopeRepository,
-  userRepository,
-  jwtService,
-);
-
-export const passwordGrant = new PasswordGrant(
-  clientRepository,
-  accessTokenRepository,
-  authCodeRepository,
-  scopeRepository,
-  userRepository,
-  jwtService,
-);
-
-export const implicitGrant = new ImplicitGrant(
-  clientRepository,
-  accessTokenRepository,
-  authCodeRepository,
-  scopeRepository,
-  userRepository,
-  jwtService,
-);
-
-const authorizationServer = new AuthorizationServer();
-authorizationServer.enableGrantType(clientCredentialsGrant);
-authorizationServer.enableGrantType(authCodeGrant);
-authorizationServer.enableGrantType(refreshTokenGrant);
-authorizationServer.enableGrantType(passwordGrant);
-authorizationServer.enableGrantType(implicitGrant);
+authorizationServer.enableGrantType("authorization_code", new DateInterval("1m"));
+authorizationServer.enableGrantType("client_credentials", new DateInterval("1m"));
+authorizationServer.enableGrantType("implicit", new DateInterval("1m"));
+authorizationServer.enableGrantType("password", new DateInterval("1m"));
+authorizationServer.enableGrantType("refresh_token", new DateInterval("1m"));
 
 export { authorizationServer as inMemoryAuthorizationServer };

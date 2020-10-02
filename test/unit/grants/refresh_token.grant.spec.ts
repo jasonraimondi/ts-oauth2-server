@@ -5,7 +5,7 @@ import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { DateInterval } from "~/utils/date_interval";
-import { JWT } from "~/utils/jwt";
+import { JwtService } from "~/utils/jwt";
 
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
@@ -56,12 +56,12 @@ describe("refresh_token grant", () => {
     inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
 
     grant = new RefreshTokenGrant(
+      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,
-      new JWT("secret-key"),
+      new JwtService("secret-key"),
     );
   });
 
@@ -89,7 +89,7 @@ describe("refresh_token grant", () => {
 
   it("throws for resigned token", async () => {
     // arrange
-    const jwt = new JWT("different secret");
+    const jwt = new JwtService("different secret");
     const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
     // @ts-ignore
     const decoded: any = await jwt.decode(bearerResponse.body.refresh_token);

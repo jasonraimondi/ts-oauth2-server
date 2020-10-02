@@ -8,7 +8,7 @@ import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { base64urlencode } from "~/utils/base64";
 import { DateInterval } from "~/utils/date_interval";
-import { JWT } from "~/utils/jwt";
+import { JwtService } from "~/utils/jwt";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
@@ -43,12 +43,12 @@ describe("authorization_code grant", () => {
     };
 
     grant = new AuthCodeGrant(
+      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
-      inMemoryAuthCodeRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,
-      new JWT("secret-key"),
+      new JwtService("secret-key"),
     );
 
     inMemoryDatabase.clients[client.id] = client;

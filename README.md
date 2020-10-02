@@ -42,36 +42,131 @@ npm install @jmondi/oauth2-server
 
 ## Implementation
 
-about entity interfaces
 
-about repository interfaces
+### Entities
 
-then authorization server
+```typescript
+interface OAuthAuthCode {
+  code: string;
+  redirectUri?: string;
+  codeChallenge?: string;
+  codeChallengeMethod?: string;
+  expiresAt: Date;
+  user?: OAuthUser;
+  client: OAuthClient;
+  scopes: OAuthScope[];
+}
 
-then enable grants
+interface OAuthClient {
+  id: string;
+  name: string;
+  secret?: string;
+  redirectUris: string[];
+  allowedGrants: GrantIdentifier[];
+  scopes: OAuthScope[];
+}
 
+interface OAuthScope {
+  name: string;
+  [key: string]: any;
+}
 
+interface OAuthToken {
+  accessToken: string;
+  accessTokenExpiresAt: Date;
+  refreshToken?: string;
+  refreshTokenExpiresAt?: Date;
+  client: OAuthClient;
+  user?: OAuthUser;
+  scopes: OAuthScope[];
+}
 
- // this should go last as example implemenations
-See the [In Memory example that uses Express](./examples/in_memory)
+interface OAuthUser {
+  id: string;
+  [key: string]: any;
+}
+
+```
+
+### Repositories
+
+```typescript
+interface OAuthAuthCodeRepository {
+  getByIdentifier(authCodeCode: string): Promise<OAuthAuthCode>;
+
+  issueAuthCode(client: OAuthClient, user: OAuthUser | undefined, scopes: OAuthScope[]): OAuthAuthCode;
+
+  persist(authCode: OAuthAuthCode): Promise<void>;
+
+  isRevoked(authCodeCode: string): Promise<boolean>;
+
+  revoke(authCodeCode: string): Promise<void>;
+}
+
+interface OAuthClientRepository {
+  getByIdentifier(clientId: string): Promise<OAuthClient>;
+
+  isClientValid(grantType: GrantIdentifier, client: OAuthClient, clientSecret?: string): Promise<boolean>;
+}
+
+interface OAuthTokenRepository {
+  issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken>;
+
+  issueRefreshToken(): Promise<[string, Date]>;
+
+  persist(accessToken: OAuthToken): Promise<void>;
+
+  revoke(accessTokenToken: OAuthToken): Promise<void>;
+
+  isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
+
+  getByRefreshToken(refreshTokenToken: string): Promise<OAuthToken>;
+}
+
+interface OAuthScopeRepository {
+  getAllByIdentifiers(scopeNames: string[]): Promise<OAuthScope[]>;
+
+  finalize(
+    scopes: OAuthScope[],
+    identifier: GrantIdentifier,
+    client: OAuthClient,
+    user_id?: string,
+  ): Promise<OAuthScope[]>;
+}
+
+interface OAuthUserRepository {
+  getUserByCredentials(
+    identifier: string,
+    password?: string,
+    grantType?: GrantIdentifier,
+    client?: OAuthClient,
+  ): Promise<OAuthUser | undefined>;
+}
+```
+
+### The AuthorizationServer
+
+```typescript
+const authorizationServer = new AuthorizationServer(
+  authCodeRepository,
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  userRepository,
+  new JwtService("secret-key"),
+);
+authorizationServer.enableGrantType("client_credentials");
+authorizationServer.enableGrantType("authorization_code");
+authorizationServer.enableGrantType("refresh_token");
+
+// implicit grant is not recommended for new apps
+authorizationServer.enableGrantType("implicit");
+// password grant is not recommended for new apps
+authorizationServer.enableGrantType("password");
+```
 
 The server uses two endpoints, `GET /authorize` and `POST /token`. 
 
-```typescript
-const authorizationServer = new AuthorizationServer();
-authorizationServer.enableGrantType(new ClientCredentialsGrant(...);
-authorizationServer.enableGrantType(new AuthCodeGrant(...);
-authorizationServer.enableGrantType(new RefreshTokenGrant(...);
-```
-
-### Using in Express
-
-```typescript
-const app = Express();
-
-app.use(json());
-app.use(urlencoded({ extended: false }));
-```
 
 ### The `/token` endpoint
 
@@ -95,7 +190,6 @@ app.post("/token", async (req: Express.Request, res: Express.Response) => {
 The `/authorize` endpoint is a front channel endpoint that issues an authorization code. The authorization code can then be exchanged to the `AuthorizationServer` endpoint for a useable access token.
 
 The endpoint should redirect the user to login, and then to accept the scopes requested by the application, and only when the user accepts, should it send the user back to the clients redirect uri. 
-
 
 ```typescript
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
@@ -127,6 +221,20 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
     handleError(e, res);
   }
 });
+```
+
+### Using in Express
+
+See the [In Memory example that uses Express](./examples/in_memory)
+
+
+```typescript
+import { json, urlencoded } from "body-parser";
+import Express from "express";
+
+const app = Express();
+app.use(json());
+app.use(urlencoded({ extended: false }));
 ```
 
 ## Which Grant?
