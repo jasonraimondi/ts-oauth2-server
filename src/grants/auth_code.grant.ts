@@ -1,6 +1,7 @@
 import { PlainVerifier } from "~/code_verifiers/plain.verifier";
 import { S256Verifier } from "~/code_verifiers/s256.verifier";
 import { CodeChallengeMethod, ICodeChallenge } from "~/code_verifiers/verifier";
+import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthException } from "~/exceptions/oauth.exception";
@@ -61,12 +62,12 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const userId = validatedPayload.user_id;
 
-    const user = userId ? await this.userRepository.getByUserEntityByCredentials(userId) : undefined;
+    const user = userId ? await this.userRepository.getUserByCredentials(userId) : undefined;
 
     const scopes: OAuthScope[] = [];
 
     try {
-      const finalizedScopes = await this.scopeRepository.finalizeScopes(
+      const finalizedScopes = await this.scopeRepository.finalize(
         await this.validateScopes(validatedPayload.scopes ?? []),
         this.identifier,
         client,
@@ -77,7 +78,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("code", "Cannot verify scopes");
     }
 
-    const authCode = await this.authCodeRepository.getAuthCodeByIdentifier(validatedPayload.auth_code_id);
+    const authCode = await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id);
 
     if (!validatedPayload.code_challenge) throw OAuthException.invalidRequest("code_challenge");
 
@@ -117,7 +118,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     accessToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
 
-    await this.authCodeRepository.revokeAuthCode(validatedPayload.auth_code_id);
+    await this.authCodeRepository.revoke(validatedPayload.auth_code_id);
 
     return await this.makeBearerTokenResponse(client, accessToken, scopes);
   }
@@ -135,7 +136,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("client_id");
     }
 
-    const client = await this.clientRepository.getClientByIdentifier(clientId);
+    const client = await this.clientRepository.getByIdentifier(clientId);
+
+    if (!client) {
+      throw OAuthException.invalidClient();
+    }
 
     let redirectUri = this.getQueryStringParameter("redirect_uri", request);
 
@@ -190,42 +195,42 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("redirect_uri");
     }
 
-    if (authorizationRequest.isAuthorizationApproved) {
-      const authCode = await this.issueAuthCode(
-        this.authCodeTTL,
-        authorizationRequest.client,
-        authorizationRequest.user?.identifier, // @todo should this be allowed null?
-        authorizationRequest.redirectUri,
-        authorizationRequest.codeChallenge,
-        authorizationRequest.codeChallengeMethod,
-        authorizationRequest.scopes,
-      );
-
-      const payload: IAuthCodePayload = {
-        client_id: authCode.client.id,
-        redirect_uri: authCode.redirectUri,
-        auth_code_id: authCode.token,
-        scopes: authCode.scopes.map(scope => scope.name),
-        user_id: authCode.userId,
-        expire_time: this.authCodeTTL.getEndTimeSeconds(),
-        code_challenge: authorizationRequest.codeChallenge,
-        code_challenge_method: authorizationRequest.codeChallengeMethod,
-      };
-
-      const jsonPayload = JSON.stringify(payload);
-
-      const code = await this.encrypt(jsonPayload);
-
-      const finalRedirectUri = this.makeRedirectUrl(redirectUri, {
-        code,
-        state: authorizationRequest.state,
-      });
-
-      return new RedirectResponse(finalRedirectUri);
+    if (!authorizationRequest.isAuthorizationApproved) {
+      // @todo what exception should I throw here?
+      throw OAuthException.invalidRequest("isAuthorizationApproved");
     }
 
-    // @todo what exception should I throw here?
-    throw OAuthException.invalidRequest("isAuthorizationApproved");
+    const authCode = await this.issueAuthCode(
+      this.authCodeTTL,
+      authorizationRequest.client,
+      authorizationRequest.user?.id,
+      authorizationRequest.redirectUri,
+      authorizationRequest.codeChallenge,
+      authorizationRequest.codeChallengeMethod,
+      authorizationRequest.scopes,
+    );
+
+    const payload: IAuthCodePayload = {
+      client_id: authCode.client.id,
+      redirect_uri: authCode.redirectUri,
+      auth_code_id: authCode.code,
+      scopes: authCode.scopes.map(scope => scope.name),
+      user_id: authCode.user?.id,
+      expire_time: this.authCodeTTL.getEndTimeSeconds(),
+      code_challenge: authorizationRequest.codeChallenge,
+      code_challenge_method: authorizationRequest.codeChallengeMethod,
+    };
+
+    const jsonPayload = JSON.stringify(payload);
+
+    const code = await this.encrypt(jsonPayload);
+
+    const finalRedirectUri = this.makeRedirectUrl(redirectUri, {
+      code,
+      state: authorizationRequest.state,
+    });
+
+    return new RedirectResponse(finalRedirectUri);
   }
 
   private async validateAuthorizationCode(payload: any, client: OAuthClient, request: RequestInterface) {
@@ -233,10 +238,9 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("code", "Authorization code malformed");
     }
 
-    if (
-      Date.now() / 1000 > payload.expire_time ||
-      (await this.authCodeRepository.isAuthCodeRevoked(payload.auth_code_id))
-    ) {
+    const isCodeRevoked = await this.authCodeRepository.isRevoked(payload.auth_code_id);
+
+    if (Date.now() / 1000 > payload.expire_time || isCodeRevoked) {
       throw OAuthException.invalidRequest("code", "Authorization code is expired or revoked");
     }
 
@@ -253,5 +257,26 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("redirect_uri", "Invalid redirect URI");
     }
     return payload;
+  }
+
+  private async issueAuthCode(
+    authCodeTTL: DateInterval,
+    client: OAuthClient,
+    userIdentifier?: string,
+    redirectUri?: string,
+    codeChallenge?: string,
+    codeChallengeMethod?: string,
+    scopes: OAuthScope[] = [],
+  ): Promise<OAuthAuthCode> {
+    const user = userIdentifier ? await this.userRepository.getUserByCredentials(userIdentifier) : undefined;
+
+    const authCode = await this.authCodeRepository.issueAuthCode(client, user, scopes);
+    authCode.expiresAt = authCodeTTL.getEndDate();
+    authCode.redirectUri = redirectUri;
+    authCode.codeChallenge = codeChallenge;
+    authCode.codeChallengeMethod = codeChallengeMethod;
+    scopes.forEach(scope => (authCode.scopes ? authCode.scopes.push(scope) : (authCode.scopes = [scope])));
+    await this.authCodeRepository.persist(authCode);
+    return authCode;
   }
 }

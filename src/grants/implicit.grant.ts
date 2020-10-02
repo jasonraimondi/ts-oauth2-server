@@ -36,7 +36,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("client_id");
     }
 
-    const client = await this.clientRepository.getClientByIdentifier(clientId);
+    const client = await this.clientRepository.getByIdentifier(clientId);
 
     if (!client) {
       throw OAuthException.invalidClient();
@@ -61,7 +61,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
   }
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
-    if (!authorizationRequest.user || !authorizationRequest.user?.identifier) {
+    if (!authorizationRequest.user || !authorizationRequest.user?.id) {
       throw OAuthException.logicException("A user must be set on the AuthorizationRequest");
     }
 
@@ -82,11 +82,11 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       throw OAuthException.accessDenied();
     }
 
-    const finalizedScopes = await this.scopeRepository.finalizeScopes(
+    const finalizedScopes = await this.scopeRepository.finalize(
       authorizationRequest.scopes,
       this.identifier,
       authorizationRequest.client,
-      authorizationRequest.user.identifier,
+      authorizationRequest.user.id,
     );
 
     const accessToken = await this.issueAccessToken(

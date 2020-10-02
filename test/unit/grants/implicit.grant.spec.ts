@@ -38,7 +38,7 @@ describe("implicit grant", () => {
     response = new OAuthResponse();
 
     user = {
-      identifier: "512ab9a4-c786-48a6-8ad6-94c53a8dc651",
+      id: "512ab9a4-c786-48a6-8ad6-94c53a8dc651",
       password: "password123",
     };
     client = {
@@ -62,7 +62,7 @@ describe("implicit grant", () => {
     );
 
     inMemoryDatabase.clients[client.id] = client;
-    inMemoryDatabase.users[user.identifier] = user;
+    inMemoryDatabase.users[user.id] = user;
     inMemoryDatabase.scopes[scope1.name] = scope1;
     inMemoryDatabase.scopes[scope2.name] = scope2;
   });
@@ -176,6 +176,7 @@ describe("implicit grant", () => {
       authorizationRequest.user = user;
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.redirectUri = "http://localhost";
+      authorizationRequest.state = "abc123-state";
 
       // act
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
@@ -183,7 +184,8 @@ describe("implicit grant", () => {
       const decodedCode = <ITokenData>decode(String(authorizeResponseQuery.access_token));
 
       // assert
-      expect(decodedCode.sub).toBe(user.identifier);
+      expect(authorizeResponseQuery.state).toBe("abc123-state");
+      expect(decodedCode.sub).toBe(user.id);
       expect(decodedCode.jti).toMatch(REGEX_ACCESS_TOKEN);
       expect(decodedCode.exp).toBeGreaterThan(now);
       expect(decodedCode.iat).toBe(now);

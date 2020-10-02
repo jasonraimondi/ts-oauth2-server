@@ -20,11 +20,11 @@ export class PasswordGrant extends AbstractGrant {
 
     const user = await this.validateUser(request, client);
 
-    const finalizedScopes = await this.scopeRepository.finalizeScopes(
+    const finalizedScopes = await this.scopeRepository.finalize(
       await this.validateScopes(bodyScopes),
       this.identifier,
       client,
-      user.identifier,
+      user.id,
     );
 
     const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, finalizedScopes);
@@ -50,7 +50,7 @@ export class PasswordGrant extends AbstractGrant {
       throw OAuthException.invalidRequest("password");
     }
 
-    const user = await this.userRepository.getByUserEntityByCredentials(username, password, this.identifier, client);
+    const user = await this.userRepository.getUserByCredentials(username, password, this.identifier, client);
 
     if (!user) {
       throw OAuthException.invalidGrant();

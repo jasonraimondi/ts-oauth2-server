@@ -3,8 +3,9 @@ import { OAuthScope } from "~/entities/scope.entity";
 import { GrantIdentifier } from "~/grants/abstract/grant.interface";
 
 export interface OAuthScopeRepository {
-  getScopesByIdentifier(scopeNames: string[]): Promise<OAuthScope[]>;
-  finalizeScopes(
+  getAllByIdentifiers(scopeNames: string[]): Promise<OAuthScope[]>;
+
+  finalize(
     scopes: OAuthScope[],
     identifier: GrantIdentifier,
     client: OAuthClient,

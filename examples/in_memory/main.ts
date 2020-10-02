@@ -25,7 +25,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
     // Once the user has logged in set the user on the AuthorizationRequest
     console.log("Once the user has logged in set the user on the AuthorizationRequest");
-    const user = { identifier: "abc", email: "user@example.com" };
+    const user = { id: "abc", email: "user@example.com" };
     authRequest.user = user;
 
     // At this point you should redirect the user to an authorization page.

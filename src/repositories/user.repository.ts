@@ -3,7 +3,7 @@ import { OAuthUser } from "~/entities/user.entity";
 import { GrantIdentifier } from "~/grants/abstract/grant.interface";
 
 export interface OAuthUserRepository {
-  getByUserEntityByCredentials(
+  getUserByCredentials(
     identifier: string,
     password?: string,
     grantType?: GrantIdentifier,

@@ -3,8 +3,8 @@ import { GrantIdentifier } from "~/grants/abstract/grant.interface";
 
 export interface OAuthClient {
   id: string;
-  secret?: string;
   name: string;
+  secret?: string;
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
   scopes: OAuthScope[];

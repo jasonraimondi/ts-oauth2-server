@@ -4,13 +4,13 @@ import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthUser } from "~/entities/user.entity";
 
 export interface OAuthAuthCodeRepository {
-  getNewAuthCode(client: OAuthClient, user: OAuthUser | undefined, scopes: OAuthScope[]): OAuthAuthCode;
+  getByIdentifier(authCodeCode: string): Promise<OAuthAuthCode>;
 
-  persistNewAuthCode(authCode: OAuthAuthCode): Promise<void>;
+  issueAuthCode(client: OAuthClient, user: OAuthUser | undefined, scopes: OAuthScope[]): OAuthAuthCode;
 
-  isAuthCodeRevoked(authCodeCode: string): Promise<boolean>;
+  persist(authCode: OAuthAuthCode): Promise<void>;
 
-  getAuthCodeByIdentifier(authCodeCode: string): Promise<OAuthAuthCode>;
+  isRevoked(authCodeCode: string): Promise<boolean>;
 
-  revokeAuthCode(authCodeCode: string): Promise<void>;
+  revoke(authCodeCode: string): Promise<void>;
 }

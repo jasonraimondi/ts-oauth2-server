@@ -1,4 +1,4 @@
 export interface OAuthUser {
-  identifier: string;
+  id: string;
   [key: string]: any;
 }

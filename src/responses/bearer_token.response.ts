@@ -1,11 +1,11 @@
-import { OAuthAccessToken } from "~/entities/token.entity";
+import { OAuthToken } from "~/entities/token.entity";
 import { HttpStatus } from "~/exceptions/oauth.exception";
 import { OAuthResponse, Options } from "~/responses/response";
 
 export class BearerTokenResponse extends OAuthResponse {
   readonly status = HttpStatus.OK;
 
-  constructor(public readonly accessToken: OAuthAccessToken, options?: Options) {
+  constructor(public readonly accessToken: OAuthToken, options?: Options) {
     super(options);
 
     this.set("pragma", "no-cache");

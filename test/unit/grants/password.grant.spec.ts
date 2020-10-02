@@ -30,7 +30,7 @@ describe("password grant", () => {
     response = new OAuthResponse();
 
     user = {
-      identifier: "512ab9a4-c786-48a6-8ad6-94c53a8dc651",
+      id: "512ab9a4-c786-48a6-8ad6-94c53a8dc651",
       password: "password123",
     };
     client = {
@@ -52,7 +52,7 @@ describe("password grant", () => {
     );
 
     inMemoryDatabase.clients[client.id] = client;
-    inMemoryDatabase.users[user.identifier] = user;
+    inMemoryDatabase.users[user.id] = user;
   });
 
   it("succeeds when valid request", async () => {
@@ -62,7 +62,7 @@ describe("password grant", () => {
         grant_type: "password",
         client_id: client.id,
         client_secret: client.secret,
-        username: user.identifier,
+        username: user.id,
         password: user.password,
       },
     });
@@ -117,7 +117,7 @@ describe("password grant", () => {
         grant_type: "password",
         client_id: client.id,
         client_secret: client.secret,
-        username: user.identifier,
+        username: user.id,
       },
     });
     const accessTokenTTL = new DateInterval("1h");

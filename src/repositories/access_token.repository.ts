@@ -1,18 +1,18 @@
-import { OAuthAccessToken } from "~/entities/token.entity";
+import { OAuthToken } from "~/entities/token.entity";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthUser } from "~/entities/user.entity";
 
-export interface OAuthAccessTokenRepository {
-  getNewToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthAccessToken>;
+export interface OAuthTokenRepository {
+  issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken>;
 
-  persistNewToken(accessToken: OAuthAccessToken): Promise<void>;
+  issueRefreshToken(): Promise<[string, Date]>;
 
-  revokeToken(accessTokenToken: OAuthAccessToken): Promise<void>;
+  persist(accessToken: OAuthToken): Promise<void>;
 
-  createRefreshTokenInstance(): Promise<[string, Date]>;
+  revoke(accessTokenToken: OAuthToken): Promise<void>;
 
-  isRefreshTokenRevoked(refreshToken: OAuthAccessToken): Promise<boolean>;
+  isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 
-  getRefreshToken(refreshTokenToken: string): Promise<OAuthAccessToken>;
+  getByRefreshToken(refreshTokenToken: string): Promise<OAuthToken>;
 }

@@ -1,10 +1,10 @@
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthAccessToken } from "~/entities/token.entity";
+import { OAuthToken } from "~/entities/token.entity";
 import { OAuthUser } from "~/entities/user.entity";
 import { GrantIdentifier } from "~/grants/abstract/grant.interface";
-import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
+import { OAuthTokenRepository } from "~/repositories/access_token.repository";
 import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
 import { OAuthClientRepository } from "~/repositories/client.repository";
 import { OAuthScopeRepository } from "~/repositories/scope.repository";
@@ -15,7 +15,7 @@ import { inMemoryDatabase } from "./database";
 const oneHourInFuture = new DateInterval("1h").getEndDate();
 
 export const inMemoryClientRepository: OAuthClientRepository = {
-  async getClientByIdentifier(clientId: string): Promise<OAuthClient> {
+  async getByIdentifier(clientId: string): Promise<OAuthClient> {
     return inMemoryDatabase.clients[clientId];
   },
 
@@ -33,10 +33,10 @@ export const inMemoryClientRepository: OAuthClientRepository = {
 };
 
 export const inMemoryScopeRepository: OAuthScopeRepository = {
-  async getScopesByIdentifier(scopeNames: string[]): Promise<OAuthScope[]> {
+  async getAllByIdentifiers(scopeNames: string[]): Promise<OAuthScope[]> {
     return Object.values(inMemoryDatabase.scopes).filter(scope => scopeNames.includes(scope.name));
   },
-  async finalizeScopes(
+  async finalize(
     scopes: OAuthScope[],
     identifier: GrantIdentifier,
     client: OAuthClient,
@@ -46,15 +46,15 @@ export const inMemoryScopeRepository: OAuthScopeRepository = {
   },
 };
 
-export const inMemoryAccessTokenRepository: OAuthAccessTokenRepository = {
-  async revokeToken(accessToken: OAuthAccessToken): Promise<void> {
+export const inMemoryAccessTokenRepository: OAuthTokenRepository = {
+  async revoke(accessToken: OAuthToken): Promise<void> {
     const token = inMemoryDatabase.tokens[accessToken.accessToken];
     token.accessTokenExpiresAt = new Date(0);
     token.refreshTokenExpiresAt = new Date(0);
     inMemoryDatabase.tokens[accessToken.accessToken] = token;
   },
-  async getNewToken(client: OAuthClient, scopes: OAuthScope[], user: OAuthUser): Promise<OAuthAccessToken> {
-    return <OAuthAccessToken>{
+  async issueToken(client: OAuthClient, scopes: OAuthScope[], user: OAuthUser): Promise<OAuthToken> {
+    return <OAuthToken>{
       accessToken: "new token",
       accessTokenExpiresAt: oneHourInFuture,
       client,
@@ -62,31 +62,29 @@ export const inMemoryAccessTokenRepository: OAuthAccessTokenRepository = {
       scopes: [],
     };
   },
-  async persistNewToken(accessToken: OAuthAccessToken): Promise<void> {
+  async persist(accessToken: OAuthToken): Promise<void> {
     inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
   },
   // @todo
-  async getRefreshToken(refreshTokenToken: string): Promise<OAuthAccessToken> {
+  async getByRefreshToken(refreshTokenToken: string): Promise<OAuthToken> {
     const token = Object.values(inMemoryDatabase.tokens).find(token => token.refreshToken === refreshTokenToken);
     if (!token) throw new Error("token not found");
     return token;
   },
-  async isRefreshTokenRevoked(token: OAuthAccessToken): Promise<boolean> {
+  async isRefreshTokenRevoked(token: OAuthToken): Promise<boolean> {
     return Date.now() > (token.refreshTokenExpiresAt?.getTime() ?? 0);
   },
-  async createRefreshTokenInstance(): Promise<[string, Date]> {
+  async issueRefreshToken(): Promise<[string, Date]> {
     return ["this-is-my-super-secret-refresh-token", oneHourInFuture];
   },
 };
 
 export const inMemoryAuthCodeRepository: OAuthAuthCodeRepository = {
-  getNewAuthCode(client: OAuthClient, user: OAuthUser | undefined, scopes: OAuthScope[]): OAuthAuthCode {
+  issueAuthCode(client: OAuthClient, user: OAuthUser | undefined, scopes: OAuthScope[]): OAuthAuthCode {
     return {
-      token: "my-super-secret-auth-code",
+      code: "my-super-secret-auth-code",
       user,
-      userId: user?.id,
       client,
-      clientId: client.id,
       redirectUri: "",
       codeChallenge: undefined,
       codeChallengeMethod: undefined,
@@ -94,23 +92,23 @@ export const inMemoryAuthCodeRepository: OAuthAuthCodeRepository = {
       scopes: [],
     };
   },
-  async persistNewAuthCode(authCode: OAuthAuthCode): Promise<void> {
-    inMemoryDatabase.authCodes[authCode.token] = authCode;
+  async persist(authCode: OAuthAuthCode): Promise<void> {
+    inMemoryDatabase.authCodes[authCode.code] = authCode;
   },
-  async isAuthCodeRevoked(authCodeCode: string): Promise<boolean> {
-    const authCode = await this.getAuthCodeByIdentifier(authCodeCode);
+  async isRevoked(authCodeCode: string): Promise<boolean> {
+    const authCode = await this.getByIdentifier(authCodeCode);
     return Date.now() > authCode.expiresAt.getTime();
   },
-  async getAuthCodeByIdentifier(authCodeCode: string): Promise<OAuthAuthCode> {
+  async getByIdentifier(authCodeCode: string): Promise<OAuthAuthCode> {
     return inMemoryDatabase.authCodes[authCodeCode];
   },
-  async revokeAuthCode(authCodeCode: string): Promise<void> {
+  async revoke(authCodeCode: string): Promise<void> {
     inMemoryDatabase.authCodes[authCodeCode].expiresAt = new Date(0);
   },
 };
 
 export const inMemoryUserRepository: OAuthUserRepository = {
-  async getByUserEntityByCredentials(
+  async getUserByCredentials(
     identifier: string,
     password?: string,
     grantType?: GrantIdentifier,

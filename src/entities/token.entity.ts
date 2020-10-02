@@ -2,7 +2,7 @@ import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthUser } from "~/entities/user.entity";
 
-export interface OAuthAccessToken {
+export interface OAuthToken {
   accessToken: string;
   accessTokenExpiresAt: Date;
   refreshToken?: string;

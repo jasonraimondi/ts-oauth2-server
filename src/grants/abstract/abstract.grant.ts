@@ -1,11 +1,11 @@
 import { OAuthAuthCode } from "~/entities/auth_code.entity";
 import { isClientConfidential, OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthAccessToken } from "~/entities/token.entity";
+import { OAuthToken } from "~/entities/token.entity";
 import { OAuthUser } from "~/entities/user.entity";
 import { OAuthException } from "~/exceptions/oauth.exception";
 import { GrantIdentifier, GrantInterface } from "~/grants/abstract/grant.interface";
-import { OAuthAccessTokenRepository } from "~/repositories/access_token.repository";
+import { OAuthTokenRepository } from "~/repositories/access_token.repository";
 import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
 import { OAuthClientRepository } from "~/repositories/client.repository";
 import { OAuthScopeRepository } from "~/repositories/scope.repository";
@@ -47,14 +47,14 @@ export abstract class AbstractGrant implements GrantInterface {
 
   constructor(
     protected readonly clientRepository: OAuthClientRepository,
-    protected readonly accessTokenRepository: OAuthAccessTokenRepository,
+    protected readonly accessTokenRepository: OAuthTokenRepository,
     protected readonly authCodeRepository: OAuthAuthCodeRepository,
     protected readonly scopeRepository: OAuthScopeRepository,
     protected readonly userRepository: OAuthUserRepository,
     protected readonly jwt: JwtService,
   ) {}
 
-  async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthAccessToken, scopes: OAuthScope[] = []) {
+  async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[] = []) {
     const scope = scopes.map(scope => scope.name).join(this.scopeDelimiterString);
 
     const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes);
@@ -78,23 +78,23 @@ export abstract class AbstractGrant implements GrantInterface {
     return bearerTokenResponse;
   }
 
-  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthAccessToken, scopes: OAuthScope[]) {
+  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthToken, scopes: OAuthScope[]) {
     const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime() ?? refreshToken.accessTokenExpiresAt.getTime();
     return this.encrypt({
       client_id: client.id,
       access_token_id: refreshToken.accessToken,
       refresh_token_id: refreshToken.refreshToken,
       scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
-      user_id: refreshToken.user?.identifier,
+      user_id: refreshToken.user?.id,
       expire_time: Math.ceil(expiresAtMs / 1000),
       // token_version: 1, // @todo token version?
     });
   }
 
-  protected encryptAccessToken(client: OAuthClient, accessToken: OAuthAccessToken, scopes: OAuthScope[]) {
+  protected encryptAccessToken(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[]) {
     return this.encrypt(<ITokenData | any>{
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
-      sub: accessToken.user?.identifier, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
+      sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
       exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
       nbf: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
@@ -112,7 +112,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
     const grantType = this.getGrantType(request);
 
-    const client = await this.clientRepository.getClientByIdentifier(clientId);
+    const client = await this.clientRepository.getByIdentifier(clientId);
 
     if (isClientConfidential(client) && !clientSecret) {
       throw OAuthException.invalidClient("Confidential clients require client_secret.");
@@ -172,18 +172,12 @@ export abstract class AbstractGrant implements GrantInterface {
     return decoded.split(":");
   }
 
-  protected validateRedirectUri(redirectUri: string, client: OAuthClient) {
-    if (redirectUri === "" || !client.redirectUris.includes(redirectUri)) {
-      throw OAuthException.invalidClient("Invalid redirect_uri");
-    }
-  }
-
   protected async validateScopes(scopes: string | string[] = [], redirectUri?: string): Promise<OAuthScope[]> {
     if (typeof scopes === "string") {
       scopes = scopes.split(this.scopeDelimiterString);
     }
 
-    const validScopes = await this.scopeRepository.getScopesByIdentifier(scopes);
+    const validScopes = await this.scopeRepository.getAllByIdentifiers(scopes);
 
     const invalidScopes = arrayDiff(
       scopes,
@@ -202,42 +196,18 @@ export abstract class AbstractGrant implements GrantInterface {
     client: OAuthClient,
     user?: OAuthUser,
     scopes: OAuthScope[] = [],
-  ): Promise<OAuthAccessToken> {
-    const accessToken = await this.accessTokenRepository.getNewToken(client, scopes, user);
-
+  ): Promise<OAuthToken> {
+    const accessToken = await this.accessTokenRepository.issueToken(client, scopes, user);
     accessToken.accessTokenExpiresAt = accessTokenTTL.getEndDate();
-
-    await this.accessTokenRepository.persistNewToken(accessToken);
-
+    await this.accessTokenRepository.persist(accessToken);
     return accessToken;
   }
 
-  protected async issueAuthCode(
-    authCodeTTL: DateInterval,
-    client: OAuthClient,
-    userIdentifier?: string,
-    redirectUri?: string,
-    codeChallenge?: string,
-    codeChallengeMethod?: string,
-    scopes: OAuthScope[] = [],
-  ): Promise<OAuthAuthCode> {
-    const user = userIdentifier ? await this.userRepository.getByUserEntityByCredentials(userIdentifier) : undefined;
-
-    const authCode = await this.authCodeRepository.getNewAuthCode(client, user, scopes);
-    authCode.expiresAt = authCodeTTL.getEndDate();
-    authCode.redirectUri = redirectUri;
-    authCode.codeChallenge = codeChallenge;
-    authCode.codeChallengeMethod = codeChallengeMethod;
-    scopes.forEach(scope => (authCode.scopes ? authCode.scopes.push(scope) : (authCode.scopes = [scope])));
-    await this.authCodeRepository.persistNewAuthCode(authCode);
-    return authCode;
-  }
-
   protected async issueRefreshToken(): Promise<[string, Date] | [undefined, undefined]> {
-    return await this.accessTokenRepository.createRefreshTokenInstance();
+    return await this.accessTokenRepository.issueRefreshToken();
   }
 
-  protected getGrantType(request: RequestInterface): GrantIdentifier {
+  private getGrantType(request: RequestInterface): GrantIdentifier {
     const result =
       this.getRequestParameter("grant_type", request) ?? this.getQueryStringParameter("grant_type", request);
 

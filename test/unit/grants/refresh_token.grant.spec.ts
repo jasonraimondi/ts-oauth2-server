@@ -1,5 +1,5 @@
 import { OAuthClient } from "~/entities/client.entity";
-import { OAuthAccessToken } from "~/entities/token.entity";
+import { OAuthToken } from "~/entities/token.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
 import { OAuthRequest } from "~/requests/request";
@@ -19,7 +19,7 @@ import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("refresh_token grant", () => {
   let client: OAuthClient;
-  let accessToken: OAuthAccessToken;
+  let accessToken: OAuthToken;
   let scope1: OAuthScope;
   let scope2: OAuthScope;
 
