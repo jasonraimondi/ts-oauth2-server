@@ -1,12 +1,15 @@
+import { decode } from "jsonwebtoken";
+import querystring from "querystring";
 import { AuthorizationServer } from "~/authorization_server";
 import { OAuthClient } from "~/entities/client.entity";
 import { OAuthScope } from "~/entities/scope.entity";
 import { OAuthToken } from "~/entities/token.entity";
-import { AuthCodeGrant } from "~/grants/auth_code.grant";
+import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
 import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
 import { ImplicitGrant } from "~/grants/implicit.grant";
 import { PasswordGrant } from "~/grants/password.grant";
 import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
+import { AuthorizationRequest } from "~/requests/authorization.request";
 import { OAuthRequest } from "~/requests/request";
 import { OAuthResponse } from "~/responses/response";
 import { base64encode } from "~/utils/base64";
@@ -21,6 +24,9 @@ import {
   inMemoryUserRepository,
 } from "../../examples/in_memory/repository";
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec";
+
+// const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
+const codeChallenge = "ODQwZGM4YzZlNzMyMjQyZDAxYjE5MWZkY2RkNjJmMTllMmI0NzI0ZDlkMGJlYjFlMmMxOWY2ZDI1ZDdjMjMwYg"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest("hex"));
 
 describe("authorization_server", () => {
   let authorizationServer: AuthorizationServer;
@@ -170,8 +176,7 @@ describe("authorization_server", () => {
       scopes: [scope1, scope2],
     };
     inMemoryDatabase.clients[client.id] = client;
-    // const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
-    const codeChallenge = "ODQwZGM4YzZlNzMyMjQyZDAxYjE5MWZkY2RkNjJmMTllMmI0NzI0ZDlkMGJlYjFlMmMxOWY2ZDI1ZDdjMjMwYg"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest("hex"));
+
     const request = new OAuthRequest({
       query: {
         response_type: "code",
@@ -193,5 +198,32 @@ describe("authorization_server", () => {
     expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
     expect(authorizationRequest.codeChallengeMethod).toBe("S256");
     expect(authorizationRequest.scopes).toStrictEqual([scope1, scope2]);
+  });
+
+  it("is successful", async () => {
+    client = {
+      id: "authcodeclient",
+      name: "test auth code client",
+      secret: undefined,
+      redirectUris: ["http://localhost"],
+      allowedGrants: ["authorization_code"],
+      scopes: [scope1, scope2],
+    };
+    inMemoryDatabase.clients[client.id] = client;
+
+    const authorizationRequest = new AuthorizationRequest("authorization_code", client);
+    authorizationRequest.isAuthorizationApproved = true;
+    authorizationRequest.codeChallengeMethod = "S256";
+    authorizationRequest.codeChallenge = codeChallenge;
+    authorizationRequest.redirectUri = "http://localhost";
+
+    const response = await authorizationServer.completeAuthorizationRequest(authorizationRequest);
+    const authorizeResponseQuery = querystring.parse(response.headers.location);
+    const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+
+    // console.log(decodedCode);
+    expect(decodedCode.client_id).toBe(client.id);
+    expect(decodedCode.redirect_uri).toBe("http://localhost");
+    expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);
   });
 });

@@ -18,6 +18,7 @@
     "create-exports": "barrelsby -d src/ --delete",
     "prebuild": "run-s clean create-exports",
     "build": "tsdx build --tsconfig tsconfig.build.json",
+    "pretest": "run-s create-exports",
     "test": "jest",
     "test:cov": "jest --coverage",
     "format": "prettier --write \"**/*.ts\"",
