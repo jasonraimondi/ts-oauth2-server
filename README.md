@@ -25,11 +25,13 @@ The following RFCs are implemented:
 - [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
 - [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
 
+
+### [Go to Documentation](https://jasonraimondi.github.io/typescript-oauth2-server/)
+
 ## @TODO
 
 :construction_worker: This project is under development :construction:
 
-* fix: output structure being uploaded to npm
 * feat: flag for require code_challenge for public clients
 * feat: token introspection
 * chore: documentation
