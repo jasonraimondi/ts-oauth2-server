@@ -23,7 +23,9 @@
     "test:cov": "jest --coverage",
     "format": "prettier --write \"**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "prepare": "run-s build"
+    "prepare": "run-s build",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
   },
   "peerDependencies": {},
   "devDependencies": {
@@ -49,7 +51,8 @@
     "ts-jest": "^26.4.1",
     "tsdx": "^0.14.0",
     "tslib": "^2.0.1",
-    "typescript": "^4.0.3"
+    "typescript": "^4.0.3",
+    "vuepress": "^1.6.0"
   },
   "dependencies": {
     "jsonwebtoken": "^8.5.1",

@@ -35,6 +35,8 @@ jobs:
           DOMAIN: localhost
           JWT_SECRET: testing-access-token-secret
       - run: npm run build --if-present
+      - name: foo
+        run: ./deploy.sh
       - name: report coverage to code climate
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter

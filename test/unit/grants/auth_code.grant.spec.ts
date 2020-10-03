@@ -196,7 +196,10 @@ describe("authorization_code grant", () => {
       const authorizeResponseQuery = querystring.parse(response.headers.location);
       const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
 
-      // console.log(decodedCode);
+      // expect(response.headers.location).toMatch(/http\:\/\/localhost\#code\=/)
+      // @todo should the splitter be a hash instead of &?
+      expect(response.headers.location).toMatch(/http\:\/\/localhost\&code\=/)
+
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://localhost");
       expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);
