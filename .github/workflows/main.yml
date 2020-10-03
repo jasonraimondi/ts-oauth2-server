@@ -35,8 +35,14 @@ jobs:
           DOMAIN: localhost
           JWT_SECRET: testing-access-token-secret
       - run: npm run build --if-present
-      - name: foo
-        run: ./deploy.sh
+      - name: vuepress-deploy
+        uses: jenkey2011/vuepress-deploy@master
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          TARGET_REPO: jasonraimondi/typescript-oauth2-server
+          TARGET_BRANCH: gh-pages
+          BUILD_SCRIPT: npm ci && npm run docs:build
+          BUILD_DIR: docs/.vuepress/dist/
       - name: report coverage to code climate
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
