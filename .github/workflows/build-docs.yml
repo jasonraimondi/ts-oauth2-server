@@ -1,10 +1,9 @@
-name: Tests
+name: build docs
 
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    paths: [ docs/ ]
 
 jobs:
   build:
@@ -13,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 12.x, 14.x ]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -29,12 +28,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run test:cov --ci --maxWorkers=2
-        env:
-          CI: true
-          DOMAIN: localhost
-          JWT_SECRET: testing-access-token-secret
-      - run: npm run build --if-present
       - name: vuepress-deploy
         uses: jenkey2011/vuepress-deploy@master
         env:
@@ -43,11 +36,3 @@ jobs:
           TARGET_BRANCH: gh-pages
           BUILD_SCRIPT: npm ci && npm run docs:build
           BUILD_DIR: docs/.vuepress/dist/
-      - name: report coverage to code climate
-        run: |
-          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-          chmod +x ./cc-test-reporter
-          ./cc-test-reporter format-coverage -t lcov coverage/lcov.info
-          ./cc-test-reporter upload-coverage
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
