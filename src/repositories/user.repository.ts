@@ -1,6 +1,6 @@
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthUser } from "~/entities/user.entity";
-import { GrantIdentifier } from "~/grants/abstract/grant.interface";
+import { OAuthClient } from "../entities/client.entity";
+import { OAuthUser } from "../entities/user.entity";
+import { GrantIdentifier } from "../grants/abstract/grant.interface";
 
 export interface OAuthUserRepository {
   getUserByCredentials(

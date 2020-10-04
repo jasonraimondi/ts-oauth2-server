@@ -1,18 +1,18 @@
-import { PlainVerifier } from "~/code_verifiers/plain.verifier";
-import { S256Verifier } from "~/code_verifiers/s256.verifier";
-import { CodeChallengeMethod, ICodeChallenge } from "~/code_verifiers/verifier";
-import { OAuthAuthCode } from "~/entities/auth_code.entity";
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthException } from "~/exceptions/oauth.exception";
-import { AbstractAuthorizedGrant } from "~/grants/abstract/abstract_authorized.grant";
-import { GrantIdentifier } from "~/grants/abstract/grant.interface";
-import { AuthorizationRequest } from "~/requests/authorization.request";
-import { RequestInterface } from "~/requests/request";
-import { RedirectResponse } from "~/responses/redirect.response";
-import { ResponseInterface } from "~/responses/response";
-import { base64decode } from "~/utils/base64";
-import { DateInterval } from "~/utils/date_interval";
+import { PlainVerifier } from "../code_verifiers/plain.verifier";
+import { S256Verifier } from "../code_verifiers/s256.verifier";
+import { CodeChallengeMethod, ICodeChallenge } from "../code_verifiers/verifier";
+import { OAuthAuthCode } from "../entities/auth_code.entity";
+import { OAuthClient } from "../entities/client.entity";
+import { OAuthScope } from "../entities/scope.entity";
+import { OAuthException } from "../exceptions/oauth.exception";
+import { AuthorizationRequest } from "../requests/authorization.request";
+import { RequestInterface } from "../requests/request";
+import { RedirectResponse } from "../responses/redirect.response";
+import { ResponseInterface } from "../responses/response";
+import { base64decode } from "../utils/base64";
+import { DateInterval } from "../utils/date_interval";
+import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant";
+import { GrantIdentifier } from "./abstract/grant.interface";
 
 export interface IAuthCodePayload {
   client_id: string;

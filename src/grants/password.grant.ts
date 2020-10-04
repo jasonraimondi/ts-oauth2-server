@@ -1,10 +1,10 @@
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthUser } from "~/entities/user.entity";
-import { OAuthException } from "~/exceptions/oauth.exception";
-import { AbstractGrant } from "~/grants/abstract/abstract.grant";
-import { RequestInterface } from "~/requests/request";
-import { ResponseInterface } from "~/responses/response";
-import { DateInterval } from "~/utils/date_interval";
+import { OAuthClient } from "../entities/client.entity";
+import { OAuthUser } from "../entities/user.entity";
+import { OAuthException } from "../exceptions/oauth.exception";
+import { RequestInterface } from "../requests/request";
+import { ResponseInterface } from "../responses/response";
+import { DateInterval } from "../utils/date_interval";
+import { AbstractGrant } from "./abstract/abstract.grant";
 
 export class PasswordGrant extends AbstractGrant {
   readonly identifier = "password";

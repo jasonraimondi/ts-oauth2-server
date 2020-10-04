@@ -1,4 +1,4 @@
-import { Headers, Options } from "~/responses/response";
+import { Headers, Options } from "../responses/response";
 
 export interface RequestInterface {
   headers: { [key: string]: any };

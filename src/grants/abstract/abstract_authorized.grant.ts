@@ -1,8 +1,8 @@
 import querystring, { ParsedUrlQueryInput } from "querystring";
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthException } from "~/exceptions/oauth.exception";
 
-import { AbstractGrant } from "~/grants/abstract/abstract.grant";
+import { OAuthClient } from "../../entities/client.entity";
+import { OAuthException } from "../../exceptions/oauth.exception";
+import { AbstractGrant } from "./abstract.grant";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(uri: string, params: ParsedUrlQueryInput, queryDelimiter = "?") {

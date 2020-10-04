@@ -1,7 +1,7 @@
-import { AbstractGrant } from "~/grants/abstract/abstract.grant";
-import { RequestInterface } from "~/requests/request";
-import { ResponseInterface } from "~/responses/response";
-import { DateInterval } from "~/utils/date_interval";
+import { RequestInterface } from "../requests/request";
+import { ResponseInterface } from "../responses/response";
+import { DateInterval } from "../utils/date_interval";
+import { AbstractGrant } from "./abstract/abstract.grant";
 
 export class ClientCredentialsGrant extends AbstractGrant {
   readonly identifier = "client_credentials";

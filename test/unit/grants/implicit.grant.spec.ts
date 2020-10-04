@@ -1,17 +1,5 @@
 import { decode } from "jsonwebtoken";
 import querystring from "querystring";
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthUser } from "~/entities/user.entity";
-import { ITokenData } from "~/grants/abstract/abstract.grant";
-import { IAuthCodePayload, REGEX_ACCESS_TOKEN, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
-import { ImplicitGrant } from "~/grants/implicit.grant";
-import { AuthorizationRequest } from "~/requests/authorization.request";
-import { OAuthRequest } from "~/requests/request";
-import { OAuthResponse } from "~/responses/response";
-import { DateInterval } from "~/utils/date_interval";
-import { JwtService } from "~/utils/jwt";
-import { roundToSeconds } from "~/utils/time";
 
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
@@ -21,6 +9,18 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { OAuthClient } from "../../../src/entities/client.entity";
+import { OAuthScope } from "../../../src/entities/scope.entity";
+import { OAuthUser } from "../../../src/entities/user.entity";
+import { ITokenData } from "../../../src/grants/abstract/abstract.grant";
+import { REGEX_ACCESS_TOKEN } from "../../../src/grants/auth_code.grant";
+import { ImplicitGrant } from "../../../src/grants/implicit.grant";
+import { AuthorizationRequest } from "../../../src/requests/authorization.request";
+import { OAuthRequest } from "../../../src/requests/request";
+import { OAuthResponse } from "../../../src/responses/response";
+import { DateInterval } from "../../../src/utils/date_interval";
+import { JwtService } from "../../../src/utils/jwt";
+import { roundToSeconds } from "../../../src/utils/time";
 
 describe("implicit grant", () => {
   let user: OAuthUser;

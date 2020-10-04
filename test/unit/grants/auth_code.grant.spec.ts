@@ -1,14 +1,6 @@
 import querystring from "querystring";
 import { decode } from "jsonwebtoken";
 
-import { OAuthClient } from "~/entities/client.entity";
-import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
-import { AuthorizationRequest } from "~/requests/authorization.request";
-import { OAuthRequest } from "~/requests/request";
-import { OAuthResponse } from "~/responses/response";
-import { base64urlencode } from "~/utils/base64";
-import { DateInterval } from "~/utils/date_interval";
-import { JwtService } from "~/utils/jwt";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
@@ -17,6 +9,14 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { OAuthClient } from "../../../src/entities/client.entity";
+import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "../../../src/grants/auth_code.grant";
+import { AuthorizationRequest } from "../../../src/requests/authorization.request";
+import { OAuthRequest } from "../../../src/requests/request";
+import { OAuthResponse } from "../../../src/responses/response";
+import { base64urlencode } from "../../../src/utils/base64";
+import { DateInterval } from "../../../src/utils/date_interval";
+import { JwtService } from "../../../src/utils/jwt";
 import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("authorization_code grant", () => {

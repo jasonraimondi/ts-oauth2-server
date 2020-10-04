@@ -1,20 +1,20 @@
-import { OAuthException } from "~/exceptions/oauth.exception";
-import { GrantIdentifier, GrantInterface } from "~/grants/abstract/grant.interface";
-import { AuthCodeGrant } from "~/grants/auth_code.grant";
-import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
-import { ImplicitGrant } from "~/grants/implicit.grant";
-import { PasswordGrant } from "~/grants/password.grant";
-import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
-import { OAuthTokenRepository } from "~/repositories/access_token.repository";
-import { OAuthAuthCodeRepository } from "~/repositories/auth_code.repository";
-import { OAuthClientRepository } from "~/repositories/client.repository";
-import { OAuthScopeRepository } from "~/repositories/scope.repository";
-import { OAuthUserRepository } from "~/repositories/user.repository";
-import { AuthorizationRequest } from "~/requests/authorization.request";
-import { RequestInterface } from "~/requests/request";
-import { ResponseInterface } from "~/responses/response";
-import { DateInterval } from "~/utils/date_interval";
-import { JwtInterface } from "~/utils/jwt";
+import { OAuthException } from "./exceptions/oauth.exception";
+import { GrantIdentifier, GrantInterface } from "./grants/abstract/grant.interface";
+import { AuthCodeGrant } from "./grants/auth_code.grant";
+import { ClientCredentialsGrant } from "./grants/client_credentials.grant";
+import { ImplicitGrant } from "./grants/implicit.grant";
+import { PasswordGrant } from "./grants/password.grant";
+import { RefreshTokenGrant } from "./grants/refresh_token.grant";
+import { OAuthTokenRepository } from "./repositories/access_token.repository";
+import { OAuthAuthCodeRepository } from "./repositories/auth_code.repository";
+import { OAuthClientRepository } from "./repositories/client.repository";
+import { OAuthScopeRepository } from "./repositories/scope.repository";
+import { OAuthUserRepository } from "./repositories/user.repository";
+import { AuthorizationRequest } from "./requests/authorization.request";
+import { RequestInterface } from "./requests/request";
+import { ResponseInterface } from "./responses/response";
+import { DateInterval } from "./utils/date_interval";
+import { JwtInterface } from "./utils/jwt";
 
 export class AuthorizationServer {
   private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};

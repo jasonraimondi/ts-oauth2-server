@@ -1,7 +1,7 @@
-import { OAuthToken } from "~/entities/token.entity";
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthUser } from "~/entities/user.entity";
+import { OAuthClient } from "../entities/client.entity";
+import { OAuthScope } from "../entities/scope.entity";
+import { OAuthToken } from "../entities/token.entity";
+import { OAuthUser } from "../entities/user.entity";
 
 export interface OAuthTokenRepository {
   issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken>;

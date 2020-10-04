@@ -1,20 +1,6 @@
 import { decode } from "jsonwebtoken";
 import querystring from "querystring";
-import { AuthorizationServer } from "~/authorization_server";
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthToken } from "~/entities/token.entity";
-import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "~/grants/auth_code.grant";
-import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
-import { ImplicitGrant } from "~/grants/implicit.grant";
-import { PasswordGrant } from "~/grants/password.grant";
-import { RefreshTokenGrant } from "~/grants/refresh_token.grant";
-import { AuthorizationRequest } from "~/requests/authorization.request";
-import { OAuthRequest } from "~/requests/request";
-import { OAuthResponse } from "~/responses/response";
-import { base64encode } from "~/utils/base64";
-import { DateInterval } from "~/utils/date_interval";
-import { JwtService } from "~/utils/jwt";
+
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
@@ -23,6 +9,18 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../examples/in_memory/repository";
+import { AuthorizationServer } from "../../src/authorization_server";
+import { OAuthClient } from "../../src/entities/client.entity";
+import { OAuthScope } from "../../src/entities/scope.entity";
+import { OAuthToken } from "../../src/entities/token.entity";
+import { IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "../../src/grants/auth_code.grant";
+import { RefreshTokenGrant } from "../../src/grants/refresh_token.grant";
+import { AuthorizationRequest } from "../../src/requests/authorization.request";
+import { OAuthRequest } from "../../src/requests/request";
+import { OAuthResponse } from "../../src/responses/response";
+import { base64encode } from "../../src/utils/base64";
+import { DateInterval } from "../../src/utils/date_interval";
+import { JwtService } from "../../src/utils/jwt";
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec";
 
 // const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));

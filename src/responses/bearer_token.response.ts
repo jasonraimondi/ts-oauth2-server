@@ -1,6 +1,6 @@
-import { OAuthToken } from "~/entities/token.entity";
-import { HttpStatus } from "~/exceptions/oauth.exception";
-import { OAuthResponse, Options } from "~/responses/response";
+import { OAuthToken } from "../entities/token.entity";
+import { HttpStatus } from "../exceptions/oauth.exception";
+import { OAuthResponse, Options } from "./response";
 
 export class BearerTokenResponse extends OAuthResponse {
   readonly status = HttpStatus.OK;

@@ -1,11 +1,3 @@
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthUser } from "~/entities/user.entity";
-import { PasswordGrant } from "~/grants/password.grant";
-import { OAuthRequest } from "~/requests/request";
-import { OAuthResponse } from "~/responses/response";
-import { DateInterval } from "~/utils/date_interval";
-import { JwtService } from "~/utils/jwt";
-
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
@@ -14,6 +6,13 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { OAuthClient } from "../../../src/entities/client.entity";
+import { OAuthUser } from "../../../src/entities/user.entity";
+import { PasswordGrant } from "../../../src/grants/password.grant";
+import { OAuthRequest } from "../../../src/requests/request";
+import { OAuthResponse } from "../../../src/responses/response";
+import { DateInterval } from "../../../src/utils/date_interval";
+import { JwtService } from "../../../src/utils/jwt";
 import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("password grant", () => {

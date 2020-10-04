@@ -3,10 +3,10 @@ import { Application } from "express";
 import querystring from "querystring";
 import { decode } from "jsonwebtoken";
 
-import { OAuthClient } from "~/entities/client.entity";
-import { IAuthCodePayload, REGEX_ACCESS_TOKEN } from "~/grants/auth_code.grant";
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import { inMemoryExpressApp } from "../../examples/in_memory/main";
+import { OAuthClient } from "../../src/entities/client.entity";
+import { IAuthCodePayload, REGEX_ACCESS_TOKEN } from "../../src/grants/auth_code.grant";
 
 describe.skip("auth_code grant e2e", () => {
   let client: OAuthClient;

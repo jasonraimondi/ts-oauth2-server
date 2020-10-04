@@ -9,11 +9,11 @@ module.exports = {
     "json",
     "ts",
   ],
-  modulePathIgnorePatterns: ['<rootDir>/dist'],
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
-    prefix: "<rootDir>/",
-  }),
-  rootDir: "./",
+  // modulePathIgnorePatterns: ['<rootDir>/dist'],
+  // moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
+  //   prefix: "<rootDir>/",
+  // }),
+  // rootDir: "./",
   testRegex: ".spec.ts$",
   transform: {
     "^.+\\.(t|j)s$": "ts-jest",

@@ -1,12 +1,12 @@
 import request from "supertest";
 import { Application } from "express";
 
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthScope } from "~/entities/scope.entity";
-import { REGEX_ACCESS_TOKEN } from "~/grants/auth_code.grant";
-import { base64encode } from "~/utils/base64";
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import { inMemoryExpressApp } from "../../examples/in_memory/main";
+import { OAuthClient } from "../../src/entities/client.entity";
+import { OAuthScope } from "../../src/entities/scope.entity";
+import { REGEX_ACCESS_TOKEN } from "../../src/grants/auth_code.grant";
+import { base64encode } from "../../src/utils/base64";
 import { expectTokenResponse } from "../unit/grants/client_credentials.grant.spec";
 
 describe.skip("client_credentials grant e2e", () => {

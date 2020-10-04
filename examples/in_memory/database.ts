@@ -1,8 +1,8 @@
-import { OAuthToken } from "~/entities/token.entity";
-import { OAuthAuthCode } from "~/entities/auth_code.entity";
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthUser } from "~/entities/user.entity";
+import { OAuthAuthCode } from "../../src/entities/auth_code.entity";
+import { OAuthClient } from "../../src/entities/client.entity";
+import { OAuthScope } from "../../src/entities/scope.entity";
+import { OAuthToken } from "../../src/entities/token.entity";
+import { OAuthUser } from "../../src/entities/user.entity";
 
 export interface InMemory {
   users: { [id: string]: OAuthUser };

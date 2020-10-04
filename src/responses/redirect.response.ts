@@ -1,4 +1,4 @@
-import { OAuthResponse, Options } from "~/responses/response";
+import { OAuthResponse, Options } from "./response";
 
 export class RedirectResponse extends OAuthResponse {
   constructor(redirectUri: string, options?: Options) {

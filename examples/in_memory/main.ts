@@ -1,9 +1,9 @@
 import { json, urlencoded } from "body-parser";
 import Express from "express";
 
-import { OAuthException } from "~/exceptions/oauth.exception";
-import { OAuthRequest } from "~/requests/request";
-import { OAuthResponse } from "~/responses/response";
+import { OAuthException } from "../../src/exceptions/oauth.exception";
+import { OAuthRequest } from "../../src/requests/request";
+import { OAuthResponse } from "../../src/responses/response";
 import { inMemoryAuthorizationServer } from "./oauth_authorization_server";
 
 const app = Express();

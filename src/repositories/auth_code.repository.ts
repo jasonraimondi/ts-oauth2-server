@@ -1,7 +1,7 @@
-import { OAuthAuthCode } from "~/entities/auth_code.entity";
-import { OAuthClient } from "~/entities/client.entity";
-import { OAuthScope } from "~/entities/scope.entity";
-import { OAuthUser } from "~/entities/user.entity";
+import { OAuthAuthCode } from "../entities/auth_code.entity";
+import { OAuthClient } from "../entities/client.entity";
+import { OAuthScope } from "../entities/scope.entity";
+import { OAuthUser } from "../entities/user.entity";
 
 export interface OAuthAuthCodeRepository {
   getByIdentifier(authCodeCode: string): Promise<OAuthAuthCode>;

@@ -1,11 +1,11 @@
-import { OAuthException } from "~/exceptions/oauth.exception";
-import { AbstractAuthorizedGrant } from "~/grants/abstract/abstract_authorized.grant";
-import { AuthorizationRequest } from "~/requests/authorization.request";
-import { RequestInterface } from "~/requests/request";
-import { RedirectResponse } from "~/responses/redirect.response";
-import { ResponseInterface } from "~/responses/response";
-import { DateInterval } from "~/utils/date_interval";
-import { getSecondsUntil } from "~/utils/time";
+import { OAuthException } from "../exceptions/oauth.exception";
+import { AuthorizationRequest } from "../requests/authorization.request";
+import { RequestInterface } from "../requests/request";
+import { RedirectResponse } from "../responses/redirect.response";
+import { ResponseInterface } from "../responses/response";
+import { DateInterval } from "../utils/date_interval";
+import { getSecondsUntil } from "../utils/time";
+import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant";
 
 export class ImplicitGrant extends AbstractAuthorizedGrant {
   readonly identifier = "implicit";

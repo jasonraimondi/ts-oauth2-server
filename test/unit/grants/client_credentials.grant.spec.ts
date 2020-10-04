@@ -1,11 +1,3 @@
-import { OAuthClient } from "~/entities/client.entity";
-import { REGEX_ACCESS_TOKEN } from "~/grants/auth_code.grant";
-import { ClientCredentialsGrant } from "~/grants/client_credentials.grant";
-import { OAuthRequest } from "~/requests/request";
-import { OAuthResponse, ResponseInterface } from "~/responses/response";
-import { base64encode } from "~/utils/base64";
-import { DateInterval } from "~/utils/date_interval";
-import { JwtService } from "~/utils/jwt";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
@@ -14,6 +6,14 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { OAuthClient } from "../../../src/entities/client.entity";
+import { REGEX_ACCESS_TOKEN } from "../../../src/grants/auth_code.grant";
+import { ClientCredentialsGrant } from "../../../src/grants/client_credentials.grant";
+import { OAuthRequest } from "../../../src/requests/request";
+import { OAuthResponse, ResponseInterface } from "../../../src/responses/response";
+import { base64encode } from "../../../src/utils/base64";
+import { DateInterval } from "../../../src/utils/date_interval";
+import { JwtService } from "../../../src/utils/jwt";
 
 export function expectTokenResponse(tokenResponse: ResponseInterface) {
   expect(tokenResponse.status).toBe(200);
