@@ -1,4 +1,4 @@
-# @jmondi/oauth2-server
+# TypeScript OAuth2 Server
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/Tests?label=tests&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/test_coverage)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)

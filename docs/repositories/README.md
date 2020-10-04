@@ -1,23 +1,27 @@
----
-title: Repository Interfaces
----
-
-# {{ $frontmatter.title }}
+# Repository Interfaces
 
 ## Auth Code Repository
 
 ```typescript
 interface OAuthAuthCodeRepository {
+
+  // Fetch auth code entity from storage by code
   getByIdentifier(authCodeCode: string): Promise<OAuthAuthCode>;
 
+  // An async call that should return an OAuthAuthCode that has not been 
+  // persisted to storage yet.
   issueAuthCode(
     client: OAuthClient, 
     user: OAuthUser | undefined, 
     scopes: OAuthScope[]
   ): OAuthAuthCode;
 
+  // An async call that should persist an OAuthToken into your storage. 
   persist(authCode: OAuthAuthCode): Promise<void>;
 
+  // This async method is called when an auth code is validated by the 
+  // authorization server. Return `true` if the auth code has been 
+  // manually revoked. If the code is still valid return `false`
   isRevoked(authCodeCode: string): Promise<boolean>;
 
   revoke(authCodeCode: string): Promise<void>;
@@ -28,8 +32,10 @@ interface OAuthAuthCodeRepository {
 
 ```typescript
 interface OAuthClientRepository {
+  // Fetch client entity from storage by client_id
   getByIdentifier(clientId: string): Promise<OAuthClient>;
 
+  // check the grant type and secret against the client
   isClientValid(
     grantType: GrantIdentifier, 
     client: OAuthClient, 
@@ -86,7 +92,7 @@ interface OAuthTokenRepository {
   // manually revoked. If the token is still valid return `false`
   isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 
-  // This async method is called
+  // Fetch refresh token entity from storage by refresh token
   getByRefreshToken(refreshTokenToken: string): Promise<OAuthToken>;
 }
 ```
@@ -95,6 +101,10 @@ interface OAuthTokenRepository {
 
 ```typescript
 interface OAuthUserRepository {
+
+  // Fetch user entity from storage by identifier. A provided password may 
+  // be used to validate the users credentials. Grant type and client are provided
+  // for additional checks if desired
   getUserByCredentials(
     identifier: string,
     password?: string,

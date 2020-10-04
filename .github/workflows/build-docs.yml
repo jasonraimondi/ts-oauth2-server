@@ -3,7 +3,7 @@ name: build docs
 on:
   push:
     branches: [ master ]
-    paths: [ docs/ ]
+    paths: [ docs/* ]
 
 jobs:
   build:
