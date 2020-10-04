@@ -6,13 +6,19 @@
 
 Install with `npm` or `yarn`:
 
+<code-group>
+<code-block title="NPM" active>
 ```bash
 npm install --save @jmondi/oauth2-server
 ```
+</code-block>
 
+<code-block title="YARN">
 ```bash
 yarn add @jmondi/oauth2-server
 ```
+</code-block>
+</code-group>
 
 ### Getting Started
 

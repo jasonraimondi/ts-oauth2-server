@@ -1,4 +1,5 @@
 dist/
+docs/.vuepress/dist/
 
 ### Node ###
 # Logs
