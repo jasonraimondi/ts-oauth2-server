@@ -1,10 +1,10 @@
 module.exports = {
-  title: "TypeScript OAuth2 Server",
+  title: "@jmondi/oauth2-server",
   description: "A standards compliant implementation of an OAuth 2.0 authorization server for Node that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript. ",
   base: "/typescript-oauth2-server/",
   themeConfig: {
     nav: [
-      { text: "Home", link: "/" },
+      { text: "Github", link: "https://github.com/jasonraimondi/typescript-oauth2-server" },
       { text: "Getting Started", link: "/getting_started/" },
     ],
     // displayAllHeaders: true,

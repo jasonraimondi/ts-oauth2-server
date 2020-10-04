@@ -4,8 +4,6 @@
 
 [![npm](https://img.shields.io/npm/v/@jmondi/oauth2-server?style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
 
-Install with `npm` or `yarn`:
-
 <code-group>
 <code-block title="NPM" active>
 ```bash
