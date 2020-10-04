@@ -1,5 +1,4 @@
-# @jmondi/oauth2-server
-
+# TypeScript OAuth 2.0 Server
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/build%20and%20test?label=tests&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
 [![Test Coverage](https://img.shields.io/codeclimate/coverage/jasonraimondi/typescript-oauth2-server?style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
 [![Maintainability](https://img.shields.io/codeclimate/coverage-letter/jasonraimondi/typescript-oauth2-server?label=maintainability&style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
@@ -28,7 +27,7 @@ The following RFCs are implemented:
 ### [See Documentation](https://jasonraimondi.github.io/typescript-oauth2-server/)
 
 
-# @TODO
+**@TODO**
 
 :construction_worker: This project is under development :construction:
 
