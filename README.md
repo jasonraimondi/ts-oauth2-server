@@ -1,8 +1,8 @@
 # @jmondi/oauth2-server
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/Tests?label=tests&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/test_coverage)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
-[![Maintainability](https://api.codeclimate.com/v1/badges/f70a85595f0a488874e6/maintainability)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/build%20and%20test?label=tests&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
+[![Test Coverage](https://img.shields.io/codeclimate/coverage/jasonraimondi/typescript-oauth2-server?style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
+[![Maintainability](https://img.shields.io/codeclimate/coverage-letter/jasonraimondi/typescript-oauth2-server?label=maintainability&style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/jasonraimondi/typescript-oauth2-server?style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server/releases/latest)
 [![NPM Downloads](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
 
