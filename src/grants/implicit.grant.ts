@@ -47,7 +47,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     this.validateRedirectUri(redirectUri, client);
 
     const scopes = await this.validateScopes(
-      this.getQueryStringParameter("scope", request), // @see about this.defaultSCopes as third param
+      this.getQueryStringParameter("scope", request, []), // @see about this.defaultSCopes as third param
       redirectUri,
     );
 

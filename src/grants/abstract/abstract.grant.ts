@@ -170,9 +170,13 @@ export abstract class AbstractGrant implements GrantInterface {
     return decoded.split(":");
   }
 
-  protected async validateScopes(scopes: string | string[] = [], redirectUri?: string): Promise<OAuthScope[]> {
+  protected async validateScopes(scopes: undefined | string | string[] = [], redirectUri?: string): Promise<OAuthScope[]> {
     if (typeof scopes === "string") {
       scopes = scopes.split(this.scopeDelimiterString);
+    }
+
+    if (!scopes || scopes.length === 0) {
+      return [];
     }
 
     const validScopes = await this.scopeRepository.getAllByIdentifiers(scopes);
