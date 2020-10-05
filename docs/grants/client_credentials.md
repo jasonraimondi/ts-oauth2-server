@@ -3,7 +3,7 @@
 When applications request an access token to access their own resources, not on behalf of a user.
 
 ::: tip
-The client_credentials grant should only be used by clients that can hold a secret
+The client_credentials grant should only be used by clients that can hold a secret. No Browser or Native Mobile Apps should be using this grant.
 :::
 
 ### Flow
@@ -16,6 +16,11 @@ The client sends a **POST** to the `/token` endpoint with the following body:
 - **scope** is a string with a space delimited list of requested scopes. The requested scopes must be valid for the client.
 
 ::: details View sample client_credentials request
+
+_Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+
+<code-group>
+<code-block title="Query String" active>
 ```http request
 POST /token HTTP/1.1
 Host: example.com
@@ -25,9 +30,9 @@ grant_type=client_credentials
 &client_secret=xxxxxxxxxx
 &scope="contacts.read contacts.write"
 ```
+</code-block>
 
-You can also use basic authorization with the credentials passed in base64 encoded
-
+<code-block title="Basic Auth">
 ```http request
 POST /token HTTP/1.1
 Host: example.com
@@ -36,6 +41,8 @@ Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
 grant_type=client_credentials
 &scope="contacts.read contacts.write"
 ```
+</code-block>
+</code-group>
 :::
 
 The authorization server will respond with the following response.
