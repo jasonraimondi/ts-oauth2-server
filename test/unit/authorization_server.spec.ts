@@ -10,6 +10,7 @@ import {
   inMemoryUserRepository,
 } from "../../examples/in_memory/repository";
 import { AuthorizationServer } from "../../src/authorization_server";
+import { OAuthUser } from "../../src/entities/user.entity";
 import { OAuthClient } from "../../src/entities/client.entity";
 import { OAuthScope } from "../../src/entities/scope.entity";
 import { OAuthToken } from "../../src/entities/token.entity";
@@ -30,6 +31,7 @@ describe("authorization_server", () => {
   let authorizationServer: AuthorizationServer;
   let refreshGrant: RefreshTokenGrant;
 
+  let user: OAuthUser;
   let client: OAuthClient;
   let accessToken: OAuthToken;
   let scope1: OAuthScope;
@@ -51,10 +53,12 @@ describe("authorization_server", () => {
     authorizationServer.enableGrantType("password");
     authorizationServer.enableGrantType("refresh_token");
 
+    user = { id: "abc123" };
     scope1 = { name: "scope-1" };
     scope2 = { name: "scope-2" };
     inMemoryDatabase.scopes[scope1.name] = scope1;
     inMemoryDatabase.scopes[scope2.name] = scope2;
+    inMemoryDatabase.users[user.id] = user;
   });
 
   it("can enable client_credentials grant", async () => {
@@ -176,6 +180,7 @@ describe("authorization_server", () => {
     authorizationRequest.isAuthorizationApproved = true;
     authorizationRequest.codeChallengeMethod = "S256";
     authorizationRequest.codeChallenge = codeChallenge;
+    authorizationRequest.user = user;
     authorizationRequest.redirectUri = "http://localhost";
 
     const response = await authorizationServer.completeAuthorizationRequest(authorizationRequest);

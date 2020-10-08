@@ -9,6 +9,7 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { OAuthUser } from "../../../src/entities/user.entity";
 import { OAuthClient } from "../../../src/entities/client.entity";
 import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "../../../src/grants/auth_code.grant";
 import { AuthorizationRequest } from "../../../src/requests/authorization.request";
@@ -20,6 +21,7 @@ import { JwtService } from "../../../src/utils/jwt";
 import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("authorization_code grant", () => {
+  let user: OAuthUser;
   let client: OAuthClient;
   let grant: AuthCodeGrant;
 
@@ -32,6 +34,8 @@ describe("authorization_code grant", () => {
   beforeEach(() => {
     request = new OAuthRequest();
     response = new OAuthResponse();
+
+    user = { id: "abc123" };
 
     client = {
       id: "authcodeclient",
@@ -52,6 +56,7 @@ describe("authorization_code grant", () => {
     );
 
     inMemoryDatabase.clients[client.id] = client;
+    inMemoryDatabase.users[user.id] = user;
   });
 
   describe("can respond to authorization request", () => {
@@ -192,7 +197,7 @@ describe("authorization_code grant", () => {
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.redirectUri = "http://example.com";
       authorizationRequest.state = "abc123";
-
+      authorizationRequest.user = user;
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
       const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
       const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
@@ -216,6 +221,7 @@ describe("authorization_code grant", () => {
       authorizationRequest.codeChallengeMethod = "S256";
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.redirectUri = "http://example.com";
+      authorizationRequest.user = user;
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
       const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
       authorizationCode = String(authorizeResponseQuery.code);
@@ -244,6 +250,7 @@ describe("authorization_code grant", () => {
       authorizationRequest.codeChallengeMethod = "plain";
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.redirectUri = "http://example.com";
+      authorizationRequest.user = user;
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
       const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
       authorizationCode = String(authorizeResponseQuery.code);

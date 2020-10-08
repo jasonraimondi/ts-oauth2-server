@@ -189,6 +189,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
+    if (!authorizationRequest.user) {
+      throw OAuthException.logicException("A user should be set on the authorization request");
+    }
+
     const redirectUri = authorizationRequest.redirectUri;
 
     if (!redirectUri) {
@@ -203,7 +207,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const authCode = await this.issueAuthCode(
       this.authCodeTTL,
       authorizationRequest.client,
-      authorizationRequest.user?.id,
+      authorizationRequest.user.id,
       authorizationRequest.redirectUri,
       authorizationRequest.codeChallenge,
       authorizationRequest.codeChallengeMethod,
