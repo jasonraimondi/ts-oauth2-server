@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-beta.4",
+  "version": "1.0.0-beta.5",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "module": "dist/oauth2-server.esm.js",
@@ -57,7 +57,8 @@
   },
   "dependencies": {
     "jsonwebtoken": "^8.5.1",
-    "ms": "^2.1.2"
+    "ms": "^2.1.2",
+    "uri-js": "^4.4.0"
   },
   "prettier": {
     "printWidth": 120,

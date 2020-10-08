@@ -12,10 +12,6 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
 
   private accessTokenTTL: DateInterval = new DateInterval("1h");
 
-  set tokenTTL(interval: DateInterval) {
-    this.accessTokenTTL = interval;
-  }
-
   respondToAccessTokenRequest(
     req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
     res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -42,9 +38,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidClient();
     }
 
-    const redirectUri = this.getQueryStringParameter("redirect_uri", request);
-
-    this.validateRedirectUri(redirectUri, client);
+    const redirectUri = this.getRedirectUri(request, client);
 
     const scopes = await this.validateScopes(
       this.getQueryStringParameter("scope", request, []), // @see about this.defaultSCopes as third param
@@ -53,10 +47,12 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
 
     const state = this.getQueryStringParameter("state", request);
 
-    const authorizationRequest = new AuthorizationRequest(this.identifier, client);
-    authorizationRequest.redirectUri = redirectUri;
+    const authorizationRequest = new AuthorizationRequest(this.identifier, client, redirectUri);
+
     authorizationRequest.state = state;
+
     authorizationRequest.scopes = scopes;
+
     return authorizationRequest;
   }
 

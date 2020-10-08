@@ -142,12 +142,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidClient();
     }
 
-    let redirectUri = this.getQueryStringParameter("redirect_uri", request);
-
-    if (Array.isArray(redirectUri) && redirectUri.length === 1) redirectUri = redirectUri[0];
-
-    // @todo this might only need to be run if the redirect uri is actually here aka redirect url might be allowed to be null
-    this.validateRedirectUri(redirectUri, client);
+    const redirectUri = this.getRedirectUri(request, client);
 
     const bodyScopes = this.getQueryStringParameter("scope", request, []);
 
@@ -155,13 +150,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const stateParameter = this.getQueryStringParameter("state", request);
 
-    const authorizationRequest = new AuthorizationRequest(this.identifier, client);
+    const authorizationRequest = new AuthorizationRequest(this.identifier, client, redirectUri);
 
     authorizationRequest.state = stateParameter;
 
     authorizationRequest.scopes = scopes;
-
-    if (redirectUri) authorizationRequest.redirectUri = redirectUri;
 
     const codeChallenge = this.getQueryStringParameter("code_challenge", request);
 

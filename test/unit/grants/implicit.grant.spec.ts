@@ -143,10 +143,10 @@ describe("implicit grant", () => {
       });
 
       // act
-      const authorizationRequest = grant.validateAuthorizationRequest(request);
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
 
       // assert
-      await expect(authorizationRequest).rejects.toThrowError(/Client authentication failed: Invalid redirect_uri/);
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
     });
 
     it("throws when passed invalid scopes", async () => {
@@ -172,10 +172,9 @@ describe("implicit grant", () => {
     it("is successful", async () => {
       // arrange
       const now = roundToSeconds(Date.now());
-      const authorizationRequest = new AuthorizationRequest("implicit", client);
+      const authorizationRequest = new AuthorizationRequest("implicit", client, "http://example.com");
       authorizationRequest.user = user;
       authorizationRequest.isAuthorizationApproved = true;
-      authorizationRequest.redirectUri = "http://example.com";
       authorizationRequest.state = "abc123-state";
 
       // act
@@ -193,10 +192,9 @@ describe("implicit grant", () => {
 
     it("will not complete if isAuthorizationApproved=false", async () => {
       // arrange
-      const authorizationRequest = new AuthorizationRequest("implicit", client);
+      const authorizationRequest = new AuthorizationRequest("implicit", client, "http://example.com");
       authorizationRequest.user = user;
       authorizationRequest.isAuthorizationApproved = false;
-      authorizationRequest.redirectUri = "http://example.com";
 
       // act
       const response = grant.completeAuthorizationRequest(authorizationRequest);

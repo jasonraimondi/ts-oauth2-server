@@ -2,12 +2,18 @@
 title: Entity Interfaces
 ---
 
-# {{ $frontmatter.title }}
-
+# Entity Interfaces
 
 ## Client Entity
 
 This entity represents the client that wants to access the resource server. The client will retrieve an access token from our authorization server and use it to access the resource server.
+
+// document what a good redirectUrl is
+
+* URI must be an absolute URI
+* The endpoint may include application/x-www-form-urlencoded formatted query component which must be retained when adding additional query params
+    * // @todo verify this second point, i know we can append urls, but we need to enccode/decode the redirectUri
+* the endpoint uri must not include a fragment component
 
 ```typescript
 interface OAuthClient {

@@ -176,12 +176,11 @@ describe("authorization_server", () => {
     };
     inMemoryDatabase.clients[client.id] = client;
 
-    const authorizationRequest = new AuthorizationRequest("authorization_code", client);
+    const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://localhost");
     authorizationRequest.isAuthorizationApproved = true;
     authorizationRequest.codeChallengeMethod = "S256";
     authorizationRequest.codeChallenge = codeChallenge;
     authorizationRequest.user = user;
-    authorizationRequest.redirectUri = "http://localhost";
 
     const response = await authorizationServer.completeAuthorizationRequest(authorizationRequest);
     const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
