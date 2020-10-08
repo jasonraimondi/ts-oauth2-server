@@ -6,7 +6,7 @@ import { AbstractGrant } from "./abstract.grant";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(uri: string, params: ParsedUrlQueryInput, queryDelimiter = "?") {
-    const split = uri.includes(queryDelimiter) ? queryDelimiter : "&";
+    const split = uri.includes(queryDelimiter) ? "&" : queryDelimiter;
     return uri + split + querystring.stringify(params);
   }
 

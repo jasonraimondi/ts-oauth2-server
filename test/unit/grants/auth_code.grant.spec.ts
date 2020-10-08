@@ -37,7 +37,7 @@ describe("authorization_code grant", () => {
       id: "authcodeclient",
       name: "test auth code client",
       secret: undefined,
-      redirectUris: ["http://localhost"],
+      redirectUris: ["http://example.com"],
       allowedGrants: ["authorization_code"],
       scopes: [],
     };
@@ -61,7 +61,7 @@ describe("authorization_code grant", () => {
       validQueryData = {
         response_type: "code",
         client_id: client.id,
-        redirect_uri: "http://localhost",
+        redirect_uri: "http://example.com",
         state: "state-is-a-secret",
         code_challenge: codeChallenge,
         code_challenge_method: "S256",
@@ -103,7 +103,7 @@ describe("authorization_code grant", () => {
         query: {
           response_type: "code",
           client_id: client.id,
-          redirect_uri: "http://localhost",
+          redirect_uri: "http://example.com",
           state: "state-is-a-secret",
           code_challenge: codeChallenge,
           code_challenge_method: "S256",
@@ -114,7 +114,7 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
       expect(authorizationRequest.client.id).toBe(client.id);
       expect(authorizationRequest.client.name).toBe(client.name);
-      expect(authorizationRequest.redirectUri).toBe("http://localhost");
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
       expect(authorizationRequest.state).toBe("state-is-a-secret");
       expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
       expect(authorizationRequest.codeChallengeMethod).toBe("S256");
@@ -128,7 +128,7 @@ describe("authorization_code grant", () => {
         query: {
           response_type: "code",
           client_id: client.id,
-          redirect_uri: "http://localhost",
+          redirect_uri: "http://example.com",
           scope: "scope-1",
           state: "state-is-a-secret",
           code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
@@ -140,7 +140,7 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
       expect(authorizationRequest.client.id).toBe(client.id);
       expect(authorizationRequest.client.name).toBe(client.name);
-      expect(authorizationRequest.redirectUri).toBe("http://localhost");
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
       expect(authorizationRequest.state).toBe("state-is-a-secret");
       expect(authorizationRequest.codeChallenge).toBe(base64urlencode(plainCodeChallenge));
       expect(authorizationRequest.codeChallengeMethod).toBe("plain");
@@ -152,7 +152,7 @@ describe("authorization_code grant", () => {
         query: {
           response_type: "code",
           client_id: client.id,
-          redirect_uri: "http://localhost",
+          redirect_uri: "http://example.com",
           state: "state-is-a-secret",
           code_challenge_method: "plain",
         },
@@ -169,7 +169,7 @@ describe("authorization_code grant", () => {
         query: {
           response_type: "code",
           client_id: client.id,
-          redirect_uri: "http://localhost",
+          redirect_uri: "http://example.com",
           state: "state-is-a-secret",
           code_challenge: "invalid-format(with!Invalid~characters",
           code_challenge_method: "S256",
@@ -190,18 +190,16 @@ describe("authorization_code grant", () => {
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.codeChallengeMethod = "S256";
       authorizationRequest.codeChallenge = codeChallenge;
-      authorizationRequest.redirectUri = "http://localhost";
+      authorizationRequest.redirectUri = "http://example.com";
+      authorizationRequest.state = "abc123";
 
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(response.headers.location);
+      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
       const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
 
-      // expect(response.headers.location).toMatch(/http\:\/\/localhost\#code\=/)
-      // @todo should the splitter be a hash instead of &?
-      expect(response.headers.location).toMatch(/http\:\/\/localhost\&code\=/)
-
+      expect(response.headers.location.includes("http://example.com?code=")).toBeTruthy();
       expect(decodedCode.client_id).toBe(client.id);
-      expect(decodedCode.redirect_uri).toBe("http://localhost");
+      expect(decodedCode.redirect_uri).toBe("http://example.com");
       expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);
     });
 
@@ -217,13 +215,13 @@ describe("authorization_code grant", () => {
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.codeChallengeMethod = "S256";
       authorizationRequest.codeChallenge = codeChallenge;
-      authorizationRequest.redirectUri = "http://localhost";
+      authorizationRequest.redirectUri = "http://example.com";
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location);
+      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
       authorizationCode = String(authorizeResponseQuery.code);
     });
 
-    it("is successful with s256 pkce", async () => {
+    it("is successful with pkce s256", async () => {
       // act
       request = new OAuthRequest({
         body: {
@@ -240,14 +238,14 @@ describe("authorization_code grant", () => {
       expectTokenResponse(accessTokenResponse);
     });
 
-    it("is successful with s256 plain", async () => {
+    it("is successful with pkce plain", async () => {
       authorizationRequest = new AuthorizationRequest("authorization_code", client);
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.codeChallengeMethod = "plain";
       authorizationRequest.codeChallenge = codeChallenge;
-      authorizationRequest.redirectUri = "http://localhost";
+      authorizationRequest.redirectUri = "http://example.com";
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location);
+      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
       authorizationCode = String(authorizeResponseQuery.code);
 
       // act

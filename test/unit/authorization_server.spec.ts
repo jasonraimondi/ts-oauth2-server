@@ -179,7 +179,7 @@ describe("authorization_server", () => {
     authorizationRequest.redirectUri = "http://localhost";
 
     const response = await authorizationServer.completeAuthorizationRequest(authorizationRequest);
-    const authorizeResponseQuery = querystring.parse(response.headers.location);
+    const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
     const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
 
     expect(decodedCode.client_id).toBe(client.id);

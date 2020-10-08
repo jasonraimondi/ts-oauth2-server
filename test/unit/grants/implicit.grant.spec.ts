@@ -45,7 +45,7 @@ describe("implicit grant", () => {
       id: "35615f2f-13fa-4731-83a1-9e34556ab390",
       name: "test client",
       secret: "super-secret-secret",
-      redirectUris: ["http://localhost"],
+      redirectUris: ["http://example.com"],
       allowedGrants: ["implicit"],
       scopes: [],
     };
@@ -74,7 +74,7 @@ describe("implicit grant", () => {
         query: {
           response_type: "token",
           client_id: client.id,
-          redirect_uri: "http://localhost",
+          redirect_uri: "http://example.com",
         },
       });
 
@@ -85,7 +85,7 @@ describe("implicit grant", () => {
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
       expect(authorizationRequest.client.id).toBe(client.id);
       expect(authorizationRequest.client.name).toBe(client.name);
-      expect(authorizationRequest.redirectUri).toBe("http://localhost");
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
       expect(authorizationRequest.state).toBeUndefined();
       expect(authorizationRequest.codeChallenge).toBeUndefined();
       expect(authorizationRequest.codeChallengeMethod).toBeUndefined();
@@ -98,7 +98,7 @@ describe("implicit grant", () => {
         query: {
           response_type: "token",
           client_id: client.id,
-          redirect_uri: "http://localhost",
+          redirect_uri: "http://example.com",
           state: "f2ae4dc5-b535-4949-aaed-54ebbf08e876",
           scope: "scope-1 scope-2",
         },
@@ -111,7 +111,7 @@ describe("implicit grant", () => {
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
       expect(authorizationRequest.client.id).toBe(client.id);
       expect(authorizationRequest.client.name).toBe(client.name);
-      expect(authorizationRequest.redirectUri).toBe("http://localhost");
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
       expect(authorizationRequest.state).toBe("f2ae4dc5-b535-4949-aaed-54ebbf08e876");
       expect(authorizationRequest.codeChallenge).toBeUndefined();
       expect(authorizationRequest.codeChallengeMethod).toBeUndefined();
@@ -155,7 +155,7 @@ describe("implicit grant", () => {
         query: {
           response_type: "token",
           client_id: client.id,
-          redirect_uri: "http://localhost",
+          redirect_uri: "http://example.com",
           scope: "scope-1 non-existant non-existant-2",
         },
       });
@@ -175,12 +175,12 @@ describe("implicit grant", () => {
       const authorizationRequest = new AuthorizationRequest("implicit", client);
       authorizationRequest.user = user;
       authorizationRequest.isAuthorizationApproved = true;
-      authorizationRequest.redirectUri = "http://localhost";
+      authorizationRequest.redirectUri = "http://example.com";
       authorizationRequest.state = "abc123-state";
 
       // act
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(response.headers.location);
+      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
       const decodedCode = <ITokenData>decode(String(authorizeResponseQuery.access_token));
 
       // assert
@@ -196,7 +196,7 @@ describe("implicit grant", () => {
       const authorizationRequest = new AuthorizationRequest("implicit", client);
       authorizationRequest.user = user;
       authorizationRequest.isAuthorizationApproved = false;
-      authorizationRequest.redirectUri = "http://localhost";
+      authorizationRequest.redirectUri = "http://example.com";
 
       // act
       const response = grant.completeAuthorizationRequest(authorizationRequest);
