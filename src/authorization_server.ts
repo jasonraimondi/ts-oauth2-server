@@ -73,12 +73,12 @@ export class AuthorizationServer {
   ) {
   }
 
-  enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")) {
+  enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")): void {
     this.enabledGrantTypes[grantType] = this.availableGrants[grantType];
     this.grantTypeAccessTokenTTL[grantType] = accessTokenTTL;
   }
 
-  respondToAccessTokenRequest(req: RequestInterface, res: ResponseInterface) {
+  respondToAccessTokenRequest(req: RequestInterface, res: ResponseInterface): Promise<ResponseInterface> {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (!grantType.canRespondToAccessTokenRequest(req)) {
         continue;
@@ -90,7 +90,7 @@ export class AuthorizationServer {
     throw OAuthException.unsupportedGrantType();
   }
 
-  validateAuthorizationRequest(req: RequestInterface) {
+  validateAuthorizationRequest(req: RequestInterface): Promise<AuthorizationRequest> {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (grantType.canRespondToAuthorizationRequest(req)) {
         return grantType.validateAuthorizationRequest(req);
