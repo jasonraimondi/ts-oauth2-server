@@ -279,7 +279,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     authCode.redirectUri = redirectUri;
     authCode.codeChallenge = codeChallenge;
     authCode.codeChallengeMethod = codeChallengeMethod;
-    scopes.forEach(scope => (authCode.scopes ? authCode.scopes.push(scope) : (authCode.scopes = [scope])));
+    authCode.scopes = [];
+    scopes.forEach(scope => (authCode.scopes.push(scope)));
     await this.authCodeRepository.persist(authCode);
     return authCode;
   }

@@ -175,7 +175,7 @@ export abstract class AbstractGrant implements GrantInterface {
       scopes = scopes.split(this.scopeDelimiterString);
     }
 
-    if (!scopes || scopes.length === 0) {
+    if (!scopes || scopes.length === 0 || scopes[0] === "") {
       return [];
     }
 
