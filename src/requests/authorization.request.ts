@@ -1,7 +1,7 @@
-import { OAuthException } from "..";
 import { OAuthClient } from "../entities/client.entity";
 import { OAuthScope } from "../entities/scope.entity";
 import { OAuthUser } from "../entities/user.entity";
+import { OAuthException } from "../exceptions/oauth.exception";
 import { GrantIdentifier } from "../grants/abstract/grant.interface";
 
 export class AuthorizationRequest {
