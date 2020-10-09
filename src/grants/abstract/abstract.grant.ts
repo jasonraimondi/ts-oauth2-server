@@ -32,6 +32,8 @@ export interface ITokenData {
 }
 
 export abstract class AbstractGrant implements GrantInterface {
+  public requiresPKCE = true;
+
   protected readonly scopeDelimiterString = " ";
 
   protected readonly supportedGrantTypes: GrantIdentifier[] = [
@@ -170,7 +172,10 @@ export abstract class AbstractGrant implements GrantInterface {
     return decoded.split(":");
   }
 
-  protected async validateScopes(scopes: undefined | string | string[] = [], redirectUri?: string): Promise<OAuthScope[]> {
+  protected async validateScopes(
+    scopes: undefined | string | string[] = [],
+    redirectUri?: string,
+  ): Promise<OAuthScope[]> {
     if (typeof scopes === "string") {
       scopes = scopes.split(this.scopeDelimiterString);
     }

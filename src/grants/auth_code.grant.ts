@@ -80,9 +80,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const authCode = await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id);
 
-    if (!validatedPayload.code_challenge) throw OAuthException.invalidRequest("code_challenge");
+    if (authCode.codeChallenge) {
+      if (!validatedPayload.code_challenge) throw OAuthException.invalidRequest("code_challenge");
 
-    if (authCode.codeChallenge !== validatedPayload.code_challenge) {
+      if (authCode.codeChallenge !== validatedPayload.code_challenge) {
       throw OAuthException.invalidRequest("code_challenge", "Provided code challenge does not match auth code");
     }
 
@@ -92,13 +93,16 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidRequest("code_verifier");
     }
 
-    // Validate code_verifier according to RFC-7636
-    // @see: https://tools.ietf.org/html/rfc7636#section-4.1
-    if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
-      throw OAuthException.invalidRequest("code_verifier", "Code verifier must follow the specifications of RFS-7636");
-    }
+      // Validate code_verifier according to RFC-7636
+      // @see: https://tools.ietf.org/html/rfc7636#section-4.1
+      if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
+        throw OAuthException.invalidRequest(
+          "code_verifier",
+          "Code verifier must follow the specifications of RFS-7636",
+        );
+      }
 
-    const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method;
+      const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method;
 
     let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
 
@@ -106,8 +110,9 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       verifier = this.codeChallengeVerifiers.S256;
     }
 
-    if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
-      throw OAuthException.invalidGrant("Failed to verify code challenge.");
+      if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
+        throw OAuthException.invalidGrant("Failed to verify code challenge.");
+      }
     }
 
     const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
@@ -158,25 +163,27 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const codeChallenge = this.getQueryStringParameter("code_challenge", request);
 
-    if (!codeChallenge) {
+    if (this.requiresPKCE && !codeChallenge) {
       throw OAuthException.invalidRequest(
         "code_challenge",
         "The authorization server requires public clients to use PKCE RFC-7636",
       );
     }
 
-    const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
+    if (codeChallenge) {
+      const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
 
-    if (!REGEXP_CODE_CHALLENGE.test(base64decode(codeChallenge))) {
+      if (!REGEXP_CODE_CHALLENGE.test(base64decode(codeChallenge))) {
       throw OAuthException.invalidRequest(
         "code_challenge",
         `Code challenge must follow the specifications of RFC-7636 and match ${REGEXP_CODE_CHALLENGE.toString()}.`,
       );
     }
 
-    authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.codeChallenge = codeChallenge;
 
-    authorizationRequest.codeChallengeMethod = codeChallengeMethod;
+      authorizationRequest.codeChallengeMethod = codeChallengeMethod;
+    }
 
     return authorizationRequest;
   }

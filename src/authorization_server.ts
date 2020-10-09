@@ -16,6 +16,10 @@ import { ResponseInterface } from "./responses/response";
 import { DateInterval } from "./utils/date_interval";
 import { JwtInterface } from "./utils/jwt";
 
+export interface AuthorizationServerOptions {
+  requiresPKCE: boolean;
+}
+
 export class AuthorizationServer {
   private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};
   private readonly grantTypeAccessTokenTTL: { [key: string]: DateInterval } = {};
@@ -70,11 +74,13 @@ export class AuthorizationServer {
     private readonly scopeRepository: OAuthScopeRepository,
     private readonly userRepository: OAuthUserRepository,
     private readonly jwt: JwtInterface,
-  ) {
-  }
+    private readonly options: AuthorizationServerOptions = { requiresPKCE: true },
+  ) {}
 
   enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")): void {
-    this.enabledGrantTypes[grantType] = this.availableGrants[grantType];
+    const grant = this.availableGrants[grantType];
+    grant.requiresPKCE = this.options.requiresPKCE;
+    this.enabledGrantTypes[grantType] = grant;
     this.grantTypeAccessTokenTTL[grantType] = accessTokenTTL;
   }
 

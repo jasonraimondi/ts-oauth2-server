@@ -9,6 +9,7 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { OAuthScope } from "../../../src/entities/scope.entity";
 import { OAuthUser } from "../../../src/entities/user.entity";
 import { OAuthClient } from "../../../src/entities/client.entity";
 import { AuthCodeGrant, IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "../../../src/grants/auth_code.grant";
@@ -23,6 +24,7 @@ import { expectTokenResponse } from "./client_credentials.grant.spec";
 describe("authorization_code grant", () => {
   let user: OAuthUser;
   let client: OAuthClient;
+  let scope1: OAuthScope;
   let grant: AuthCodeGrant;
 
   let request: OAuthRequest;
@@ -36,6 +38,7 @@ describe("authorization_code grant", () => {
     response = new OAuthResponse();
 
     user = { id: "abc123" };
+    scope1 = { name: "scope-1" };
 
     client = {
       id: "authcodeclient",
@@ -57,6 +60,7 @@ describe("authorization_code grant", () => {
 
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.users[user.id] = user;
+    inMemoryDatabase.scopes[scope1.name] = scope1;
   });
 
   describe("can respond to authorization request", () => {
@@ -127,25 +131,9 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.scopes).toStrictEqual([]);
     });
 
-    it("is successful with undefined redirect_uri", async () => {
-      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
-      request = new OAuthRequest({
-        query: {
-          redirect_uri: undefined,
-          response_type: "code",
-          client_id: client.id,
-          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
-        },
-      });
-      const authorizationRequest = await grant.validateAuthorizationRequest(request);
-
-      expect(authorizationRequest.redirectUri).toBe("http://example.com");
-    });
-
     it("is successful with plain pkce", async () => {
       client.redirectUris = ["http://example.com?this_should_work=true"];
       inMemoryDatabase.clients[client.id] = client;
-      inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
       const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
       request = new OAuthRequest({
         query: {
@@ -170,6 +158,44 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
     });
 
+    it("is successful without using PKCE flow", async () => {
+      // arrange
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          scope: "scope-1",
+          state: "state-is-a-secret",
+        },
+      });
+      grant.requiresPKCE = false;
+
+      // act
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      // assert
+      expect(authorizationRequest.isAuthorizationApproved).toBe(false);
+      expect(authorizationRequest.client.id).toBe(client.id);
+      expect(authorizationRequest.client.name).toBe(client.name);
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
+      expect(authorizationRequest.state).toBe("state-is-a-secret");
+      expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
+    });
+
+    it("is successful with undefined redirect_uri", async () => {
+      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
+      request = new OAuthRequest({
+        query: {
+          redirect_uri: undefined,
+          response_type: "code",
+          client_id: client.id,
+          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
+        },
+      });
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
+    });
 
     it("throws when missing code_challenge pkce", async () => {
       request = new OAuthRequest({
@@ -216,9 +242,7 @@ describe("authorization_code grant", () => {
       });
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
-      await expect(authorizationRequest).rejects.toThrowError(
-        /Check the `redirect_uri` parameter/,
-      );
+      await expect(authorizationRequest).rejects.toThrowError(/Check the `redirect_uri` parameter/);
     });
 
     it("throws for redirect_uri arg as array", async () => {
@@ -231,9 +255,7 @@ describe("authorization_code grant", () => {
       });
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
-      await expect(authorizationRequest).rejects.toThrowError(
-        /Check the `redirect_uri` parameter/,
-      );
+      await expect(authorizationRequest).rejects.toThrowError(/Check the `redirect_uri` parameter/);
     });
 
     it("throws for redirect_uri containing url fragment", async () => {
@@ -271,6 +293,21 @@ describe("authorization_code grant", () => {
     });
 
     // it("uses clients redirect url if request ", async () => {});
+
+    it("is successful without pkce flow", async () => {
+      grant.requiresPKCE = false;
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.state = "abc123";
+      authorizationRequest.user = user;
+      const response = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
+      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+
+      expect(response.headers.location.includes("http://example.com?code=")).toBeTruthy();
+      expect(decodedCode.client_id).toBe(client.id);
+      expect(decodedCode.redirect_uri).toBe("http://example.com");
+    });
   });
 
   describe("respond to access token request with code", () => {
@@ -323,6 +360,30 @@ describe("authorization_code grant", () => {
           redirect_uri: authorizationRequest.redirectUri,
           client_id: client.id,
           code_verifier: codeChallenge,
+        },
+      });
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+
+      // assert
+      expectTokenResponse(accessTokenResponse);
+    });
+
+    it("is successful without pkce", async () => {
+      grant.requiresPKCE = false;
+      authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
+      authorizationCode = String(authorizeResponseQuery.code);
+
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
         },
       });
       const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));

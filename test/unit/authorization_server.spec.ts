@@ -91,46 +91,6 @@ describe("authorization_server", () => {
     expectTokenResponse(tokenResponse);
   });
 
-  it("respondToAccessTokenRequest", async () => {
-    // arrange
-    client = {
-      id: "a854eb18-c3df-41a3-ab6b-5d96f787f105",
-      name: "test client",
-      secret: "super-secret-secret",
-      redirectUris: ["http://localhost"],
-      allowedGrants: ["refresh_token"],
-      scopes: [scope1, scope2],
-    };
-    accessToken = {
-      accessToken: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
-      accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
-      refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
-      refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
-      client,
-      scopes: [scope1, scope2],
-    };
-    inMemoryDatabase.clients[client.id] = client;
-    inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
-    const bearerResponse = await refreshGrant.makeBearerTokenResponse(client, accessToken);
-    const request = new OAuthRequest({
-      body: {
-        grant_type: "refresh_token",
-        client_id: client.id,
-        client_secret: client.secret,
-        refresh_token: bearerResponse.body.refresh_token,
-        scope: "scope-1",
-      },
-    });
-    const response = new OAuthResponse();
-
-    // act
-    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
-
-    // assert
-    expectTokenResponse(tokenResponse);
-    expect(tokenResponse.body.scope).toBe("scope-1");
-  });
-
   it("validateAuthorizationRequest", async () => {
     client = {
       id: "authcodeclient",
@@ -189,5 +149,121 @@ describe("authorization_server", () => {
     expect(decodedCode.client_id).toBe(client.id);
     expect(decodedCode.redirect_uri).toBe("http://localhost");
     expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);
+  });
+
+  describe("option requirePKCE", () => {
+    beforeEach(() => {
+      client = {
+        id: "authcodeclient",
+        name: "test auth code client",
+        secret: undefined,
+        redirectUris: ["http://localhost"],
+        allowedGrants: ["authorization_code"],
+        scopes: [scope1, scope2],
+      };
+      inMemoryDatabase.clients[client.id] = client;
+    });
+
+    test("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
+      authorizationServer = new AuthorizationServer(
+        inMemoryAuthCodeRepository,
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        inMemoryUserRepository,
+        new JwtService("secret-key"),
+        { requiresPKCE: false },
+      );
+      authorizationServer.enableGrantType("authorization_code");
+      const request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          scope: scope1.name,
+          state: "state-is-a-secret",
+        },
+      });
+
+      // act
+      const validResponse = await authorizationServer.validateAuthorizationRequest(request);
+      validResponse.user = user;
+      validResponse.isAuthorizationApproved = true;
+      const response = await authorizationServer.completeAuthorizationRequest(validResponse);
+
+      // assert
+      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
+      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+      expect(decodedCode.client_id).toBe(client.id);
+      expect(decodedCode.redirect_uri).toBe("http://localhost");
+      expect(decodedCode.code_challenge).toBeUndefined();
+    });
+
+    test("auth server requiring pkce throws if request is missing code_challenge", async () => {
+      authorizationServer = new AuthorizationServer(
+        inMemoryAuthCodeRepository,
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        inMemoryUserRepository,
+        new JwtService("secret-key"),
+      );
+      authorizationServer.enableGrantType("authorization_code");
+      const request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          scope: scope1.name,
+          state: "state-is-a-secret",
+        },
+      });
+
+      // act
+      const response = authorizationServer.validateAuthorizationRequest(request);
+
+      // assert
+      await expect(response).rejects.toThrowError(
+        /The authorization server requires public clients to use PKCE RFC-7636/,
+      );
+    });
+  });
+
+  it("respondToAccessTokenRequest is successful", async () => {
+    // arrange
+    client = {
+      id: "a854eb18-c3df-41a3-ab6b-5d96f787f105",
+      name: "test client",
+      secret: "super-secret-secret",
+      redirectUris: ["http://localhost"],
+      allowedGrants: ["refresh_token"],
+      scopes: [scope1, scope2],
+    };
+    accessToken = {
+      accessToken: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
+      accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+      refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
+      refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
+      client,
+      scopes: [scope1, scope2],
+    };
+    inMemoryDatabase.clients[client.id] = client;
+    inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+    const bearerResponse = await refreshGrant.makeBearerTokenResponse(client, accessToken);
+    const request = new OAuthRequest({
+      body: {
+        grant_type: "refresh_token",
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: bearerResponse.body.refresh_token,
+        scope: "scope-1",
+      },
+    });
+    const response = new OAuthResponse();
+
+    // act
+    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
+
+    // assert
+    expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.scope).toBe("scope-1");
   });
 });
