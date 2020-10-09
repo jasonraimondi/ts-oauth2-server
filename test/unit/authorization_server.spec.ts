@@ -10,10 +10,10 @@ import {
   inMemoryUserRepository,
 } from "../../examples/in_memory/repository";
 import { AuthorizationServer } from "../../src/authorization_server";
-import { OAuthUser } from "../../src/entities/user.entity";
 import { OAuthClient } from "../../src/entities/client.entity";
 import { OAuthScope } from "../../src/entities/scope.entity";
 import { OAuthToken } from "../../src/entities/token.entity";
+import { OAuthUser } from "../../src/entities/user.entity";
 import { IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "../../src/grants/auth_code.grant";
 import { RefreshTokenGrant } from "../../src/grants/refresh_token.grant";
 import { AuthorizationRequest } from "../../src/requests/authorization.request";

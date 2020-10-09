@@ -97,9 +97,9 @@ export class AuthorizationServer {
   }
 
   validateAuthorizationRequest(req: RequestInterface): Promise<AuthorizationRequest> {
-    for (const grantType of Object.values(this.enabledGrantTypes)) {
-      if (grantType.canRespondToAuthorizationRequest(req)) {
-        return grantType.validateAuthorizationRequest(req);
+    for (const grant of Object.values(this.enabledGrantTypes)) {
+      if (grant.canRespondToAuthorizationRequest(req)) {
+        return grant.validateAuthorizationRequest(req);
       }
     }
 
