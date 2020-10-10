@@ -21,11 +21,6 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, validScopes);
 
-    // @todo THIS MUST BE REMOVED
-    const [refreshToken, refreshTokenExpiresAt] = await this.issueRefreshToken();
-
-    accessToken.refreshToken = refreshToken;
-    accessToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
     return await this.makeBearerTokenResponse(client, accessToken, validScopes);
   }
 }

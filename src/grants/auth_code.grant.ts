@@ -111,13 +111,9 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       }
     }
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
+    let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
-    const [refreshToken, refreshTokenExpiresAt] = await this.issueRefreshToken();
-
-    accessToken.refreshToken = refreshToken;
-
-    accessToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
+    accessToken = await this.issueRefreshToken(accessToken);
 
     await this.authCodeRepository.revoke(validatedPayload.auth_code_id);
 
@@ -196,8 +192,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     if (!authorizationRequest.isAuthorizationApproved) {
-      // @todo what exception should I throw here?
-      throw OAuthException.invalidRequest("isAuthorizationApproved");
+      throw OAuthException.logicException("Authorization is not approved");
     }
 
     const authCode = await this.issueAuthCode(

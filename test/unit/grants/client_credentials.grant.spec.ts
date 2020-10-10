@@ -22,7 +22,6 @@ export function expectTokenResponse(tokenResponse: ResponseInterface) {
   expect(tokenResponse.body.token_type).toBe("Bearer");
   expect(tokenResponse.body.expires_in).toBe(3600);
   expect(tokenResponse.body.access_token).toMatch(REGEX_ACCESS_TOKEN);
-  expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
 }
 
 describe("client_credentials grant", () => {
@@ -75,6 +74,7 @@ describe("client_credentials grant", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.refresh_token).toBeUndefined();
   });
 
   it("successfully grants using body", async () => {
@@ -93,6 +93,7 @@ describe("client_credentials grant", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.refresh_token).toBeUndefined();
   });
 
   it("successfully grants using body with scopes", async () => {
@@ -114,6 +115,7 @@ describe("client_credentials grant", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.refresh_token).toBeUndefined();
     expect(tokenResponse.body.scope).toBe("scope-1 scope-2");
   });
 

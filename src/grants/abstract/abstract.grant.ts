@@ -210,8 +210,8 @@ export abstract class AbstractGrant implements GrantInterface {
     return accessToken;
   }
 
-  protected async issueRefreshToken(): Promise<[string, Date] | [undefined, undefined]> {
-    return await this.tokenRepository.issueRefreshToken();
+  issueRefreshToken(accessToken: OAuthToken): Promise<OAuthToken> {
+    return this.tokenRepository.issueRefreshToken(accessToken);
   }
 
   private getGrantType(request: RequestInterface): GrantIdentifier {

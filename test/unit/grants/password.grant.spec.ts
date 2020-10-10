@@ -6,6 +6,7 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { REGEX_ACCESS_TOKEN } from "../../../src";
 import { OAuthClient } from "../../../src/entities/client.entity";
 import { OAuthUser } from "../../../src/entities/user.entity";
 import { PasswordGrant } from "../../../src/grants/password.grant";
@@ -72,6 +73,7 @@ describe("password grant", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
   });
 
   it("throws when missing grant_type", async () => {

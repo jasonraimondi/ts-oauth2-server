@@ -74,8 +74,11 @@ export const inMemoryAccessTokenRepository: OAuthTokenRepository = {
   async isRefreshTokenRevoked(token: OAuthToken): Promise<boolean> {
     return Date.now() > (token.refreshTokenExpiresAt?.getTime() ?? 0);
   },
-  async issueRefreshToken(): Promise<[string, Date]> {
-    return ["this-is-my-super-secret-refresh-token", oneHourInFuture];
+  async issueRefreshToken(token): Promise<OAuthToken> {
+    token.refreshToken = "refreshtokentoken";
+    token.refreshTokenExpiresAt = new DateInterval("1h").getEndDate();
+    inMemoryDatabase.tokens[token.accessToken] = token;
+    return token;
   },
 };
 

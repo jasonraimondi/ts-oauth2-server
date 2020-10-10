@@ -29,13 +29,9 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     await this.tokenRepository.revoke(oldToken);
 
-    const newToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
+    let newToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
-    const [refreshToken, refreshTokenExpiresAt] = await this.issueRefreshToken();
-
-    newToken.refreshToken = refreshToken;
-
-    newToken.refreshTokenExpiresAt = refreshTokenExpiresAt;
+    newToken = await this.issueRefreshToken(newToken);
 
     return await this.makeBearerTokenResponse(client, newToken, scopes);
   }

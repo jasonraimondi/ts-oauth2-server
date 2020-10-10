@@ -6,6 +6,7 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
+import { REGEX_ACCESS_TOKEN } from "../../../src";
 import { OAuthClient } from "../../../src/entities/client.entity";
 import { OAuthScope } from "../../../src/entities/scope.entity";
 import { OAuthToken } from "../../../src/entities/token.entity";
@@ -84,6 +85,7 @@ describe("refresh_token grant", () => {
     // assert
     expectTokenResponse(tokenResponse);
     expect(tokenResponse.body.scope).toBe("scope-1");
+    expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
   });
 
   it("throws for resigned token", async () => {
