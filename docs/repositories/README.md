@@ -76,8 +76,7 @@ interface OAuthTokenRepository {
     user?: OAuthUser
   ): Promise<OAuthToken>;
 
-  // @todo this method probably shouldnt exist like this
-  issueRefreshToken(): Promise<[string, Date]>;
+  issueRefreshToken(accessToken: OAuthToken): Promise<OAuthToken>
 
   // An async call that should persist an OAuthToken into your storage. 
   persist(accessToken: OAuthToken): Promise<void>;

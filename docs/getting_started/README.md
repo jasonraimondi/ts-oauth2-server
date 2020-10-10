@@ -74,36 +74,3 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   }
 });
 ```
-
-## The Authorization Server
-
-The AuthorizationServer is the meat and potatoes. The server depends on [the repositories listed here](../repositories/README.md). 
-
-You can enable any grant types you would like to support.
-
-```typescript
-const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
-  clientRepository,
-  accessTokenRepository,
-  scopeRepository,
-  userRepository,
-  new JwtService("secret-key"),
-);
-authorizationServer.enableGrantType("client_credentials");
-authorizationServer.enableGrantType("authorization_code");
-authorizationServer.enableGrantType("refresh_token");
-
-// implicit grant is not recommended for new apps
-authorizationServer.enableGrantType("implicit");
-// password grant is not recommended for new apps
-authorizationServer.enableGrantType("password");
-```
-
-An optional second parameter in `enableGrantType` allows the Access Token TTL to be set.
-
-```typescript
-authorizationServer.enableGrantType("client_credentials", new DateInterval("2h"));
-```
-
-The server uses two endpoints, `GET /authorize` and `POST /token`. 

@@ -25,26 +25,52 @@ The following RFCs are implemented:
 - [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
 - [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
 
-### Sources
+## Install
 
-This project was influenced by the [PHP League OAuth2 Server](https://oauth2.thephpleague.com/) and shares a lot of the same ideas.
+<code-group>
+<code-block title="NPM" active>
+```bash
+npm install --save @jmondi/oauth2-server
+```
+</code-block>
 
-https://github.com/thephpleague/oauth2-server
+<code-block title="YARN">
+```bash
+yarn add @jmondi/oauth2-server
+```
+</code-block>
+</code-group>
 
-https://tools.ietf.org/html/rfc6749#section-4.4
 
-https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/
+## The Authorization Server
 
-https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
+The AuthorizationServer is the meat and potatoes. The server depends on [the repositories listed here](../repositories/README.md). 
 
-https://tools.ietf.org/html/rfc6749#section-4.1 
+You can enable any grant types you would like to support.
 
-https://tools.ietf.org/html/rfc7636
+```typescript
+const authorizationServer = new AuthorizationServer(
+  authCodeRepository,
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  userRepository,
+  new JwtService("secret-key"),
+);
+authorizationServer.enableGrantType("client_credentials");
+authorizationServer.enableGrantType("authorization_code");
+authorizationServer.enableGrantType("refresh_token");
 
-https://www.oauth.com/oauth2-servers/pkce/
+// implicit grant is not recommended for new apps
+authorizationServer.enableGrantType("implicit");
+// password grant is not recommended for new apps
+authorizationServer.enableGrantType("password");
+```
 
-https://www.oauth.com/oauth2-servers/pkce/authorization-request/
+An optional second parameter in `enableGrantType` allows the Access Token TTL to be set.
 
-[access_token_response]: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/ "Access Token Response"
+```typescript
+authorizationServer.enableGrantType("client_credentials", new DateInterval("2h"));
+```
 
-[client_credentials]: https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/ "Client Credentials Grant"
+The server uses two endpoints, `GET /authorize` and `POST /token`. 
