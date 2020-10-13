@@ -3,11 +3,9 @@ import ms from "ms";
 export type DateIntervalType = string;
 
 export class DateInterval {
-  public readonly init: number;
   public readonly ms: number;
 
   constructor(private readonly interval: DateIntervalType) {
-    this.init = Date.now();
     this.ms = ms(interval);
   }
 
@@ -16,7 +14,7 @@ export class DateInterval {
   }
 
   getEndTimeMs(): number {
-    return this.init + this.ms;
+    return Date.now() + this.ms;
   }
 
   getEndTimeSeconds(): number {
