@@ -29,8 +29,6 @@ The following RFCs are implemented:
 
 **@TODO**
 
-:construction_worker: This project is under development :construction:
-
-* feat: flag for require code_challenge for public clients
+* feat: allow users to only use individual grant, and not require all entities/repositories 
 * feat: token introspection
 * chore: documentation
