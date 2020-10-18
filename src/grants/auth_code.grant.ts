@@ -117,7 +117,9 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     await this.authCodeRepository.revoke(validatedPayload.auth_code_id);
 
-    return await this.makeBearerTokenResponse(client, accessToken, scopes);
+    const extraJwtFields = user ? await this.userRepository.extraAccessTokenFields?.(user) : undefined;
+
+    return await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {

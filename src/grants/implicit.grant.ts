@@ -92,10 +92,13 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       finalizedScopes,
     );
 
+    const extraFields = authorizationRequest.user ? await this.userRepository.extraAccessTokenFields?.(authorizationRequest.user) : undefined;
+
     const encryptedAccessToken = await this.encryptAccessToken(
       authorizationRequest.client,
       accessToken,
       authorizationRequest.scopes,
+      extraFields ?? {}
     );
 
     return new RedirectResponse(

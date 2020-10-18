@@ -8,7 +8,7 @@ import { OAuthTokenRepository } from "../../src/repositories/access_token.reposi
 import { OAuthAuthCodeRepository } from "../../src/repositories/auth_code.repository";
 import { OAuthClientRepository } from "../../src/repositories/client.repository";
 import { OAuthScopeRepository } from "../../src/repositories/scope.repository";
-import { OAuthUserRepository } from "../../src/repositories/user.repository";
+import { ExtraAccessTokenFields, OAuthUserRepository } from "../../src/repositories/user.repository";
 import { DateInterval } from "../../src/utils/date_interval";
 import { inMemoryDatabase } from "./database";
 
@@ -121,4 +121,9 @@ export const inMemoryUserRepository: OAuthUserRepository = {
     if (user?.password !== password) return;
     return user;
   },
+  async extraAccessTokenFields(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined> {
+    return {
+      email: user.email,
+    };
+  }
 };

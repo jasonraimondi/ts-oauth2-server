@@ -33,7 +33,9 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     newToken = await this.issueRefreshToken(newToken);
 
-    return await this.makeBearerTokenResponse(client, newToken, scopes);
+    const extraJwtFields = user ? await this.userRepository.extraAccessTokenFields?.(user) : undefined;
+
+    return await this.makeBearerTokenResponse(client, newToken, scopes, extraJwtFields);
   }
 
   private async validateOldRefreshToken(request: RequestInterface, clientId: string): Promise<OAuthToken> {

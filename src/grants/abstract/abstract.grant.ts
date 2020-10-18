@@ -7,7 +7,7 @@ import { OAuthTokenRepository } from "../../repositories/access_token.repository
 import { OAuthAuthCodeRepository } from "../../repositories/auth_code.repository";
 import { OAuthClientRepository } from "../../repositories/client.repository";
 import { OAuthScopeRepository } from "../../repositories/scope.repository";
-import { OAuthUserRepository } from "../../repositories/user.repository";
+import { ExtraAccessTokenFields, OAuthUserRepository } from "../../repositories/user.repository";
 import { AuthorizationRequest } from "../../requests/authorization.request";
 import { RequestInterface } from "../../requests/request";
 import { BearerTokenResponse } from "../../responses/bearer_token.response";
@@ -55,10 +55,10 @@ export abstract class AbstractGrant implements GrantInterface {
     protected readonly jwt: JwtInterface,
   ) {}
 
-  async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[] = []) {
+  async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[] = [], extraJwtFields: ExtraAccessTokenFields = {}) {
     const scope = scopes.map(scope => scope.name).join(this.scopeDelimiterString);
 
-    const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes);
+    const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes, extraJwtFields);
 
     let encryptedRefreshToken: string | undefined = undefined;
 
@@ -92,8 +92,14 @@ export abstract class AbstractGrant implements GrantInterface {
     });
   }
 
-  protected encryptAccessToken(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[]) {
+  protected encryptAccessToken(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[], extraJwtFields: ExtraAccessTokenFields) {
     return this.encrypt(<ITokenData | any>{
+      // non standard claims
+      ...extraJwtFields,
+      cid: client.name,
+      scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
+
+      // standard claims
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
       sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
@@ -101,10 +107,6 @@ export abstract class AbstractGrant implements GrantInterface {
       nbf: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
       iat: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
       jti: accessToken.accessToken, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
-
-      // non standard claims
-      cid: client.name,
-      scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
     });
   }
 

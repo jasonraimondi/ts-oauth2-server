@@ -31,7 +31,9 @@ export class PasswordGrant extends AbstractGrant {
 
     accessToken = await this.issueRefreshToken(accessToken);
 
-    return await this.makeBearerTokenResponse(client, accessToken, finalizedScopes);
+    const extraJwtFields = await this.userRepository.extraAccessTokenFields?.(user);
+
+    return await this.makeBearerTokenResponse(client, accessToken, finalizedScopes, extraJwtFields);
   }
 
   private async validateUser(request: RequestInterface, client: OAuthClient): Promise<OAuthUser> {

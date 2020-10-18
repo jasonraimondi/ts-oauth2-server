@@ -42,7 +42,7 @@ describe("authorization_code grant", () => {
     request = new OAuthRequest();
     response = new OAuthResponse();
 
-    user = { id: "abc123" };
+    user = { id: "abc123", email: "jason@example.com" };
     scope1 = { name: "scope-1" };
 
     client = {
@@ -417,6 +417,8 @@ describe("authorization_code grant", () => {
 
       // assert
       expectTokenResponse(accessTokenResponse);
+      const decodedToken: any = decode(accessTokenResponse.body.access_token);
+      expect(decodedToken?.email).toBe("jason@example.com");
       expect(accessTokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
     });
 
