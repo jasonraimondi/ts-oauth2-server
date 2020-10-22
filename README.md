@@ -29,6 +29,7 @@ The following RFCs are implemented:
 
 **@TODO**
 
+* feat: change to https://oauth.net/2.1/
 * feat: allow users to only use individual grant, and not require all entities/repositories 
 * feat: token introspection
 * chore: documentation
