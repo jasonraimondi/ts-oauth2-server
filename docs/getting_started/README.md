@@ -48,25 +48,39 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   const request = new OAuthRequest(req);
 
   try {
-    // Validate the HTTP request and return an AuthorizationRequest object.
+    // Validate the HTTP request and return an AuthorizationRequest.
     const authRequest = await authorizationServer.validateAuthorizationRequest(request);
 
+    // You will probably redirect the user to a login endpoint. 
+    if (!req.user) {
+      req.redirect("/login")
+      return;
+    }
+    // After login, the user should be redirected back with user in the session.
+    // You will need to manage the authorization query on the round trip.
     // The auth request object can be serialized and saved into a user's session.
-    // You will probably want to redirect the user at this point to a login endpoint.
 
     // Once the user has logged in set the user on the AuthorizationRequest
-    console.log("Once the user has logged in set the user on the AuthorizationRequest");
-    const user = { id: "abc", email: "user@example.com" };
-    authRequest.user = user;
-
-    // At this point you should redirect the user to an authorization page.
-    // This form will ask the user to approve the client and the scopes requested.
-
+    authRequest.user = req.user;
+    
     // Once the user has approved or denied the client update the status
     // (true = approved, false = denied)
-    authRequest.isAuthorizationApproved = true;
+    authRequest.isAuthorizationApproved = getIsAuthorizationApprovedFromSession();
 
-    // Return the HTTP redirect response
+    // If the user has not approved the client's authorization request, 
+    // the user should be redirected to the approval screen.
+    if (!authRequest.isAuthorizationApproved) {
+      // This form will ask the user to approve the client and the scopes requested.
+      // "Do you authorize Jason to: read contacts? write contacts?"
+      req.redirect("/scopes")
+      return;
+    }
+
+    // At this point the user has approved the client for authorization.
+    // Any last authorization requests such as Two Factor Authentication (2FA) can happen here.
+
+
+    // Redirect back to redirect_uri with `code` and `state` as url query params.
     const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
     return handleResponse(req, res, oauthResponse);
   } catch (e) {
