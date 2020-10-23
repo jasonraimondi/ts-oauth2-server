@@ -25,9 +25,9 @@ The following RFCs are implemented:
 - [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
 - [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
 
-**[See Documentation](https://jasonraimondi.github.io/typescript-oauth2-server/)**
-
 ## Getting Started
+
+Save some eye strain, **use the [documentation site](https://jasonraimondi.github.io/typescript-oauth2-server/)**
 
 ### Install
 
@@ -172,7 +172,7 @@ And a few entities.
 
 ## Grants
 
-Grants are different ways a [client](../glossary/README.md#client) can obtain an `access_token` that will authorize it to use the [resource server](../glossary/README.md#resource-server).
+Grants are different ways a [client](https://jasonraimondi.github.io/typescript-oauth2-server/glossary/README.md#client) can obtain an `access_token` that will authorize it to use the [resource server](https://jasonraimondi.github.io/typescript-oauth2-server/glossary/README.md#resource-server).
 
 ### Which Grant?
 
