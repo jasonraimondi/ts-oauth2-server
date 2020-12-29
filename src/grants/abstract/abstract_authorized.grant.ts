@@ -1,10 +1,9 @@
 import querystring, { ParsedUrlQueryInput } from "querystring";
 import { parse } from "uri-js";
-import { URL } from "url";
-import { RequestInterface } from "../..";
 
 import { OAuthClient } from "../../entities/client.entity";
 import { OAuthException } from "../../exceptions/oauth.exception";
+import { RequestInterface } from "../../requests/request";
 import { AbstractGrant } from "./abstract.grant";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
