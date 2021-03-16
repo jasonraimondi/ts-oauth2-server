@@ -19,7 +19,7 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     const user = oldToken.user;
 
-    const scopes = await this.validateScopes(this.getRequestParameter("scope", request, oldToken.scopes));
+    const scopes = await this.validateScopes(this.getRequestParameter("scope", request, oldToken.scopes.map(s=>s.name)));
 
     scopes.forEach(scope => {
       if (!oldToken.scopes.map(scope => scope.name).includes(scope.name)) {
