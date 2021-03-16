@@ -87,6 +87,28 @@ describe("refresh_token grant", () => {
     expect(tokenResponse.body.scope).toBe("scope-1");
     expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
   });
+  
+  it("successful without scope", async () => {
+    // arrange
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
+    request = new OAuthRequest({
+      body: {
+        grant_type: "refresh_token",
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: bearerResponse.body.refresh_token,
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+
+    // assert
+    expectTokenResponse(tokenResponse);
+    expect(tokenResponse.body.scope).toBe(accessToken.scopes.map(s=>s.name).join(" "));
+    expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
+  });
 
   it("throws for resigned token", async () => {
     // arrange
