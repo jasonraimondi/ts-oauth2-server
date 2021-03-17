@@ -36,6 +36,8 @@ jobs:
           JWT_SECRET: testing-access-token-secret
       - run: npm run build --if-present
       - name: report coverage to code climate
+        # code coverage report will only run on the master branch and not on pull request
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
