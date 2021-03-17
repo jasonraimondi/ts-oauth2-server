@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "module": "dist/oauth2-server.esm.js",
