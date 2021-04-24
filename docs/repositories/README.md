@@ -14,7 +14,7 @@ interface OAuthAuthCodeRepository {
     client: OAuthClient, 
     user: OAuthUser | undefined, 
     scopes: OAuthScope[]
-  ): OAuthAuthCode;
+  ): Promise<OAuthAuthCode>;
 
   // An async call that should persist an OAuthToken into your storage. 
   persist(authCode: OAuthAuthCode): Promise<void>;
