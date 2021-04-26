@@ -33,7 +33,7 @@ export interface ITokenData {
 
 export abstract class AbstractGrant implements GrantInterface {
   public requiresPKCE = true;
-
+  public useUrlEncode = true;
   protected readonly scopeDelimiterString = " ";
 
   protected readonly supportedGrantTypes: GrantIdentifier[] = [

@@ -106,7 +106,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         verifier = this.codeChallengeVerifiers.S256;
       }
 
-      if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
+      if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge, this.useUrlEncode)) {
         throw OAuthException.invalidGrant("Failed to verify code challenge.");
       }
     }
@@ -167,7 +167,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     if (codeChallenge) {
       const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
 
-      if (!REGEXP_CODE_CHALLENGE.test(base64decode(codeChallenge))) {
+      if (!REGEXP_CODE_CHALLENGE.test(this.useUrlEncode ? base64decode(codeChallenge) : codeChallenge)) {
         throw OAuthException.invalidRequest(
           "code_challenge",
           `Code challenge must follow the specifications of RFC-7636 and match ${REGEXP_CODE_CHALLENGE.toString()}.`,
