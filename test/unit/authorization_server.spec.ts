@@ -180,8 +180,10 @@ describe("authorization_server", () => {
       );
 
       authorizationServer.enableGrantType("authorization_code");
-      const code_verifier = crypto.createHash("sha256")
-        .update(crypto.randomBytes(43).toString("hex"))
+      const code_verifier = crypto.randomBytes(43).toString("hex");
+
+      const code_verifier_hash =  crypto.createHash("sha256")
+        .update(code_verifier)
         .digest("hex");
 
       const request = new OAuthRequest({
@@ -190,7 +192,8 @@ describe("authorization_server", () => {
           client_id: client.id,
           scope: scope1.name,
           state: "state-is-a-secret",
-          code_challenge: code_verifier
+          code_challenge_method: 's256',
+          code_challenge: code_verifier_hash
         },
       });
 
@@ -205,7 +208,21 @@ describe("authorization_server", () => {
       const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://localhost");
-      expect(decodedCode.code_challenge).toBe(code_verifier);
+      expect(decodedCode.code_challenge).toBe(code_verifier_hash);
+
+      const oAuthResponse = new OAuthResponse({});
+      const oAuthRequest = new OAuthRequest({
+        body: {
+          grant_type: 'authorization_code',
+          client_id: client.id,
+          redirect_uri: 'http://localhost',
+          code: authorizeResponseQuery.code,
+          code_verifier: code_verifier
+        },
+      });
+      const {status} = await authorizationServer.respondToAccessTokenRequest(oAuthRequest, oAuthResponse);
+
+      expect(status).toBe(200);
     })
 
     test("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
@@ -243,6 +260,8 @@ describe("authorization_server", () => {
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://localhost");
       expect(decodedCode.code_challenge).toBeUndefined();
+
+
     });
 
     test("auth server requiring pkce throws if request is missing code_challenge", async () => {
