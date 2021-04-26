@@ -18,7 +18,53 @@ yarn add @jmondi/oauth2-server
 </code-block>
 </code-group>
 
-### Getting Started
+## The Authorization Server
+
+The AuthorizationServer depends on [the repositories](#repositories). By default, no grants are enabled; each grant is opt-in and must be enabled when creating the AuthorizationServer.
+
+You can enable any grant types you would like to support.
+
+```typescript
+const authorizationServer = new AuthorizationServer(
+  authCodeRepository,
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  userRepository,
+  new JwtService("secret-key"),
+);
+authorizationServer.enableGrantType("client_credentials");
+authorizationServer.enableGrantType("authorization_code");
+authorizationServer.enableGrantType("refresh_token");
+authorizationServer.enableGrantType("implicit"); // implicit grant is not recommended
+authorizationServer.enableGrantType("password"); // password grant is not recommended
+```
+
+The authorization server has a few optional settings with the following default values;
+
+```typescript
+AuthorizationServerOptions {
+  requiresPKCE: true;
+  useUrlEncode: true;
+}
+```
+
+To configure these options, pass the value in as the last argument:
+
+```typescript
+const authorizationServer = new AuthorizationServer(
+  authCodeRepository,
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  userRepository,
+  new JwtService("secret-key"),
+  {
+    requiresPKCE: false, // default is true
+    useUrlEncode: false, // default is true
+  }
+);
+```
 
 ## The Token Endpoint
 

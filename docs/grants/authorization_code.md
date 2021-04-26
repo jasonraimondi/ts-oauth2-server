@@ -102,7 +102,27 @@ Pragma: no-cache
 ```
 :::
 
-### Code Verifier
+### PKCE
+
+PKCE ([RFC 7636](https://tools.ietf.org/html/rfc7636)) is an extension to the [Authorization Code flow](https://oauth.net/2/grant-types/authorization-code/) to prevent several attacks and to be able to securely perform the OAuth exchange from public clients.
+
+By default, PKCE is enabled and encouraged for all users. If you need to support a legacy client system without PKCE, you can disable PKCE with the authorization server:
+
+```
+const authorizationServer = new AuthorizationServer(
+  authCodeRepository,
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  userRepository,
+  new JwtService("secret-key"),
+  {
+    requiresPKCE: false,
+  }
+);
+```
+
+#### Code Verifier
 
 The `code_verifier` is part of the extended [“PKCE”](https://tools.ietf.org/html/rfc7636) and helps mitigate the threat of having authorization codes intercepted.
 
@@ -116,10 +136,20 @@ import crypto from "crypto";
 const code_verifier = crypto.randomBytes(43).toString("hex");
 ```
 
-https://www.oauth.com/oauth2-servers/pkce/authorization-request/
+@see [https://www.oauth.com/oauth2-servers/pkce/authorization-request/](https://www.oauth.com/oauth2-servers/pkce/authorization-request/)
+
+::: tip
+You can opt out of the base64 url encode with the following [AuthorizationServer option](../getting_started/#the-authorization-server):
+
+```typescript
+{
+  useUrlEncode: false,
+}
+```
+:::
 
 
-### Code Challenge
+#### Code Challenge
 
 Now we need to create a `code_challenge` from our `code_verifier`. 
 
@@ -138,7 +168,6 @@ Clients that do not have the ability to perform a SHA256 hash are permitted to u
 ```typescript
 const code_challenge = code_verifier;
 ```
-:::
 
 ::: details Need a base64urlencode function?
 ```typescript
@@ -150,3 +179,4 @@ function base64urlencode(str: string) {
     .replace(/=/g, "");
 }
 ```
+:::
