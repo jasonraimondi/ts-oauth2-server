@@ -1,5 +1,6 @@
 import { decode } from "jsonwebtoken";
 import querystring from "querystring";
+import crypto from "crypto";
 
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import {
@@ -163,6 +164,49 @@ describe("authorization_server", () => {
       };
       inMemoryDatabase.clients[client.id] = client;
     });
+
+    test('auth server succeeds when skipping base64encode', async() => {
+      authorizationServer = new AuthorizationServer(
+        inMemoryAuthCodeRepository,
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        inMemoryUserRepository,
+        new JwtService("secret-key"),
+        {
+          requiresPKCE: true,
+          useUrlEncode: false
+        },
+      );
+
+      authorizationServer.enableGrantType("authorization_code");
+      const code_verifier = crypto.createHash("sha256")
+        .update(crypto.randomBytes(43).toString("hex"))
+        .digest("hex");
+
+      const request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          scope: scope1.name,
+          state: "state-is-a-secret",
+          code_challenge: code_verifier
+        },
+      });
+
+      // act
+      const validResponse = await authorizationServer.validateAuthorizationRequest(request);
+      validResponse.user = user;
+      validResponse.isAuthorizationApproved = true;
+      const response = await authorizationServer.completeAuthorizationRequest(validResponse);
+
+      // assert
+      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
+      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+      expect(decodedCode.client_id).toBe(client.id);
+      expect(decodedCode.redirect_uri).toBe("http://localhost");
+      expect(decodedCode.code_challenge).toBe(code_verifier);
+    })
 
     test("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
       authorizationServer = new AuthorizationServer(
