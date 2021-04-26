@@ -172,7 +172,10 @@ describe("authorization_server", () => {
         inMemoryScopeRepository,
         inMemoryUserRepository,
         new JwtService("secret-key"),
-        { requiresPKCE: false },
+        {
+          requiresPKCE: false,
+          useUrlEncode: true
+        },
       );
       authorizationServer.enableGrantType("authorization_code");
       const request = new OAuthRequest({

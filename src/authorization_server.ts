@@ -18,6 +18,7 @@ import { JwtInterface } from "./utils/jwt";
 
 export interface AuthorizationServerOptions {
   requiresPKCE: boolean;
+  useUrlEncode: boolean;
 }
 
 export class AuthorizationServer {
@@ -74,12 +75,16 @@ export class AuthorizationServer {
     private readonly scopeRepository: OAuthScopeRepository,
     private readonly userRepository: OAuthUserRepository,
     private readonly jwt: JwtInterface,
-    private readonly options: AuthorizationServerOptions = { requiresPKCE: true },
+    private readonly options: AuthorizationServerOptions = {
+      requiresPKCE: true,
+      useUrlEncode: false,
+    },
   ) {}
 
   enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")): void {
     const grant = this.availableGrants[grantType];
     grant.requiresPKCE = this.options.requiresPKCE;
+    grant.useUrlEncode = this.options.useUrlEncode;
     this.enabledGrantTypes[grantType] = grant;
     this.grantTypeAccessTokenTTL[grantType] = accessTokenTTL;
   }

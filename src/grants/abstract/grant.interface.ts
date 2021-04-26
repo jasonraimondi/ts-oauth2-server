@@ -7,7 +7,7 @@ export type GrantIdentifier = "authorization_code" | "client_credentials" | "ref
 
 export interface GrantInterface {
   requiresPKCE: boolean;
-
+  useUrlEncode: boolean;
   identifier: GrantIdentifier;
 
   canRespondToAccessTokenRequest(request: RequestInterface): boolean;
