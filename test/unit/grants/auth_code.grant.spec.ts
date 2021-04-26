@@ -301,7 +301,11 @@ describe("authorization_code grant", () => {
       client.redirectUris = ["http://example.com?this_should_work=true"];
       inMemoryDatabase.clients[client.id] = client;
 
-      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com?this_should_work=true");
+      const authorizationRequest = new AuthorizationRequest(
+        "authorization_code",
+        client,
+        "http://example.com?this_should_work=true",
+      );
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.codeChallengeMethod = "S256";
       authorizationRequest.codeChallenge = codeChallenge;

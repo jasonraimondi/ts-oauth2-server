@@ -106,7 +106,7 @@ describe("refresh_token grant", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
-    expect(tokenResponse.body.scope).toBe(accessToken.scopes.map(s=>s.name).join(" "));
+    expect(tokenResponse.body.scope).toBe(accessToken.scopes.map(s => s.name).join(" "));
     expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
   });
 

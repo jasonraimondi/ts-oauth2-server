@@ -59,7 +59,12 @@ export abstract class AbstractGrant implements GrantInterface {
     protected readonly jwt: JwtInterface,
   ) {}
 
-  async makeBearerTokenResponse(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[] = [], extraJwtFields: ExtraAccessTokenFields = {}) {
+  async makeBearerTokenResponse(
+    client: OAuthClient,
+    accessToken: OAuthToken,
+    scopes: OAuthScope[] = [],
+    extraJwtFields: ExtraAccessTokenFields = {},
+  ) {
     const scope = scopes.map(scope => scope.name).join(this.scopeDelimiterString);
 
     const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes, extraJwtFields);
@@ -96,7 +101,12 @@ export abstract class AbstractGrant implements GrantInterface {
     });
   }
 
-  protected encryptAccessToken(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[], extraJwtFields: ExtraAccessTokenFields) {
+  protected encryptAccessToken(
+    client: OAuthClient,
+    accessToken: OAuthToken,
+    scopes: OAuthScope[],
+    extraJwtFields: ExtraAccessTokenFields,
+  ) {
     return this.encrypt(<ITokenData | any>{
       // non standard claims
       ...extraJwtFields,

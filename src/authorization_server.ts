@@ -83,7 +83,7 @@ export class AuthorizationServer {
       requiresPKCE: true,
       useUrlEncode: true,
       ...options,
-    }
+    };
   }
 
   enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")): void {

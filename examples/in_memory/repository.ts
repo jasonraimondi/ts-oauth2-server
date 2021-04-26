@@ -125,5 +125,5 @@ export const inMemoryUserRepository: OAuthUserRepository = {
     return {
       email: user.email,
     };
-  }
+  },
 };
