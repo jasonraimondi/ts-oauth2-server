@@ -68,6 +68,8 @@ export class AuthorizationServer {
     ),
   };
 
+  private readonly options: AuthorizationServerOptions;
+
   constructor(
     private readonly authCodeRepository: OAuthAuthCodeRepository,
     private readonly clientRepository: OAuthClientRepository,
@@ -75,16 +77,18 @@ export class AuthorizationServer {
     private readonly scopeRepository: OAuthScopeRepository,
     private readonly userRepository: OAuthUserRepository,
     private readonly jwt: JwtInterface,
-    private readonly options: AuthorizationServerOptions = {
+    options?: Partial<AuthorizationServerOptions>,
+  ) {
+    this.options = {
       requiresPKCE: true,
-      useUrlEncode: false,
-    },
-  ) {}
+      useUrlEncode: true,
+      ...options,
+    }
+  }
 
   enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")): void {
     const grant = this.availableGrants[grantType];
-    grant.requiresPKCE = this.options.requiresPKCE;
-    grant.useUrlEncode = this.options.useUrlEncode;
+    grant.options = this.options;
     this.enabledGrantTypes[grantType] = grant;
     this.grantTypeAccessTokenTTL[grantType] = accessTokenTTL;
   }

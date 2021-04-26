@@ -1,3 +1,4 @@
+import { AuthorizationServerOptions } from "../../authorization_server";
 import { AuthorizationRequest } from "../../requests/authorization.request";
 import { RequestInterface } from "../../requests/request";
 import { ResponseInterface } from "../../responses/response";
@@ -6,8 +7,8 @@ import { DateInterval } from "../../utils/date_interval";
 export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token" | "password" | "implicit";
 
 export interface GrantInterface {
-  requiresPKCE: boolean;
-  useUrlEncode: boolean;
+  options: AuthorizationServerOptions;
+
   identifier: GrantIdentifier;
 
   canRespondToAccessTokenRequest(request: RequestInterface): boolean;

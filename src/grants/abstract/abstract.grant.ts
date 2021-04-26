@@ -1,3 +1,4 @@
+import { AuthorizationServerOptions } from "../../authorization_server";
 import { isClientConfidential, OAuthClient } from "../../entities/client.entity";
 import { OAuthScope } from "../../entities/scope.entity";
 import { OAuthToken } from "../../entities/token.entity";
@@ -32,8 +33,11 @@ export interface ITokenData {
 }
 
 export abstract class AbstractGrant implements GrantInterface {
-  public requiresPKCE = true;
-  public useUrlEncode = true;
+  public readonly options: AuthorizationServerOptions = {
+    requiresPKCE: true,
+    useUrlEncode: true,
+  };
+
   protected readonly scopeDelimiterString = " ";
 
   protected readonly supportedGrantTypes: GrantIdentifier[] = [

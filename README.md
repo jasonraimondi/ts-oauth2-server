@@ -154,6 +154,32 @@ authorizationServer.enableGrantType("client_credentials", new DateInterval("5h")
 authorizationServer.enableGrantType("authorization_code", new DateInterval("2h"));
 ```
 
+The authorization server has a few optional settings with the following default values;
+
+```typescript
+AuthorizationServerOptions {
+  requiresPKCE: true;
+  useUrlEncode: true;
+}
+```
+
+To configure these options, pass the value in as the last argument:
+
+```typescript
+const authorizationServer = new AuthorizationServer(
+  authCodeRepository,
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  userRepository,
+  new JwtService("secret-key"),
+  {
+    requiresPKCE: false, // default is true
+    useUrlEncode: false, // default is true
+  }
+);
+```
+
 ### Repositories
 
 There are a few repositories you are going to need to implement in order to create an `AuthorizationServer`.

@@ -173,7 +173,7 @@ describe("authorization_code grant", () => {
           state: "state-is-a-secret",
         },
       });
-      grant.requiresPKCE = false;
+      grant.options.requiresPKCE = false;
 
       // act
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
@@ -320,7 +320,7 @@ describe("authorization_code grant", () => {
     // it("uses clients redirect url if request ", async () => {});
 
     it("is successful without pkce flow", async () => {
-      grant.requiresPKCE = false;
+      grant.options.requiresPKCE = false;
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.state = "abc123";
@@ -396,7 +396,7 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful without pkce", async () => {
-      grant.requiresPKCE = false;
+      grant.options.requiresPKCE = false;
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
