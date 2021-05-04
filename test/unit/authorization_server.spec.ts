@@ -15,7 +15,7 @@ import { OAuthClient } from "../../src/entities/client.entity";
 import { OAuthScope } from "../../src/entities/scope.entity";
 import { OAuthToken } from "../../src/entities/token.entity";
 import { OAuthUser } from "../../src/entities/user.entity";
-import { IAuthCodePayload, REGEXP_CODE_CHALLENGE } from "../../src/grants/auth_code.grant";
+import { IAuthCodePayload } from "../../src/grants/auth_code.grant";
 import { RefreshTokenGrant } from "../../src/grants/refresh_token.grant";
 import { AuthorizationRequest } from "../../src/requests/authorization.request";
 import { OAuthRequest } from "../../src/requests/request";
@@ -25,8 +25,8 @@ import { DateInterval } from "../../src/utils/date_interval";
 import { JwtService } from "../../src/utils/jwt";
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec";
 
-// const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
-const codeChallenge = "ODQwZGM4YzZlNzMyMjQyZDAxYjE5MWZkY2RkNjJmMTllMmI0NzI0ZDlkMGJlYjFlMmMxOWY2ZDI1ZDdjMjMwYg"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest("hex"));
+const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
+const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest());
 
 describe("authorization_server", () => {
   let authorizationServer: AuthorizationServer;
@@ -149,7 +149,6 @@ describe("authorization_server", () => {
 
     expect(decodedCode.client_id).toBe(client.id);
     expect(decodedCode.redirect_uri).toBe("http://localhost");
-    expect(decodedCode.code_challenge).toMatch(REGEXP_CODE_CHALLENGE);
   });
 
   describe("option requirePKCE", () => {
@@ -166,26 +165,7 @@ describe("authorization_server", () => {
     });
 
     test("auth server succeeds when skipping base64encode", async () => {
-      authorizationServer = new AuthorizationServer(
-        inMemoryAuthCodeRepository,
-        inMemoryClientRepository,
-        inMemoryAccessTokenRepository,
-        inMemoryScopeRepository,
-        inMemoryUserRepository,
-        new JwtService("secret-key"),
-        {
-          requiresPKCE: true,
-          useUrlEncode: false,
-        },
-      );
-
-      authorizationServer.enableGrantType("authorization_code");
-      const code_verifier = crypto.randomBytes(43).toString("hex");
-
-      const code_verifier_hash = crypto
-        .createHash("sha256")
-        .update(code_verifier)
-        .digest("hex");
+      authorizationServer.setOptions({ useUrlEncode: false })
 
       const request = new OAuthRequest({
         query: {
@@ -194,7 +174,7 @@ describe("authorization_server", () => {
           scope: scope1.name,
           state: "state-is-a-secret",
           code_challenge_method: "s256",
-          code_challenge: code_verifier_hash,
+          code_challenge: codeChallenge,
         },
       });
 
@@ -206,10 +186,10 @@ describe("authorization_server", () => {
 
       // assert
       const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
-      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+      const decodedCode = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://localhost");
-      expect(decodedCode.code_challenge).toBe(code_verifier_hash);
+      expect(decodedCode.code_challenge).toBe(codeChallenge);
 
       const oAuthResponse = new OAuthResponse({});
       const oAuthRequest = new OAuthRequest({
@@ -218,7 +198,7 @@ describe("authorization_server", () => {
           client_id: client.id,
           redirect_uri: "http://localhost",
           code: authorizeResponseQuery.code,
-          code_verifier: code_verifier,
+          code_verifier: codeVerifier,
         },
       });
       const { status } = await authorizationServer.respondToAccessTokenRequest(oAuthRequest, oAuthResponse);
@@ -227,18 +207,7 @@ describe("authorization_server", () => {
     });
 
     test("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
-      authorizationServer = new AuthorizationServer(
-        inMemoryAuthCodeRepository,
-        inMemoryClientRepository,
-        inMemoryAccessTokenRepository,
-        inMemoryScopeRepository,
-        inMemoryUserRepository,
-        new JwtService("secret-key"),
-        {
-          requiresPKCE: false,
-          useUrlEncode: true,
-        },
-      );
+      authorizationServer.setOptions({ requiresPKCE: false });
       authorizationServer.enableGrantType("authorization_code");
       const request = new OAuthRequest({
         query: {

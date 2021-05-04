@@ -10,8 +10,7 @@ export class S256Verifier implements ICodeChallenge {
     const codeHash = crypto
       .createHash("sha256")
       .update(codeVerifier)
-      .digest("hex");
-
+      .digest();
     const resultCode = useUrlEncode ? base64urlencode(codeHash) : codeHash;
     return codeChallenge === resultCode;
   }
