@@ -18,7 +18,6 @@ import { JwtInterface } from "./utils/jwt";
 
 export interface AuthorizationServerOptions {
   requiresPKCE: boolean;
-  useUrlEncode: boolean;
 }
 
 export class AuthorizationServer {
@@ -68,7 +67,7 @@ export class AuthorizationServer {
     ),
   };
 
-  private readonly options: AuthorizationServerOptions;
+  private options: AuthorizationServerOptions;
 
   constructor(
     private readonly authCodeRepository: OAuthAuthCodeRepository,
@@ -79,9 +78,12 @@ export class AuthorizationServer {
     private readonly jwt: JwtInterface,
     options?: Partial<AuthorizationServerOptions>,
   ) {
+    this.setOptions(options);
+  }
+
+  setOptions(options: Partial<AuthorizationServerOptions> = {}) {
     this.options = {
       requiresPKCE: true,
-      useUrlEncode: true,
       ...options,
     };
   }

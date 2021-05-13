@@ -35,7 +35,6 @@ export interface ITokenData {
 export abstract class AbstractGrant implements GrantInterface {
   public readonly options: AuthorizationServerOptions = {
     requiresPKCE: true,
-    useUrlEncode: true,
   };
 
   protected readonly scopeDelimiterString = " ";

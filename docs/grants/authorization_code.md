@@ -138,17 +138,6 @@ const code_verifier = crypto.randomBytes(43).toString("hex");
 
 @see [https://www.oauth.com/oauth2-servers/pkce/authorization-request/](https://www.oauth.com/oauth2-servers/pkce/authorization-request/)
 
-::: tip
-You can opt out of the base64 url encode with the following [AuthorizationServer option](../getting_started/#the-authorization-server):
-
-```typescript
-{
-  useUrlEncode: false,
-}
-```
-:::
-
-
 #### Code Challenge
 
 Now we need to create a `code_challenge` from our `code_verifier`. 

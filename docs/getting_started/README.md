@@ -45,7 +45,6 @@ The authorization server has a few optional settings with the following default 
 ```typescript
 AuthorizationServerOptions {
   requiresPKCE: true;
-  useUrlEncode: true;
 }
 ```
 
@@ -61,7 +60,6 @@ const authorizationServer = new AuthorizationServer(
   new JwtService("secret-key"),
   {
     requiresPKCE: false, // default is true
-    useUrlEncode: false, // default is true
   }
 );
 ```
