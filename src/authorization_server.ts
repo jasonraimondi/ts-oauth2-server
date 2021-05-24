@@ -20,6 +20,8 @@ export interface AuthorizationServerOptions {
   requiresPKCE: boolean;
 }
 
+type EnableGrantTuple = GrantIdentifier | [GrantIdentifier, DateInterval];
+
 export class AuthorizationServer {
   private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};
   private readonly grantTypeAccessTokenTTL: { [key: string]: DateInterval } = {};
@@ -67,7 +69,9 @@ export class AuthorizationServer {
     ),
   };
 
-  private options: AuthorizationServerOptions;
+  private options: AuthorizationServerOptions = {
+    requiresPKCE: true,
+  };
 
   constructor(
     private readonly authCodeRepository: OAuthAuthCodeRepository,
@@ -82,10 +86,15 @@ export class AuthorizationServer {
   }
 
   setOptions(options: Partial<AuthorizationServerOptions> = {}) {
-    this.options = {
-      requiresPKCE: true,
-      ...options,
-    };
+    this.options = { ...this.options, ...options, };
+  }
+
+  enableGrantTypes(...grants: EnableGrantTuple[]) {
+    grants.forEach((grant) => {
+      if (typeof grant === "string") return this.enableGrantType(grant);
+      const [grantType, accessTokenTTL] = grant;
+      this.enableGrantType(grantType, accessTokenTTL)
+    })
   }
 
   enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")): void {
