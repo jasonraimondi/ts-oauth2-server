@@ -81,22 +81,3 @@ function handleResponse(req: Express.Request, res: Express.Response, response: O
     res.status(response.status).send(response.body);
   }
 }
-
-// var handleError = function(e, req, res, response, next) {
-//
-//   if (this.useErrorHandler === true) {
-//     next(e);
-//   } else {
-//     if (response) {
-//       res.set(response.headers);
-//     }
-//
-//     res.status(e.code);
-//
-//     if (e instanceof UnauthorizedRequestError) {
-//       return res.send();
-//     }
-//
-//     res.send({ error: e.name, error_description: e.message });
-//   }
-// };
