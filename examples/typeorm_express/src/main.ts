@@ -5,7 +5,7 @@ import { Connection, createConnection } from "typeorm";
 import { AuthorizationServer, DateInterval, JwtService, OAuthRequest, OAuthResponse } from "../../../src";
 import { ClientRepository } from "./repositories/client_repository";
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
-import { TokenRepository } from "./repositories/toke_repository";
+import { TokenRepository } from "./repositories/token_repository";
 import { User } from "./entities/user";
 import { AuthCode } from "./entities/auth_code";
 import { Token } from "./entities/token";
