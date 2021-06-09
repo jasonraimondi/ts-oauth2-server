@@ -42,7 +42,7 @@ describe.skip("auth_code grant e2e", () => {
         scope: "scope-1 scope-2",
         state: "state-is-a-secret",
         code_challenge: codeChallenge,
-        code_challenge_method: "S256",
+        code_challenge_method: "s256",
       });
 
     const authorizeResponseQuery = querystring.parse(authorizeResponse.headers.location);

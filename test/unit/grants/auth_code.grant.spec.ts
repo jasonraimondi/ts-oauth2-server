@@ -12,11 +12,7 @@ import {
 import { OAuthScope } from "../../../src/entities/scope.entity";
 import { OAuthUser } from "../../../src/entities/user.entity";
 import { OAuthClient } from "../../../src/entities/client.entity";
-import {
-  AuthCodeGrant,
-  IAuthCodePayload,
-  REGEX_ACCESS_TOKEN,
-} from "../../../src/grants/auth_code.grant";
+import { AuthCodeGrant, IAuthCodePayload, REGEX_ACCESS_TOKEN } from "../../../src/grants/auth_code.grant";
 import { AuthorizationRequest } from "../../../src/requests/authorization.request";
 import { OAuthRequest } from "../../../src/requests/request";
 import { OAuthResponse } from "../../../src/responses/response";
@@ -77,7 +73,7 @@ describe("authorization_code grant", () => {
         redirect_uri: "http://example.com",
         state: "state-is-a-secret",
         code_challenge: codeChallenge,
-        code_challenge_method: "S256",
+        code_challenge_method: "s256",
       };
     });
 
@@ -120,7 +116,7 @@ describe("authorization_code grant", () => {
           redirect_uri: ["http://example.com"],
           state: "state-is-a-secret",
           code_challenge: codeChallenge,
-          code_challenge_method: "S256",
+          code_challenge_method: "s256",
         },
       });
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
@@ -131,7 +127,7 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.redirectUri).toBe("http://example.com");
       expect(authorizationRequest.state).toBe("state-is-a-secret");
       expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
-      expect(authorizationRequest.codeChallengeMethod).toBe("S256");
+      expect(authorizationRequest.codeChallengeMethod).toBe("s256");
       expect(authorizationRequest.scopes).toStrictEqual([]);
     });
 
@@ -226,7 +222,7 @@ describe("authorization_code grant", () => {
           redirect_uri: "http://example.com",
           state: "state-is-a-secret",
           code_challenge: "invalid-format(with!Invalid~characters",
-          code_challenge_method: "S256",
+          code_challenge_method: "s256",
         },
       });
       const authorizationRequest = grant.validateAuthorizationRequest(request);
@@ -282,7 +278,7 @@ describe("authorization_code grant", () => {
     it("is successful", async () => {
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
-      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallengeMethod = "s256";
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.state = "abc123";
       authorizationRequest.user = user;
@@ -305,7 +301,7 @@ describe("authorization_code grant", () => {
         "http://example.com?this_should_work=true",
       );
       authorizationRequest.isAuthorizationApproved = true;
-      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallengeMethod = "s256";
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.state = "abc123";
       authorizationRequest.user = user;
@@ -343,7 +339,7 @@ describe("authorization_code grant", () => {
     beforeEach(async () => {
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
-      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallengeMethod = "s256";
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.user = user;
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);

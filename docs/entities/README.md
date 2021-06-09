@@ -35,13 +35,20 @@ interface OAuthAuthCode {
   code: string;
   redirectUri?: string;
   codeChallenge?: string;
-  codeChallengeMethod?: string;
+  codeChallengeMethod?: CodeChallengeMethod;
   expiresAt: Date;
   user?: OAuthUser;
   client: OAuthClient;
   scopes: OAuthScope[];
 }
 ```
+
+::: tip
+
+```ts
+type CodeChallengeMethod = "s256" | "plain";
+```
+:::
 
 ## Token Entity
 

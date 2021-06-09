@@ -5,9 +5,9 @@ import { OAuthUser } from "./user.entity";
 export interface OAuthToken {
   accessToken: string;
   accessTokenExpiresAt: Date;
-  refreshToken?: string;
-  refreshTokenExpiresAt?: Date;
+  refreshToken?: string | null;
+  refreshTokenExpiresAt?: Date | null;
   client: OAuthClient;
-  user?: OAuthUser;
+  user?: OAuthUser | null;
   scopes: OAuthScope[];
 }

@@ -9,7 +9,6 @@ import { AuthorizationRequest } from "../requests/authorization.request";
 import { RequestInterface } from "../requests/request";
 import { RedirectResponse } from "../responses/redirect.response";
 import { ResponseInterface } from "../responses/response";
-import { base64decode } from "../utils/base64";
 import { DateInterval } from "../utils/date_interval";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant";
 import { GrantIdentifier } from "./abstract/grant.interface";
@@ -19,13 +18,11 @@ export interface IAuthCodePayload {
   auth_code_id: string;
   expire_time: number;
   scopes: string[];
-  user_id?: string;
-  redirect_uri?: string;
-  code_challenge?: string;
-  code_challenge_method?: string;
+  user_id?: string | null;
+  redirect_uri?: string | null;
+  code_challenge?: string | null;
+  code_challenge_method?: CodeChallengeMethod | null;
 }
-
-export const REGEXP_CODE_CHALLENGE = /^[A-Za-z0-9-._~]{43,128}$/;
 
 export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
 
@@ -102,7 +99,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
       let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
 
-      if (codeChallengeMethod?.toLowerCase() === "s256") {
+      if (codeChallengeMethod === "s256") {
         verifier = this.codeChallengeVerifiers.S256;
       }
 
@@ -165,10 +162,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     if (codeChallenge) {
-      const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
+      const codeChallengeMethod: string = this.getQueryStringParameter("code_challenge_method", request, "plain");
+
+      if (!(codeChallengeMethod === "s256" || codeChallengeMethod === "plain")) {
+        throw OAuthException.invalidRequest("code_challenge_method", "Must be `s256` or `plain`");
+      }
 
       authorizationRequest.codeChallenge = codeChallenge;
-
       authorizationRequest.codeChallengeMethod = codeChallengeMethod;
     }
 
@@ -255,7 +255,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     userIdentifier?: string,
     redirectUri?: string,
     codeChallenge?: string,
-    codeChallengeMethod?: string,
+    codeChallengeMethod?: CodeChallengeMethod,
     scopes: OAuthScope[] = [],
   ): Promise<OAuthAuthCode> {
     const user = userIdentifier ? await this.userRepository.getUserByCredentials(userIdentifier) : undefined;
