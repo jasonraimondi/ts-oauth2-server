@@ -4,7 +4,7 @@ import { base64urlencode } from "../utils/base64";
 import { ICodeChallenge } from "./verifier";
 
 export class S256Verifier implements ICodeChallenge {
-  public readonly method = "S256";
+  public readonly method = "s256";
 
   verifyCodeChallenge(codeVerifier: string, codeChallenge: string): boolean {
     const codeHash = crypto

@@ -25,8 +25,6 @@ export interface IAuthCodePayload {
   code_challenge_method?: string;
 }
 
-export const REGEXP_CODE_CHALLENGE = /^[A-Za-z0-9-._~]{43,128}$/;
-
 export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
 
 export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-\._~\+\/]+=*/g;
@@ -102,7 +100,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
       let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
 
-      if (codeChallengeMethod?.toLowerCase() === "s256") {
+      if (codeChallengeMethod === "s256") {
         verifier = this.codeChallengeVerifiers.S256;
       }
 
@@ -165,10 +163,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     if (codeChallenge) {
-      const codeChallengeMethod = this.getQueryStringParameter("code_challenge_method", request, "plain");
+      const codeChallengeMethod: string = this.getQueryStringParameter("code_challenge_method", request, "plain");
+
+      if (!(codeChallengeMethod === "s256" || codeChallengeMethod === "plain")) {
+        throw OAuthException.invalidRequest("code_challenge_method", "Must be `s256` or `plain`");
+      }
 
       authorizationRequest.codeChallenge = codeChallenge;
-
       authorizationRequest.codeChallengeMethod = codeChallengeMethod;
     }
 
@@ -255,7 +256,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     userIdentifier?: string,
     redirectUri?: string,
     codeChallenge?: string,
-    codeChallengeMethod?: string,
+    codeChallengeMethod?: CodeChallengeMethod,
     scopes: OAuthScope[] = [],
   ): Promise<OAuthAuthCode> {
     const user = userIdentifier ? await this.userRepository.getUserByCredentials(userIdentifier) : undefined;

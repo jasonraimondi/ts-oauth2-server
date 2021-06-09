@@ -111,7 +111,7 @@ describe("authorization_server", () => {
         scope: "scope-1 scope-2",
         state: "state-is-a-secret",
         code_challenge: codeChallenge,
-        code_challenge_method: "S256",
+        code_challenge_method: "s256",
       },
     });
     const authorizationRequest = await authorizationServer.validateAuthorizationRequest(request);
@@ -122,7 +122,7 @@ describe("authorization_server", () => {
     expect(authorizationRequest.redirectUri).toBe("http://localhost");
     expect(authorizationRequest.state).toBe("state-is-a-secret");
     expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
-    expect(authorizationRequest.codeChallengeMethod).toBe("S256");
+    expect(authorizationRequest.codeChallengeMethod).toBe("s256");
     expect(authorizationRequest.scopes).toStrictEqual([scope1, scope2]);
   });
 
@@ -139,7 +139,7 @@ describe("authorization_server", () => {
 
     const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://localhost");
     authorizationRequest.isAuthorizationApproved = true;
-    authorizationRequest.codeChallengeMethod = "S256";
+    authorizationRequest.codeChallengeMethod = "s256";
     authorizationRequest.codeChallenge = codeChallenge;
     authorizationRequest.user = user;
 

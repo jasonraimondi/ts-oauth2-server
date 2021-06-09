@@ -1,3 +1,4 @@
+import { CodeChallengeMethod } from "../code_verifiers/verifier";
 import { OAuthClient } from "../entities/client.entity";
 import { OAuthScope } from "../entities/scope.entity";
 import { OAuthUser } from "../entities/user.entity";
@@ -10,7 +11,7 @@ export class AuthorizationRequest {
   redirectUri: string | undefined;
   state?: string;
   codeChallenge?: string;
-  codeChallengeMethod?: string;
+  codeChallengeMethod?: CodeChallengeMethod;
 
   constructor(
     public readonly grantTypeId: GrantIdentifier,
