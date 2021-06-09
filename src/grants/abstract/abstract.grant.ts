@@ -216,7 +216,7 @@ export abstract class AbstractGrant implements GrantInterface {
   protected async issueAccessToken(
     accessTokenTTL: DateInterval,
     client: OAuthClient,
-    user?: OAuthUser,
+    user?: OAuthUser | null,
     scopes: OAuthScope[] = [],
   ): Promise<OAuthToken> {
     const accessToken = await this.tokenRepository.issueToken(client, scopes, user);

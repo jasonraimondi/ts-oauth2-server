@@ -8,7 +8,7 @@ import {
   ManyToOne, PrimaryColumn,
 } from "typeorm";
 
-import { OAuthAuthCode } from "../../../../src";
+import { CodeChallengeMethod, OAuthAuthCode } from "../../../../src";
 import { Client } from "./client";
 import { Scope } from "./scope";
 import { User } from "./user";
@@ -46,7 +46,7 @@ export class AuthCode implements OAuthAuthCode {
   @Column("varchar", { nullable: true, length: 128 })
   // @IsOptional()
   // @IsIn(["s256", "plain"])
-  codeChallengeMethod?: string;
+  codeChallengeMethod?: CodeChallengeMethod;
 
   @Column()
   expiresAt!: Date;

@@ -4,7 +4,7 @@ import { OAuthScope } from "./scope.entity";
 export interface OAuthClient {
   id: string;
   name: string;
-  secret?: string;
+  secret?: string | null;
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
   scopes: OAuthScope[];
