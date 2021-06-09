@@ -1,11 +1,13 @@
 import {
   Column,
   CreateDateColumn,
-  Entity, Index,
+  Entity,
+  Index,
   JoinColumn,
   JoinTable,
   ManyToMany,
-  ManyToOne, PrimaryColumn,
+  ManyToOne,
+  PrimaryColumn,
 } from "typeorm";
 
 import { OAuthAuthCode } from "../../../../src";

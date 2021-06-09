@@ -4,9 +4,8 @@ import { GrantIdentifier, OAuthClient, OAuthClientRepository } from "../../../..
 import { Client } from "../entities/client";
 
 export class ClientRepository implements OAuthClientRepository {
-  constructor(private readonly clientRepo: Repository<Client>) {
-  }
-  
+  constructor(private readonly clientRepo: Repository<Client>) {}
+
   async getByIdentifier(clientId: string): Promise<Client> {
     return this.clientRepo.findOneOrFail(clientId, { relations: ["scopes"] });
   }

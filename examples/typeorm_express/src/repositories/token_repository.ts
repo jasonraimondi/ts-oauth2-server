@@ -29,8 +29,8 @@ export class TokenRepository implements OAuthTokenRepository {
     token.clientId = client.id;
     token.user = user;
     token.userId = user?.id;
-    token.scopes = []
-    scopes.forEach((scope) => token.scopes.push(scope));
+    token.scopes = [];
+    scopes.forEach(scope => token.scopes.push(scope));
     return token;
   }
 

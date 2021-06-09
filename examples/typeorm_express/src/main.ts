@@ -31,7 +31,7 @@ async function bootstrap() {
     ["client_credentials", new DateInterval("1d")],
     "refresh_token",
     "password",
-    "implicit"
+    "implicit",
   );
 
   const app = Express();
@@ -84,11 +84,11 @@ async function bootstrap() {
     res.json({
       success: true,
       GET: ["/authorize"],
-      POST: ["/token"]
-    })
+      POST: ["/token"],
+    });
   });
 
-  app.listen(3000)
+  app.listen(3000);
 }
 
 bootstrap().catch(console.log);

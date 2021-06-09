@@ -8,8 +8,7 @@ import { User } from "../entities/user";
 import { generateRandomToken } from "../utils/utils";
 
 export class AuthCodeRepository implements OAuthAuthCodeRepository {
-  constructor(private readonly authCodeRepository: Repository<AuthCode>) {
-  }
+  constructor(private readonly authCodeRepository: Repository<AuthCode>) {}
 
   getByIdentifier(authCodeCode: string): Promise<AuthCode> {
     return this.authCodeRepository.findOneOrFail(authCodeCode);
@@ -29,7 +28,7 @@ export class AuthCodeRepository implements OAuthAuthCodeRepository {
     authCode.user = user;
     authCode.userId = user?.id;
     authCode.scopes = [];
-    scopes.forEach((scope) => authCode.scopes.push(scope));
+    scopes.forEach(scope => authCode.scopes.push(scope));
     return authCode;
   }
 

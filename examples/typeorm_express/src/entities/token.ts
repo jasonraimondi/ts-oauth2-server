@@ -16,7 +16,6 @@ import { Client } from "./client";
 import { Scope } from "./scope";
 import { User } from "./user";
 
-
 @Entity("oauth_tokens")
 export class Token implements OAuthToken {
   @PrimaryColumn("varchar", { length: 128 })
