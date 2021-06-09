@@ -12,11 +12,7 @@ import {
 import { OAuthScope } from "../../../src/entities/scope.entity";
 import { OAuthUser } from "../../../src/entities/user.entity";
 import { OAuthClient } from "../../../src/entities/client.entity";
-import {
-  AuthCodeGrant,
-  IAuthCodePayload,
-  REGEX_ACCESS_TOKEN,
-} from "../../../src/grants/auth_code.grant";
+import { AuthCodeGrant, IAuthCodePayload, REGEX_ACCESS_TOKEN } from "../../../src/grants/auth_code.grant";
 import { AuthorizationRequest } from "../../../src/requests/authorization.request";
 import { OAuthRequest } from "../../../src/requests/request";
 import { OAuthResponse } from "../../../src/responses/response";

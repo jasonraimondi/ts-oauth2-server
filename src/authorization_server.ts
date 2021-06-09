@@ -63,19 +63,19 @@ export class AuthorizationServer {
       implicit: new ImplicitGrant(...repos),
       password: new PasswordGrant(...repos),
       refresh_token: new RefreshTokenGrant(...repos),
-    }
+    };
   }
 
   setOptions(options: Partial<AuthorizationServerOptions> = {}) {
-    this.options = { ...this.options, ...options, };
+    this.options = { ...this.options, ...options };
   }
 
   enableGrantTypes(...grants: EnableGrantTuple[]) {
-    grants.forEach((grant) => {
+    grants.forEach(grant => {
       if (typeof grant === "string") return this.enableGrantType(grant);
       const [grantType, accessTokenTTL] = grant;
-      this.enableGrantType(grantType, accessTokenTTL)
-    })
+      this.enableGrantType(grantType, accessTokenTTL);
+    });
   }
 
   enableGrantType(grantType: GrantIdentifier, accessTokenTTL: DateInterval = new DateInterval("1h")): void {
