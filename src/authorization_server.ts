@@ -26,48 +26,7 @@ export class AuthorizationServer {
   private readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};
   private readonly grantTypeAccessTokenTTL: { [key: string]: DateInterval } = {};
 
-  private readonly availableGrants: { [key in GrantIdentifier]: GrantInterface } = {
-    authorization_code: new AuthCodeGrant(
-      this.authCodeRepository,
-      this.clientRepository,
-      this.tokenRepository,
-      this.scopeRepository,
-      this.userRepository,
-      this.jwt,
-    ),
-    client_credentials: new ClientCredentialsGrant(
-      this.authCodeRepository,
-      this.clientRepository,
-      this.tokenRepository,
-      this.scopeRepository,
-      this.userRepository,
-      this.jwt,
-    ),
-    implicit: new ImplicitGrant(
-      this.authCodeRepository,
-      this.clientRepository,
-      this.tokenRepository,
-      this.scopeRepository,
-      this.userRepository,
-      this.jwt,
-    ),
-    password: new PasswordGrant(
-      this.authCodeRepository,
-      this.clientRepository,
-      this.tokenRepository,
-      this.scopeRepository,
-      this.userRepository,
-      this.jwt,
-    ),
-    refresh_token: new RefreshTokenGrant(
-      this.authCodeRepository,
-      this.clientRepository,
-      this.tokenRepository,
-      this.scopeRepository,
-      this.userRepository,
-      this.jwt,
-    ),
-  };
+  private readonly availableGrants: { [key in GrantIdentifier]: GrantInterface };
 
   private options: AuthorizationServerOptions = {
     requiresPKCE: true,
@@ -83,6 +42,28 @@ export class AuthorizationServer {
     options?: Partial<AuthorizationServerOptions>,
   ) {
     this.setOptions(options);
+    const repos: [
+      OAuthAuthCodeRepository,
+      OAuthClientRepository,
+      OAuthTokenRepository,
+      OAuthScopeRepository,
+      OAuthUserRepository,
+      JwtInterface,
+    ] = [
+      this.authCodeRepository,
+      this.clientRepository,
+      this.tokenRepository,
+      this.scopeRepository,
+      this.userRepository,
+      this.jwt,
+    ];
+    this.availableGrants = {
+      authorization_code: new AuthCodeGrant(...repos),
+      client_credentials: new ClientCredentialsGrant(...repos),
+      implicit: new ImplicitGrant(...repos),
+      password: new PasswordGrant(...repos),
+      refresh_token: new RefreshTokenGrant(...repos),
+    }
   }
 
   setOptions(options: Partial<AuthorizationServerOptions> = {}) {
