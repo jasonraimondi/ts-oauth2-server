@@ -38,9 +38,9 @@ export const inMemoryScopeRepository: OAuthScopeRepository = {
   },
   async finalize(
     scopes: OAuthScope[],
-    identifier: GrantIdentifier,
-    client: OAuthClient,
-    user_id?: string,
+    _identifier: GrantIdentifier,
+    _client: OAuthClient,
+    _user_id?: string,
   ): Promise<OAuthScope[]> {
     return scopes;
   },
@@ -53,7 +53,7 @@ export const inMemoryAccessTokenRepository: OAuthTokenRepository = {
     token.refreshTokenExpiresAt = new Date(0);
     inMemoryDatabase.tokens[accessToken.accessToken] = token;
   },
-  async issueToken(client: OAuthClient, scopes: OAuthScope[], user: OAuthUser): Promise<OAuthToken> {
+  async issueToken(client: OAuthClient, _scopes: OAuthScope[], user: OAuthUser): Promise<OAuthToken> {
     return <OAuthToken>{
       accessToken: "new token",
       accessTokenExpiresAt: oneHourInFuture,
@@ -114,8 +114,8 @@ export const inMemoryUserRepository: OAuthUserRepository = {
   async getUserByCredentials(
     identifier: string,
     password?: string,
-    grantType?: GrantIdentifier,
-    client?: OAuthClient,
+    _grantType?: GrantIdentifier,
+    _client?: OAuthClient,
   ): Promise<OAuthUser | undefined> {
     const user = inMemoryDatabase.users[identifier];
     if (user?.password !== password) return;

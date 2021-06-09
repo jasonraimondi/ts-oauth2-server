@@ -261,7 +261,7 @@ export abstract class AbstractGrant implements GrantInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
+  validateAuthorizationRequest(_request: RequestInterface): Promise<AuthorizationRequest> {
     throw new Error("Grant does not support the request");
   }
 
@@ -270,19 +270,19 @@ export abstract class AbstractGrant implements GrantInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  canRespondToAuthorizationRequest(request: RequestInterface): boolean {
+  canRespondToAuthorizationRequest(_request: RequestInterface): boolean {
     return false;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
+  async completeAuthorizationRequest(_authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
 
   async respondToAccessTokenRequest(
-    req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
+    _req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    _res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    _tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }

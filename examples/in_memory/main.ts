@@ -69,7 +69,7 @@ function handleError(e: any, res: Express.Response) {
 
 export { app as inMemoryExpressApp };
 
-function handleResponse(req: Express.Request, res: Express.Response, response: OAuthResponse) {
+function handleResponse(_req: Express.Request, res: Express.Response, response: OAuthResponse) {
   if (response.status === 302) {
     if (!response.headers.location) {
       throw new Error("missing redirect location"); // @todo this

@@ -1,6 +1,5 @@
 import { decode } from "jsonwebtoken";
 import querystring from "querystring";
-import crypto from "crypto";
 
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import {
@@ -25,7 +24,7 @@ import { DateInterval } from "../../src/utils/date_interval";
 import { JwtService } from "../../src/utils/jwt";
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec";
 
-const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
+// const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
 const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest());
 
 describe("authorization_server", () => {

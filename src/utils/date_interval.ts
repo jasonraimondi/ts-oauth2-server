@@ -5,7 +5,7 @@ export type DateIntervalType = string;
 export class DateInterval {
   public readonly ms: number;
 
-  constructor(private readonly interval: DateIntervalType) {
+  constructor(interval: DateIntervalType) {
     this.ms = ms(interval);
   }
 

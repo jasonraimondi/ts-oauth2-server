@@ -8,7 +8,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
   async respondToAccessTokenRequest(
     request: RequestInterface,
-    response: ResponseInterface,
+    _response: ResponseInterface,
     accessTokenTTL: DateInterval,
   ): Promise<ResponseInterface> {
     const client = await this.validateClient(request);

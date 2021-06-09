@@ -13,9 +13,9 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
   private accessTokenTTL: DateInterval = new DateInterval("1h");
 
   respondToAccessTokenRequest(
-    req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
+    _req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    _res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
+    _tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<ResponseInterface> {
     throw OAuthException.logicException("The implicit grant can't respond to access token requests");
   }
