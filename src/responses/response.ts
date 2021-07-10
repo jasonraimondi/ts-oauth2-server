@@ -1,3 +1,6 @@
+import { Response as ExpressResponse } from "express";
+import { FastifyReply as FastifyResponse } from "fastify";
+
 export interface Headers {
   location?: string;
   [key: string]: any;
@@ -29,6 +32,16 @@ export class OAuthResponse implements ResponseInterface {
     this.headers = {
       ...responseOptions.headers,
     };
+  }
+
+  static fromExpress(express: ExpressResponse) {
+    return new OAuthResponse(express);
+  }
+
+  static fromFastify(fastify: FastifyResponse) {
+    return new OAuthResponse({
+      headers: <Record<string, unknown>><unknown>fastify.headers ?? {},
+    });
   }
 
   get(field: string): any {
