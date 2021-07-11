@@ -1,5 +1,5 @@
-import { Response as ExpressResponse } from "express";
-import { FastifyReply as FastifyResponse } from "fastify";
+import type { Response as ExpressResponse } from "express";
+import type { FastifyReply as FastifyResponse } from "fastify";
 
 export interface Headers {
   location?: string;
