@@ -9,8 +9,8 @@ import {
   ManyToOne,
   PrimaryColumn,
 } from "typeorm";
+import { CodeChallengeMethod, OAuthAuthCode } from "@jmondi/oauth2-server";
 
-import { CodeChallengeMethod, OAuthAuthCode } from "../../../../src";
 import { Client } from "./client";
 import { Scope } from "./scope";
 import { User } from "./user";

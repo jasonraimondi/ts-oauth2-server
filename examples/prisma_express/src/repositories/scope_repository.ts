@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
+import { GrantIdentifier, OAuthScope, OAuthScopeRepository } from "@jmondi/oauth2-server";
 
-import { GrantIdentifier, OAuthScope, OAuthScopeRepository } from "../../../../src";
 import { Client } from "../entities/client";
 import { Scope } from "../entities/scope";
 

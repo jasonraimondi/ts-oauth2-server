@@ -6,7 +6,6 @@ import { Client } from "../entities/client";
 import { Scope } from "../entities/scope";
 import { User } from "../entities/user";
 
-
 export class AuthCodeRepository implements OAuthAuthCodeRepository {
   constructor(private readonly repo: Prisma.OAuthAuthCodeDelegate<"rejectOnNotFound">) {}
 

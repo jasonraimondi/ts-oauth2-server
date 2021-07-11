@@ -14,6 +14,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
+    "@jmondi/oauth2-server": "^1.3.0-rc.0",
     "@prisma/client": "^2.24.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",

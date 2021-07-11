@@ -1,4 +1,3 @@
-// import { IsUUID, Length } from "class-validator";
 import {
   Column,
   CreateDateColumn,
@@ -10,8 +9,8 @@ import {
   ManyToOne,
   PrimaryColumn,
 } from "typeorm";
+import { OAuthToken } from "@jmondi/oauth2-server";
 
-import { OAuthToken } from "../../../../src";
 import { Client } from "./client";
 import { Scope } from "./scope";
 import { User } from "./user";

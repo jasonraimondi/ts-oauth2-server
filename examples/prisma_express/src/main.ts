@@ -1,14 +1,21 @@
+import { PrismaClient } from "@prisma/client";
 import { json, urlencoded } from "body-parser";
 import Express from "express";
-import { PrismaClient } from "@prisma/client";
+import {
+  AuthorizationServer,
+  DateInterval,
+  handleExpressError,
+  handleExpressResponse,
+  JwtService,
+  OAuthRequest,
+  OAuthResponse,
+} from "@jmondi/oauth2-server";
 
-import { AuthorizationServer, DateInterval, JwtService, OAuthRequest, OAuthResponse } from "../../../src";
-import { ClientRepository } from "./repositories/client_repository";
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
+import { ClientRepository } from "./repositories/client_repository";
+import { ScopeRepository } from "./repositories/scope_repository";
 import { TokenRepository } from "./repositories/token_repository";
 import { UserRepository } from "./repositories/user_repository";
-import { handleError, handleResponse } from "./utils/utils";
-import { ScopeRepository } from "./repositories/scope_repository";
 
 async function bootstrap() {
   const prisma = new PrismaClient();
@@ -45,8 +52,7 @@ async function bootstrap() {
 
       // Once the user has logged in set the user on the AuthorizationRequest
       console.log("Once the user has logged in set the user on the AuthorizationRequest");
-      const user = { id: "abc", email: "user@example.com" };
-      authRequest.user = user;
+      authRequest.user = { id: "abc", email: "user@example.com" };
 
       // At this point you should redirect the user to an authorization page.
       // This form will ask the user to approve the client and the scopes requested.
@@ -57,9 +63,9 @@ async function bootstrap() {
 
       // Return the HTTP redirect response
       const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
-      return handleResponse(req, res, oauthResponse);
+      return handleExpressResponse(req, res, oauthResponse);
     } catch (e) {
-      handleError(e, res);
+      handleExpressError(e, res);
     }
   });
 
@@ -67,9 +73,9 @@ async function bootstrap() {
     const response = new OAuthResponse(res);
     try {
       const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
-      return handleResponse(req, res, oauthResponse);
+      return handleExpressResponse(req, res, oauthResponse);
     } catch (e) {
-      handleError(e, res);
+      handleExpressError(e, res);
       return;
     }
   });

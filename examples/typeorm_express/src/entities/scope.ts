@@ -1,6 +1,5 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-
-import { OAuthScope } from "../../../../src";
+import { OAuthScope } from "@jmondi/oauth2-server";
 
 @Entity("oauth_scopes")
 export class Scope implements OAuthScope {

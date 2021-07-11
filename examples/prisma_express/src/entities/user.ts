@@ -1,7 +1,6 @@
 import { User as UserModel } from "@prisma/client";
 import { compare, hash } from "bcryptjs";
-
-import { OAuthUser } from "../../../../src";
+import { OAuthUser } from "@jmondi/oauth2-server";
 
 export class User implements UserModel, OAuthUser {
   readonly id: string;

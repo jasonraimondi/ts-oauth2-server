@@ -1,6 +1,6 @@
-import { getRepository, Repository } from "typeorm";
+import { Repository } from "typeorm";
+import { ExtraAccessTokenFields, GrantIdentifier, OAuthUserRepository } from "@jmondi/oauth2-server";
 
-import { ExtraAccessTokenFields, GrantIdentifier, OAuthUser, OAuthUserRepository } from "../../../../src";
 import { Client } from "../entities/client";
 import { User } from "../entities/user";
 

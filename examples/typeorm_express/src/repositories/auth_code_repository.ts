@@ -1,11 +1,10 @@
 import { Repository } from "typeorm";
+import { DateInterval, OAuthAuthCodeRepository, generateRandomToken } from "@jmondi/oauth2-server";
 
-import { DateInterval, OAuthAuthCodeRepository } from "../../../../src";
 import { AuthCode } from "../entities/auth_code";
 import { Client } from "../entities/client";
 import { Scope } from "../entities/scope";
 import { User } from "../entities/user";
-import { generateRandomToken } from "../utils/utils";
 
 export class AuthCodeRepository implements OAuthAuthCodeRepository {
   constructor(private readonly authCodeRepository: Repository<AuthCode>) {}

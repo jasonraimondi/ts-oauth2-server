@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-import { OAuthUser } from "../../../../src";
+import { OAuthUser } from "@jmondi/oauth2-server";
 
 @Entity()
 export class User implements OAuthUser {

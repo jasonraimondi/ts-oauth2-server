@@ -1,6 +1,6 @@
 import { OAuthClient as ClientModel, OAuthScope as ScopeModel } from "@prisma/client";
+import { GrantIdentifier, OAuthClient } from "@jmondi/oauth2-server";
 
-import { GrantIdentifier, OAuthClient } from "../../../../src";
 import { Scope } from "./scope";
 
 type Relations = {

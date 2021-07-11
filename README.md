@@ -51,9 +51,9 @@ app.post("/token", async (req: Express.Request, res: Express.Response) => {
   const response = new OAuthResponse(res);
   try {
     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
-    return handleResponse(req, res, oauthResponse);
+    return handleExpressResponse(req, res, oauthResponse);
   } catch (e) {
-    handleError(e, res);
+    handleExpressError(e, res);
     return;
   }
 });
@@ -106,23 +106,11 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
     // Redirect back to redirect_uri with `code` and `state` as url query params.
     const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
-    return handleResponse(req, res, oauthResponse);
+    return handleExpressResponse(req, res, oauthResponse);
   } catch (e) {
-    handleError(e, res);
+    handleExpressError(e, res);
   }
 });
-
-function handleError(e: any, res: Response) {
-  if (e instanceof OAuthException) {
-    res.status(e.status);
-    res.send({
-      status: e.status,
-      message: e.message,
-    });
-    return;
-  }
-  throw e;
-}
 ```
 
 ### The Authorization Server
