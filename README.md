@@ -1,9 +1,9 @@
 # TypeScript OAuth2.0 Server
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/typescript-oauth2-server/build%20and%20test?label=tests&style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server)
-[![Test Coverage](https://img.shields.io/codeclimate/coverage/jasonraimondi/typescript-oauth2-server?style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
-[![Maintainability](https://img.shields.io/codeclimate/coverage-letter/jasonraimondi/typescript-oauth2-server?label=maintainability&style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
-[![GitHub package.json version](https://img.shields.io/github/package-json/v/jasonraimondi/typescript-oauth2-server?style=flat-square)](https://github.com/jasonraimondi/typescript-oauth2-server/releases/latest)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jasonraimondi/ts-oauth2-server/build%20and%20test?label=tests&style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server)
+[![Test Coverage](https://img.shields.io/codeclimate/coverage/jasonraimondi/ts-oauth2-server?style=flat-square)](https://codeclimate.com/github/jasonraimondi/ts-oauth2-server/test_coverage)
+[![Maintainability](https://img.shields.io/codeclimate/coverage-letter/jasonraimondi/ts-oauth2-server?label=maintainability&style=flat-square)](https://codeclimate.com/github/jasonraimondi/ts-oauth2-server/maintainability)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/jasonraimondi/ts-oauth2-server?style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server/releases/latest)
 [![NPM Downloads](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
 
 `@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server for Node, written in TypeScript. 
@@ -27,7 +27,7 @@ The following RFCs are implemented:
 
 ## Getting Started
 
-Save some eye strain, **use the [documentation site](https://jasonraimondi.github.io/typescript-oauth2-server/)**
+Save some eye strain, **use the [documentation site](https://jasonraimondi.github.io/ts-oauth2-server/)**
 
 ### Install
 
@@ -170,33 +170,33 @@ const authorizationServer = new AuthorizationServer(
 
 There are a few repositories you are going to need to implement in order to create an `AuthorizationServer`.
 
-[Auth Code Repository](https://jasonraimondi.github.io/typescript-oauth2-server/repositories/#auth-code-repository)
+[Auth Code Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#auth-code-repository)
 
-[Client Repository](https://jasonraimondi.github.io/typescript-oauth2-server/repositories/#client-repository)
+[Client Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#client-repository)
 
-[Scope Repository](https://jasonraimondi.github.io/typescript-oauth2-server/repositories/#scope-repository) 
+[Scope Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#scope-repository) 
 
-[Token Repository](https://jasonraimondi.github.io/typescript-oauth2-server/repositories/#token-repository)
+[Token Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#token-repository)
 
-[User Repository](https://jasonraimondi.github.io/typescript-oauth2-server/repositories/#user-repository)
+[User Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#user-repository)
 
 ### Entities
 
 And a few entities.
 
-[Auth Code Entity](https://jasonraimondi.github.io/typescript-oauth2-server/entities/#auth-code-entity)
+[Auth Code Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#auth-code-entity)
 
-[Client Entity](https://jasonraimondi.github.io/typescript-oauth2-server/entities/#client-entity)
+[Client Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#client-entity)
 
-[Scope Entity](https://jasonraimondi.github.io/typescript-oauth2-server/entities/#scope-entity)
+[Scope Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#scope-entity)
 
-[Token Entity](https://jasonraimondi.github.io/typescript-oauth2-server/entities/#token-entity)
+[Token Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#token-entity)
 
-[User Entity](https://jasonraimondi.github.io/typescript-oauth2-server/entities/#user-entity)
+[User Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#user-entity)
 
 ## Grants
 
-Grants are different ways a [client](https://jasonraimondi.github.io/typescript-oauth2-server/glossary/README.md#client) can obtain an `access_token` that will authorize it to use the [resource server](https://jasonraimondi.github.io/typescript-oauth2-server/glossary/README.md#resource-server).
+Grants are different ways a [client](https://jasonraimondi.github.io/ts-oauth2-server/glossary/README.md#client) can obtain an `access_token` that will authorize it to use the [resource server](https://jasonraimondi.github.io/ts-oauth2-server/glossary/README.md#resource-server).
 
 ### Which Grant?
 
@@ -247,7 +247,7 @@ Deciding which grant to use depends on the type of client the end user will be u
 
 ### Client Credentials Grant
 
-[Full Docs](https://jasonraimondi.github.io/typescript-oauth2-server/grants/client_credentials.html)
+[Full Docs](https://jasonraimondi.github.io/ts-oauth2-server/grants/client_credentials.html)
 
 When applications request an access token to access their own resources, not on behalf of a user.
 

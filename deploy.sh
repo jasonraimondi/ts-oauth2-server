@@ -13,6 +13,6 @@ git init
 git add -A
 git commit -m 'deploy'
 
-git push -f git@github.com:jasonraimondi/typescript-oauth2-server.git master:gh-pages
+git push -f git@github.com:jasonraimondi/ts-oauth2-server.git master:gh-pages
 
 cd -
