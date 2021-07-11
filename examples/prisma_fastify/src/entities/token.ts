@@ -4,12 +4,11 @@ import {
   OAuthClient as ClientModel,
   User as UserModel,
 } from "@prisma/client";
+import { OAuthToken } from "@jmondi/oauth2-server";
 
 import { Client } from "./client";
 import { Scope } from "./scope";
 import { User } from "./user";
-
-import { OAuthToken } from "../../../../src";
 
 type Relations = Partial<{
   user: UserModel | null;

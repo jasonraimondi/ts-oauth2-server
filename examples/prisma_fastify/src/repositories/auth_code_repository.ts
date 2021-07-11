@@ -1,12 +1,11 @@
 import { Prisma } from "@prisma/client";
+import { DateInterval, generateRandomToken, OAuthAuthCode, OAuthAuthCodeRepository } from "@jmondi/oauth2-server";
 
 import { AuthCode } from "../entities/auth_code";
 import { Client } from "../entities/client";
 import { Scope } from "../entities/scope";
 import { User } from "../entities/user";
-import { generateRandomToken } from "../utils/utils";
 
-import { DateInterval, OAuthAuthCode, OAuthAuthCodeRepository } from "../../../../src";
 
 export class AuthCodeRepository implements OAuthAuthCodeRepository {
   constructor(private readonly repo: Prisma.OAuthAuthCodeDelegate<"rejectOnNotFound">) {}

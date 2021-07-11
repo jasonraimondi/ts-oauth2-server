@@ -1,13 +1,19 @@
 import { PrismaClient } from "@prisma/client";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
-
-import { AuthorizationServer, DateInterval, JwtService, OAuthRequest, OAuthResponse } from "../../../src";
+import {
+  AuthorizationServer,
+  DateInterval,
+  handleFastifyError,
+  handleFastifyResponse,
+  JwtService,
+  OAuthRequest,
+  OAuthResponse,
+} from "@jmondi/oauth2-server";
 
 import { ClientRepository } from "./repositories/client_repository";
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
 import { TokenRepository } from "./repositories/token_repository";
 import { UserRepository } from "./repositories/user_repository";
-import { handleError, handleResponse } from "./utils/utils";
 import { ScopeRepository } from "./repositories/scope_repository";
 
 async function bootstrap() {
@@ -53,9 +59,9 @@ async function bootstrap() {
 
       // Return the HTTP redirect response
       const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
-      return handleResponse(req, res, oauthResponse);
+      return handleFastifyResponse(req, res, oauthResponse);
     } catch (e) {
-      handleError(e, res);
+      handleFastifyError(e, res);
     }
   });
 
@@ -64,9 +70,9 @@ async function bootstrap() {
     const response = OAuthResponse.fromFastify(res);
     try {
       const oauthResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
-      return handleResponse(req, res, oauthResponse);
+      return handleFastifyResponse(req, res, oauthResponse);
     } catch (e) {
-      handleError(e, res);
+      handleFastifyError(e, res);
       return;
     }
   });

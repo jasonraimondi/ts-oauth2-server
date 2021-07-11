@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
+import { ExtraAccessTokenFields, GrantIdentifier, OAuthUserRepository } from "@jmondi/oauth2-server";
 
-import { ExtraAccessTokenFields, GrantIdentifier, OAuthUserRepository } from "../../../../src";
 import { Client } from "../entities/client";
 import { User } from "../entities/user";
 

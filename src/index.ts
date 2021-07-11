@@ -34,4 +34,5 @@ export * from "./utils/array";
 export * from "./utils/base64";
 export * from "./utils/date_interval";
 export * from "./utils/jwt";
+export * from "./utils/response";
 export * from "./utils/time";
