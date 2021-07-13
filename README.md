@@ -48,7 +48,7 @@ The [Authorize Endpoint](#the-authorize-endpoint) is a front channel endpoint th
 
 ```typescript
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
-  const response = new OAuthResponse(res);
+  const response = OAuthResponse.fromExpress(res);
   try {
     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
     return handleExpressResponse(req, res, oauthResponse);
@@ -69,7 +69,7 @@ We are able to add in scope acceptance and 2FA into our authentication flow.
 
 ```typescript
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
-  const request = new OAuthRequest(req);
+  const request = OAuthRequest.fromExpress(req);
 
   try {
     // Validate the HTTP request and return an AuthorizationRequest.
