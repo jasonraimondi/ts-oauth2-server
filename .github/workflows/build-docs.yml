@@ -18,7 +18,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.npm
+            ~/.pnpm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
@@ -34,5 +34,5 @@ jobs:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           TARGET_REPO: jasonraimondi/ts-oauth2-server
           TARGET_BRANCH: gh-pages
-          BUILD_SCRIPT: npm ci && npm run docs:build
+          BUILD_SCRIPT: npm install -g pnpm && pnpm install --frozen-lockfile && pnpm docs:build
           BUILD_DIR: docs/.vuepress/dist/
