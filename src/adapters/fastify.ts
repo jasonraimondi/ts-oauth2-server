@@ -1,4 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
+import { OAuthException } from "../exceptions/oauth.exception";
 
 import { OAuthRequest } from "../requests/request";
 import { OAuthResponse } from "../responses/response";
@@ -15,4 +16,26 @@ export function requestFromFastify(req: FastifyRequest) {
     body: <Record<string, unknown>>req.body ?? {},
     headers: <Record<string, unknown>>req.headers ?? {},
   });
+}
+
+export function handleFastifyError(e: unknown | OAuthException, res: FastifyReply) {
+  if (e instanceof OAuthException) {
+    res.status(e.status).send({
+      status: e.status,
+      message: e.message,
+    });
+    return;
+  }
+  throw e;
+}
+
+export function handleFastifyResponse(_req: FastifyRequest, res: FastifyReply, response: OAuthResponse) {
+  if (response.status === 302) {
+    if (!response.headers.location) throw new Error("missing redirect location");
+    res.headers(response.headers);
+    res.redirect(response.headers.location);
+  } else {
+    res.headers(response.headers);
+    res.status(response.status).send(response.body);
+  }
 }

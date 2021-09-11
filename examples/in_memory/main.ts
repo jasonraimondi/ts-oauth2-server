@@ -1,9 +1,12 @@
 import { json, urlencoded } from "body-parser";
 import Express from "express";
+import {
+  requestFromExpress,
+  responseFromExpress,
+  handleExpressError,
+  handleExpressResponse,
+} from "../../src/adapters/express";
 
-import { OAuthRequest } from "../../src/requests/request";
-import { OAuthResponse } from "../../src/responses/response";
-import { handleExpressError, handleExpressResponse } from "../../src/utils/response";
 import { inMemoryAuthorizationServer } from "./oauth_authorization_server";
 
 const app = Express();
@@ -14,11 +17,9 @@ app.use(urlencoded({ extended: false }));
 const authorizationServer = inMemoryAuthorizationServer;
 
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
-  const request = new OAuthRequest(req);
-
   try {
     // Validate the HTTP request and return an AuthorizationRequest object.
-    const authRequest = await authorizationServer.validateAuthorizationRequest(request);
+    const authRequest = await authorizationServer.validateAuthorizationRequest(requestFromExpress(req));
 
     // The auth request object can be serialized and saved into a user's session.
     // You will probably want to redirect the user at this point to a login endpoint.
@@ -43,9 +44,8 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 });
 
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
-  const response = new OAuthResponse(res);
   try {
-    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, responseFromExpress(res));
     return handleExpressResponse(req, res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);

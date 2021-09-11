@@ -1,15 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { json, urlencoded } from "body-parser";
 import Express from "express";
+import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";
 import {
-  AuthorizationServer,
-  DateInterval,
+  requestFromExpress,
+  responseFromExpress,
   handleExpressError,
   handleExpressResponse,
-  JwtService,
-  OAuthRequest,
-  OAuthResponse,
-} from "@jmondi/oauth2-server";
+} from "@jmondi/oauth2-server/dist/adapters/express";
 
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
 import { ClientRepository } from "./repositories/client_repository";
@@ -41,11 +39,9 @@ async function bootstrap() {
   app.use(urlencoded({ extended: false }));
 
   app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
-    const request = new OAuthRequest(req);
-
     try {
       // Validate the HTTP request and return an AuthorizationRequest object.
-      const authRequest = await authorizationServer.validateAuthorizationRequest(request);
+      const authRequest = await authorizationServer.validateAuthorizationRequest(requestFromExpress(req));
 
       // The auth request object can be serialized and saved into a user's session.
       // You will probably want to redirect the user at this point to a login endpoint.
@@ -70,9 +66,8 @@ async function bootstrap() {
   });
 
   app.post("/token", async (req: Express.Request, res: Express.Response) => {
-    const response = new OAuthResponse(res);
     try {
-      const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
+      const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, responseFromExpress(res));
       return handleExpressResponse(req, res, oauthResponse);
     } catch (e) {
       handleExpressError(e, res);
