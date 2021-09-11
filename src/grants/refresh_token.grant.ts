@@ -55,8 +55,8 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     try {
       refreshTokenData = await this.decrypt(encryptedRefreshToken);
-    } catch (e: any) {
-      if (e.message === "invalid signature") {
+    } catch (e) {
+      if (e instanceof Error && e.message === "invalid signature") {
         throw OAuthException.invalidRequest("refresh_token", "Cannot verify the refresh token");
       }
       throw OAuthException.invalidRequest("refresh_token", "Cannot decrypt the refresh token");
