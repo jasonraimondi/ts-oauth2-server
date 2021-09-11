@@ -9,6 +9,7 @@ import {
   OAuthRequest,
   OAuthResponse,
 } from "@jmondi/oauth2-server";
+import { requestFromFastify, responseFromFastify } from "@jmondi/oauth2-server/dist/adapters/fastify";
 
 import { ClientRepository } from "./repositories/client_repository";
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
@@ -37,7 +38,7 @@ async function bootstrap() {
   const fastify = Fastify({ logger: true });
 
   fastify.get("/authorize", async (req: FastifyRequest, res: FastifyReply) => {
-    const request = OAuthRequest.fromFastify(req);
+    const request = requestFromFastify(req);
 
     try {
       // Validate the HTTP request and return an AuthorizationRequest object.
@@ -66,8 +67,8 @@ async function bootstrap() {
   });
 
   fastify.post("/token", async (req: FastifyRequest, res: FastifyReply) => {
-    const request = OAuthRequest.fromFastify(req);
-    const response = OAuthResponse.fromFastify(res);
+    const request = requestFromFastify(req);
+    const response = responseFromFastify(res);
     try {
       const oauthResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
       return handleFastifyResponse(req, res, oauthResponse);

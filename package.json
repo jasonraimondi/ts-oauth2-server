@@ -15,8 +15,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "create-exports": "barrelsby -d src/ --delete",
-    "prebuild": "run-s clean create-exports",
+    "prebuild": "run-s clean",
     "build": "tsdx build --tsconfig tsconfig.build.json",
     "pretest": "run-s create-exports",
     "start": "tsdx watch --tsconfig tsconfig.build.json",

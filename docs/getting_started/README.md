@@ -69,8 +69,10 @@ const authorizationServer = new AuthorizationServer(
 The `/token` endpoint is a back channel endpoint that issues a useable access token.
 
 ```typescript
+import { responseFromExpress } from "@jmondi/oauth2-server/dist/adapters/express";
+
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
-  const response = OAuthResponse.fromExpress(res);
+  const response = responseFromExpress(res);
   try {
     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
     return handleExpressResponse(req, res, oauthResponse);
@@ -88,8 +90,10 @@ The `/authorize` endpoint is a front channel endpoint that issues an authorizati
 The endpoint should redirect the user to login, and then to accept the scopes requested by the application, and only when the user accepts, should it send the user back to the clients redirect uri. 
 
 ```typescript
+import { requestFromExpress } from "@jmondi/oauth2-server/dist/adapters/express";
+
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
-  const request = OAuthRequest.fromExpress(req);
+  const request = requestFromExpress(req);
 
   try {
     // Validate the HTTP request and return an AuthorizationRequest.
