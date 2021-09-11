@@ -30,7 +30,7 @@ response_type=code
 &scope="contacts.read contacts.write"
 &state=abcdefghijklmnopqrstuvwxyz123456789
 &code_challenge=92d3b56942866d1edf02c33339b7c3dc37c6201282bb238cb47f0d3289f28a93f1bdd8af6ca9913aed0c4c
-&code_challenge_method=s256
+&code_challenge_method=S256
 ```
 :::
 

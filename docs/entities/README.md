@@ -46,7 +46,7 @@ interface OAuthAuthCode {
 ::: tip
 
 ```ts
-type CodeChallengeMethod = "s256" | "plain";
+type CodeChallengeMethod = "S256" | "plain";
 ```
 :::
 

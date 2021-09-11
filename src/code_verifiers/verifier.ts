@@ -1,4 +1,4 @@
-export type CodeChallengeMethod = "s256" | "plain";
+export type CodeChallengeMethod = "S256" | "plain";
 
 export interface ICodeChallenge {
   method: CodeChallengeMethod;

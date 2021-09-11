@@ -1,5 +1,5 @@
 import { PlainVerifier } from "../code_verifiers/plain.verifier";
-import { S256Verifier } from "../code_verifiers/s256.verifier";
+import { S256Verifier } from "../code_verifiers/S256.verifier";
 import { CodeChallengeMethod, ICodeChallenge } from "../code_verifiers/verifier";
 import { OAuthAuthCode } from "../entities/auth_code.entity";
 import { OAuthClient } from "../entities/client.entity";
@@ -99,7 +99,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
       let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
 
-      if (codeChallengeMethod === "s256") {
+      if (codeChallengeMethod === "S256") {
         verifier = this.codeChallengeVerifiers.S256;
       }
 
@@ -164,8 +164,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     if (codeChallenge) {
       const codeChallengeMethod: string = this.getQueryStringParameter("code_challenge_method", request, "plain");
 
-      if (!(codeChallengeMethod === "s256" || codeChallengeMethod === "plain")) {
-        throw OAuthException.invalidRequest("code_challenge_method", "Must be `s256` or `plain`");
+      if (!(codeChallengeMethod === "S256" || codeChallengeMethod === "plain")) {
+        throw OAuthException.invalidRequest("code_challenge_method", "Must be `S256` or `plain`");
       }
 
       authorizationRequest.codeChallenge = codeChallenge;

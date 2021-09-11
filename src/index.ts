@@ -4,7 +4,7 @@
 
 export * from "./authorization_server";
 export * from "./code_verifiers/plain.verifier";
-export * from "./code_verifiers/s256.verifier";
+export * from "./code_verifiers/S256.verifier";
 export * from "./code_verifiers/verifier";
 export * from "./entities/auth_code.entity";
 export * from "./entities/client.entity";
