@@ -23,7 +23,7 @@
     "test:cov": "jest --coverage",
     "format": "prettier --write \"**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "prepublishOnly": "run-s build",
+    "prepublishOnly": "run-s build test",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs"
   },
