@@ -24,3 +24,4 @@ export { CodeChallengeMethod } from "./code_verifiers/verifier";
 export * from "./utils/base64";
 export * from "./utils/date_interval";
 export * from "./utils/jwt";
+export * from "./utils/time";
