@@ -1,30 +1,29 @@
-import { Request as ExpressRequest, Response as ExpressResponse } from "express";
 import type { Request, Response } from "express";
 import { OAuthException } from "../exceptions/oauth.exception";
 
 import { OAuthRequest } from "../requests/request";
 import { OAuthResponse } from "../responses/response";
 
-export function responseFromExpress(res: Response) {
+export function responseFromExpress(res: Response): OAuthResponse {
   return new OAuthResponse(res);
 }
 
-export function requestFromExpress(req: Request) {
+export function requestFromExpress(req: Request): OAuthRequest {
   return new OAuthRequest(req);
 }
 
-export function handleExpressResponse(_req: ExpressRequest, res: ExpressResponse, response: OAuthResponse) {
-  if (response.status === 302) {
-    if (!response.headers.location) throw new Error("missing redirect location");
-    res.set(response.headers);
-    res.redirect(response.headers.location);
+export function handleExpressResponse(expressResponse: Response, oauthResponse: OAuthResponse): void {
+  if (oauthResponse.status === 302) {
+    if (!oauthResponse.headers.location) throw new Error("missing redirect location");
+    expressResponse.set(oauthResponse.headers);
+    expressResponse.redirect(oauthResponse.headers.location);
   } else {
-    res.set(response.headers);
-    res.status(response.status).send(response.body);
+    expressResponse.set(oauthResponse.headers);
+    expressResponse.status(oauthResponse.status).send(oauthResponse.body);
   }
 }
 
-export function handleExpressError(e: any, res: ExpressResponse) {
+export function handleExpressError(e: unknown | OAuthException, res: Response): void {
   if (e instanceof OAuthException) {
     res.status(e.status);
     res.send({

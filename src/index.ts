@@ -20,6 +20,7 @@ export * from "./repositories/user.repository";
 export * from "./requests/authorization.request";
 export * from "./requests/request";
 export * from "./responses/response";
+export { CodeChallengeMethod } from "./code_verifiers/verifier";
 export * from "./utils/base64";
 export * from "./utils/date_interval";
 export * from "./utils/jwt";

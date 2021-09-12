@@ -29,7 +29,7 @@ export function handleFastifyError(e: unknown | OAuthException, res: FastifyRepl
   throw e;
 }
 
-export function handleFastifyResponse(_req: FastifyRequest, res: FastifyReply, response: OAuthResponse) {
+export function handleFastifyReply(res: FastifyReply, response: OAuthResponse) {
   if (response.status === 302) {
     if (!response.headers.location) throw new Error("missing redirect location");
     res.headers(response.headers);
