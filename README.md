@@ -25,6 +25,11 @@ The following RFCs are implemented:
 - [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
 - [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
 
+Adapters are included for the following frameworks:
+
+- [Express](https://expressjs.com)
+- [Fastify](https://fastify.io)
+
 ## Getting Started
 
 Save some eye strain, **use the [documentation site](https://jasonraimondi.github.io/ts-oauth2-server/)**
@@ -135,9 +140,15 @@ const authorizationServer = new AuthorizationServer(
   userRepository,
   new JwtService("secret-key"),
 );
-authorizationServer.enableGrantType("client_credentials");
-authorizationServer.enableGrantType("authorization_code");
-authorizationServer.enableGrantType("refresh_token");
+
+// Enable as many or as few grants as you'd like. 
+// You can pass in an optional tuple of [GrantType, DateInterval]
+// to set Access Token TTL per grant type.
+authorizationServer.enableGrantTypes(
+  ["client_credentials", new DateInterval("1d")],
+  ["authorization_code", new DateInterval("15m")],
+  "refresh_token",
+);
 authorizationServer.enableGrantType("implicit"); // implicit grant is not recommended
 authorizationServer.enableGrantType("password"); // password grant is not recommended
 ```
