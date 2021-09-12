@@ -53,7 +53,7 @@ import {
   requestFromFastify,
   handleFastifyReply,
   handleFastifyError,
-} from "@jmondi/oauth2-server/dist/adapters/express"
+} from "@jmondi/oauth2-server/dist/adapters/fastify"
 ```
 
 The following functions are imported directly from the adapter instead of the root package.

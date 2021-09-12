@@ -9,18 +9,20 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
-import { OAuthClient } from "../../../src/entities/client.entity";
-import { OAuthScope } from "../../../src/entities/scope.entity";
-import { OAuthUser } from "../../../src/entities/user.entity";
-import { ITokenData } from "../../../src/grants/abstract/abstract.grant";
-import { REGEX_ACCESS_TOKEN } from "../../../src/grants/auth_code.grant";
-import { ImplicitGrant } from "../../../src/grants/implicit.grant";
-import { AuthorizationRequest } from "../../../src/requests/authorization.request";
-import { OAuthRequest } from "../../../src/requests/request";
-import { OAuthResponse } from "../../../src/responses/response";
-import { DateInterval } from "../../../src/utils/date_interval";
-import { JwtService } from "../../../src/utils/jwt";
-import { roundToSeconds } from "../../../src/utils/time";
+import {
+  AuthorizationRequest,
+  DateInterval,
+  ImplicitGrant,
+  ITokenData,
+  JwtService,
+  OAuthClient,
+  OAuthRequest,
+  OAuthResponse,
+  OAuthScope,
+  OAuthUser,
+  REGEX_ACCESS_TOKEN,
+  roundToSeconds,
+} from "../../../src";
 
 describe("implicit grant", () => {
   let user: OAuthUser;

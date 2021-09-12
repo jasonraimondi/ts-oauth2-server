@@ -6,15 +6,17 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
-import { REGEX_ACCESS_TOKEN } from "../../../src";
-import { OAuthClient } from "../../../src/entities/client.entity";
-import { OAuthScope } from "../../../src/entities/scope.entity";
-import { OAuthToken } from "../../../src/entities/token.entity";
-import { RefreshTokenGrant } from "../../../src/grants/refresh_token.grant";
-import { OAuthRequest } from "../../../src/requests/request";
-import { OAuthResponse } from "../../../src/responses/response";
-import { DateInterval } from "../../../src/utils/date_interval";
-import { JwtService } from "../../../src/utils/jwt";
+import {
+  DateInterval,
+  JwtService,
+  OAuthClient,
+  OAuthRequest,
+  OAuthResponse,
+  OAuthScope,
+  OAuthToken,
+  RefreshTokenGrant,
+  REGEX_ACCESS_TOKEN,
+} from "../../../src";
 import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("refresh_token grant", () => {

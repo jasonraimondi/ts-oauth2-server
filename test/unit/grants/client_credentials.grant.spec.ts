@@ -7,14 +7,17 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
-import { OAuthClient } from "../../../src/entities/client.entity";
-import { REGEX_ACCESS_TOKEN } from "../../../src/grants/auth_code.grant";
-import { ClientCredentialsGrant } from "../../../src/grants/client_credentials.grant";
-import { OAuthRequest } from "../../../src/requests/request";
-import { OAuthResponse, ResponseInterface } from "../../../src/responses/response";
-import { base64encode } from "../../../src/utils/base64";
-import { DateInterval } from "../../../src/utils/date_interval";
-import { JwtService } from "../../../src/utils/jwt";
+import {
+  base64encode,
+  ClientCredentialsGrant,
+  DateInterval,
+  JwtService,
+  OAuthClient,
+  OAuthRequest,
+  OAuthResponse,
+  REGEX_ACCESS_TOKEN,
+  ResponseInterface,
+} from "../../../src";
 
 export function expectTokenResponse(tokenResponse: ResponseInterface) {
   const decodedToken: any = decode(tokenResponse.body.access_token);

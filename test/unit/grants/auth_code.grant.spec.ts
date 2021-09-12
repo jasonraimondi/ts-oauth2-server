@@ -9,16 +9,20 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
-import { OAuthScope } from "../../../src/entities/scope.entity";
-import { OAuthUser } from "../../../src/entities/user.entity";
-import { OAuthClient } from "../../../src/entities/client.entity";
-import { AuthCodeGrant, IAuthCodePayload, REGEX_ACCESS_TOKEN } from "../../../src/grants/auth_code.grant";
-import { AuthorizationRequest } from "../../../src/requests/authorization.request";
-import { OAuthRequest } from "../../../src/requests/request";
-import { OAuthResponse } from "../../../src/responses/response";
-import { base64urlencode } from "../../../src/utils/base64";
-import { DateInterval } from "../../../src/utils/date_interval";
-import { JwtService } from "../../../src/utils/jwt";
+import {
+  AuthCodeGrant,
+  AuthorizationRequest,
+  base64urlencode,
+  DateInterval,
+  IAuthCodePayload,
+  JwtService,
+  OAuthClient,
+  OAuthRequest,
+  OAuthResponse,
+  OAuthScope,
+  OAuthUser,
+  REGEX_ACCESS_TOKEN,
+} from "../../../src";
 import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("authorization_code grant", () => {

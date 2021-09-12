@@ -9,19 +9,21 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../examples/in_memory/repository";
-import { AuthorizationServer } from "../../src/authorization_server";
-import { OAuthClient } from "../../src/entities/client.entity";
-import { OAuthScope } from "../../src/entities/scope.entity";
-import { OAuthToken } from "../../src/entities/token.entity";
-import { OAuthUser } from "../../src/entities/user.entity";
-import { IAuthCodePayload } from "../../src/grants/auth_code.grant";
-import { RefreshTokenGrant } from "../../src/grants/refresh_token.grant";
-import { AuthorizationRequest } from "../../src/requests/authorization.request";
-import { OAuthRequest } from "../../src/requests/request";
-import { OAuthResponse } from "../../src/responses/response";
-import { base64encode } from "../../src/utils/base64";
-import { DateInterval } from "../../src/utils/date_interval";
-import { JwtService } from "../../src/utils/jwt";
+import {
+  AuthorizationServer,
+  OAuthClient,
+  OAuthScope,
+  OAuthToken,
+  OAuthUser,
+  IAuthCodePayload,
+  RefreshTokenGrant,
+  AuthorizationRequest,
+  OAuthRequest,
+  OAuthResponse,
+  base64encode,
+  DateInterval,
+  JwtService,
+} from "../../src";
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec";
 
 // const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));

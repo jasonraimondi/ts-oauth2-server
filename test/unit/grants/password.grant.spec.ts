@@ -6,14 +6,16 @@ import {
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
-import { REGEX_ACCESS_TOKEN } from "../../../src";
-import { OAuthClient } from "../../../src/entities/client.entity";
-import { OAuthUser } from "../../../src/entities/user.entity";
-import { PasswordGrant } from "../../../src/grants/password.grant";
-import { OAuthRequest } from "../../../src/requests/request";
-import { OAuthResponse } from "../../../src/responses/response";
-import { DateInterval } from "../../../src/utils/date_interval";
-import { JwtService } from "../../../src/utils/jwt";
+import {
+  DateInterval,
+  JwtService,
+  OAuthClient,
+  OAuthRequest,
+  OAuthResponse,
+  OAuthUser,
+  PasswordGrant,
+  REGEX_ACCESS_TOKEN,
+} from "../../../src";
 import { expectTokenResponse } from "./client_credentials.grant.spec";
 
 describe("password grant", () => {
