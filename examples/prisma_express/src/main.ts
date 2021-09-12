@@ -59,7 +59,7 @@ async function bootstrap() {
 
       // Return the HTTP redirect response
       const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
-      return handleExpressResponse(req, res, oauthResponse);
+      return handleExpressResponse(res, oauthResponse);
     } catch (e) {
       handleExpressError(e, res);
     }
@@ -68,7 +68,7 @@ async function bootstrap() {
   app.post("/token", async (req: Express.Request, res: Express.Response) => {
     try {
       const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, responseFromExpress(res));
-      return handleExpressResponse(req, res, oauthResponse);
+      return handleExpressResponse(res, oauthResponse);
     } catch (e) {
       handleExpressError(e, res);
       return;

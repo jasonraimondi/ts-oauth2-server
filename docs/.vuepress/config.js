@@ -25,6 +25,7 @@ module.exports = {
       },
       "/repositories/",
       "/entities/",
+      "/adapters/",
       "/glossary/",
       "/sources/",
     ],

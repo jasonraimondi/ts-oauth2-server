@@ -2,6 +2,7 @@
   "name": "@jmondi/oauth2-server-prisma-example",
   "license": "MIT",
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "ts-node-dev ./src/main.ts"
   },
   "devDependencies": {

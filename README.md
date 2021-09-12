@@ -37,31 +37,34 @@ npm install --save @jmondi/oauth2-server
 
 ### Endpoints 
 
-
 The server uses two endpoints, `GET /authorize` and `POST /token`. 
 
-The [Token Endpoint](#the-token-endpoint) is a back channel endpoint that issues a useable access token. 
+The [Token Endpoint](#the-token-endpoint) is a back channel endpoint that issues a use-able access token. 
 
-The [Authorize Endpoint](#the-authorize-endpoint) is a front channel endpoint that issues an authorization code. The authorization code can then be exchanged to the `AuthorizationServer` endpoint for a useable access token.
+The [Authorize Endpoint](#the-authorize-endpoint) is a front channel endpoint that issues an authorization code. The 
+authorization code can then be exchanged to the `AuthorizationServer` endpoint for a use-able access token.
 
 #### The Token Endpoint
 
 ```typescript
-import { responseFromExpress } from "@jmondi/oauth2-server/dist/adapters/express";
+import {
+ handleExpressResponse,
+ handleExpressError,
+ responseFromExpress,
+} from "@jmondi/oauth2-server/dist/adapters/express";
 
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
-  const response = responseFromExpress(res);
-  try {
-    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
-    return handleExpressResponse(req, res, oauthResponse);
-  } catch (e) {
-    handleExpressError(e, res);
-    return;
-  }
+ try {
+  const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, responseFromExpress(res));
+  return handleExpressResponse(res, oauthResponse);
+ } catch (e) {
+  handleExpressError(e, res);
+  return;
+ }
 });
 ```
 
-#### The Authorize Endpoint
+#### Authorize Endpoint
 
 The `/authorize` endpoint is a front channel endpoint that issues an authorization code. The authorization code can then be exchanged to the `AuthorizationServer` endpoint for a useable access token.
 
@@ -110,14 +113,14 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
     // Redirect back to redirect_uri with `code` and `state` as url query params.
     const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
-    return handleExpressResponse(req, res, oauthResponse);
+    return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);
   }
 });
 ```
 
-### The Authorization Server
+### Authorization Server
 
 The AuthorizationServer depends on [the repositories](#repositories). By default, no grants are enabled; each grant is opt-in and must be enabled when creating the AuthorizationServer.
 
@@ -149,7 +152,7 @@ authorizationServer.enableGrantType("authorization_code", new DateInterval("2h")
 The authorization server has a few optional settings with the following default values;
 
 ```typescript
-AuthorizationServerOptions {
+type AuthorizationServerOptions = {
   requiresPKCE: true;
 }
 ```
@@ -329,7 +332,6 @@ const code_verifier = crypto.randomBytes(43).toString("hex");
 ```
 
 https://www.oauth.com/oauth2-servers/pkce/authorization-request/
-
 
 #### Code Challenge
 

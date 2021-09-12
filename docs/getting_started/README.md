@@ -11,6 +11,11 @@ npm install --save @jmondi/oauth2-server
 ```
 </code-block>
 
+<code-block title="PNPM">
+```bash
+pnpm add @jmondi/oauth2-server
+```
+</code-block>
 <code-block title="YARN">
 ```bash
 yarn add @jmondi/oauth2-server
@@ -75,7 +80,7 @@ app.post("/token", async (req: Express.Request, res: Express.Response) => {
   const response = responseFromExpress(res);
   try {
     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
-    return handleExpressResponse(req, res, oauthResponse);
+    return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);
     return;
@@ -93,11 +98,9 @@ The endpoint should redirect the user to login, and then to accept the scopes re
 import { requestFromExpress } from "@jmondi/oauth2-server/dist/adapters/express";
 
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
-  const request = requestFromExpress(req);
-
   try {
     // Validate the HTTP request and return an AuthorizationRequest.
-    const authRequest = await authorizationServer.validateAuthorizationRequest(request);
+    const authRequest = await authorizationServer.validateAuthorizationRequest(request, requestFromExpress(req));
 
     // You will probably redirect the user to a login endpoint. 
     if (!req.user) {
@@ -130,7 +133,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
     // Redirect back to redirect_uri with `code` and `state` as url query params.
     const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
-    return handleExpressResponse(req, res, oauthResponse);
+    return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);
   }

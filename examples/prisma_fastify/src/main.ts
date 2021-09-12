@@ -1,15 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
+import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";
 import {
-  AuthorizationServer,
-  DateInterval,
+  requestFromFastify,
+  responseFromFastify,
   handleFastifyError,
-  handleFastifyResponse,
-  JwtService,
-  OAuthRequest,
-  OAuthResponse,
-} from "@jmondi/oauth2-server";
-import { requestFromFastify, responseFromFastify } from "@jmondi/oauth2-server/dist/adapters/fastify";
+  handleFastifyReply,
+} from "@jmondi/oauth2-server/dist/adapters/fastify";
 
 import { ClientRepository } from "./repositories/client_repository";
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
@@ -38,11 +35,9 @@ async function bootstrap() {
   const fastify = Fastify({ logger: true });
 
   fastify.get("/authorize", async (req: FastifyRequest, res: FastifyReply) => {
-    const request = requestFromFastify(req);
-
     try {
       // Validate the HTTP request and return an AuthorizationRequest object.
-      const authRequest = await authorizationServer.validateAuthorizationRequest(request);
+      const authRequest = await authorizationServer.validateAuthorizationRequest(requestFromFastify(req));
 
       // The auth request object can be serialized and saved into a user's session.
       // You will probably want to redirect the user at this point to a login endpoint.
@@ -60,7 +55,7 @@ async function bootstrap() {
 
       // Return the HTTP redirect response
       const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
-      return handleFastifyResponse(req, res, oauthResponse);
+      return handleFastifyReply(res, oauthResponse);
     } catch (e) {
       handleFastifyError(e, res);
     }
@@ -71,7 +66,7 @@ async function bootstrap() {
     const response = responseFromFastify(res);
     try {
       const oauthResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
-      return handleFastifyResponse(req, res, oauthResponse);
+      return handleFastifyReply(res, oauthResponse);
     } catch (e) {
       handleFastifyError(e, res);
       return;
