@@ -10,6 +10,13 @@
 
 Requires `node >= 12`
 
+The following RFCs are implemented:
+
+- [RFC6749 “OAuth 2.0”](https://tools.ietf.org/html/rfc6749)
+- [RFC6750 “ The OAuth 2.0 Authorization Framework: Bearer Token Usage”](https://tools.ietf.org/html/rfc6750)
+- [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
+- [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
+
 Out of the box it supports the following grants:
 
 - [Authorization code grant](#authorization-code-grant-w-pkce)
@@ -17,13 +24,6 @@ Out of the box it supports the following grants:
 - [Refresh grant](#refresh-token-grant)
 - [Implicit grant](#implicit-grant) // not recommended 
 - [Resource owner password credentials grant](#password-grant) // not recommended
-
-The following RFCs are implemented:
-
-- [RFC6749 “OAuth 2.0”](https://tools.ietf.org/html/rfc6749)
-- [RFC6750 “ The OAuth 2.0 Authorization Framework: Bearer Token Usage”](https://tools.ietf.org/html/rfc6750)
-- [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
-- [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
 
 Adapters are included for the following frameworks:
 
@@ -419,21 +419,6 @@ Please look at these great resources:
 - [OAuth 2.0 Implicit Grant](https://oauth.net/2/grant-types/implicit/)
 - VIDEO: [What's Going On with the Implicit Flow?](https://www.youtube.com/watch?v=CHzERullHe8) by Aaron Parecki
 - [Is the OAuth 2.0 Implicit Flow Dead?](https://developer.okta.com/blog/2019/05/01/is-the-oauth-implicit-flow-dead) by Aaron Parecki (developer.okta.com)
-
-## Todo
-
-Definitely: 
-
-* feat: add optional refresh token version to expire refresh tokens 
-
-Maybe: 
-
-* feat?: token introspection
-* feat?: allow users to only use individual grant, and not require all entities/repositories 
-
-Maybe: 
-
-* feat: change to https://oauth.net/2.1/
 
 ## Thanks
 
