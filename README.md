@@ -59,8 +59,10 @@ import {
 } from "@jmondi/oauth2-server/dist/adapters/express";
 
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
+ const request = requestFromExpress(req);
+ const response = responseFromExpress(res);
  try {
-  const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, responseFromExpress(res));
+  const oauthResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
   return handleExpressResponse(res, oauthResponse);
  } catch (e) {
   handleExpressError(e, res);
