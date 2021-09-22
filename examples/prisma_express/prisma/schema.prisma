@@ -53,7 +53,7 @@ model OAuthClientScope {
 }
 
 enum CodeChallengeMethod {
-  s256
+  S256
   plain
 }
 

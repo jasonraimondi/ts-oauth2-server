@@ -32,7 +32,7 @@ export class AuthCodeRepository implements OAuthAuthCodeRepository {
       redirectUri: null,
       code: generateRandomToken(),
       codeChallenge: null,
-      codeChallengeMethod: "s256",
+      codeChallengeMethod: "S256",
       expiresAt: new DateInterval("15m").getEndDate(),
       client,
       clientId: client.id,

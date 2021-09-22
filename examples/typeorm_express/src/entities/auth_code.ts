@@ -47,7 +47,7 @@ export class AuthCode implements OAuthAuthCode {
 
   @Column("varchar", { nullable: true, length: 128 })
   // @IsOptional()
-  // @IsIn(["s256", "plain"])
+  // @IsIn(["S256", "plain"])
   codeChallengeMethod?: CodeChallengeMethod;
 
   @Column()
