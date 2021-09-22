@@ -1,4 +1,6 @@
+export type OAuthUserIdentifier = string | number;
+
 export interface OAuthUser {
-  id: string | number;
+  id: OAuthUserIdentifier;
   [key: string]: any;
 }

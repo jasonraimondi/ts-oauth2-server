@@ -1,5 +1,6 @@
 import { OAuthClient } from "../entities/client.entity";
 import { OAuthScope } from "../entities/scope.entity";
+import { OAuthUserIdentifier } from "../entities/user.entity";
 import { GrantIdentifier } from "../grants/abstract/grant.interface";
 
 export interface OAuthScopeRepository {
@@ -9,6 +10,6 @@ export interface OAuthScopeRepository {
     scopes: OAuthScope[],
     identifier: GrantIdentifier,
     client: OAuthClient,
-    user_id?: string,
+    user_id?: OAuthUserIdentifier,
   ): Promise<OAuthScope[]>;
 }

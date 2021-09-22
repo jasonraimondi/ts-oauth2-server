@@ -1,12 +1,12 @@
 import { OAuthClient } from "../entities/client.entity";
-import { OAuthUser } from "../entities/user.entity";
+import { OAuthUser, OAuthUserIdentifier } from "../entities/user.entity";
 import { GrantIdentifier } from "../grants/abstract/grant.interface";
 
 export type ExtraAccessTokenFields = Record<string, string | number | boolean>;
 
 export interface OAuthUserRepository {
   getUserByCredentials(
-    identifier: string,
+    identifier: OAuthUserIdentifier,
     password?: string,
     grantType?: GrantIdentifier,
     client?: OAuthClient,

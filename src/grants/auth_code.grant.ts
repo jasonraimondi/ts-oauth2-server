@@ -4,6 +4,7 @@ import { CodeChallengeMethod, ICodeChallenge } from "../code_verifiers/verifier"
 import { OAuthAuthCode } from "../entities/auth_code.entity";
 import { OAuthClient } from "../entities/client.entity";
 import { OAuthScope } from "../entities/scope.entity";
+import { OAuthUserIdentifier } from "../entities/user.entity";
 import { OAuthException } from "../exceptions/oauth.exception";
 import { AuthorizationRequest } from "../requests/authorization.request";
 import { RequestInterface } from "../requests/request";
@@ -18,7 +19,7 @@ export interface IAuthCodePayload {
   auth_code_id: string;
   expire_time: number;
   scopes: string[];
-  user_id?: string | null;
+  user_id?: OAuthUserIdentifier | null;
   redirect_uri?: string | null;
   code_challenge?: string | null;
   code_challenge_method?: CodeChallengeMethod | null;
@@ -252,7 +253,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   private async issueAuthCode(
     authCodeTTL: DateInterval,
     client: OAuthClient,
-    userIdentifier?: string,
+    userIdentifier?: OAuthUserIdentifier,
     redirectUri?: string,
     codeChallenge?: string,
     codeChallengeMethod?: CodeChallengeMethod,
