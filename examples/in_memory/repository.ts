@@ -83,7 +83,7 @@ export const inMemoryAccessTokenRepository: OAuthTokenRepository = {
 };
 
 export const inMemoryAuthCodeRepository: OAuthAuthCodeRepository = {
-  issueAuthCode(client: OAuthClient, user: OAuthUser | undefined, _scopes: OAuthScope[]): OAuthAuthCode {
+  async issueAuthCode(client: OAuthClient, user: OAuthUser | undefined, _scopes: OAuthScope[]): Promise<OAuthAuthCode> {
     return {
       code: "my-super-secret-auth-code",
       user,
