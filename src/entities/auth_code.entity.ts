@@ -1,7 +1,5 @@
 import { CodeChallengeMethod } from "../code_verifiers/verifier";
-import { OAuthClient } from "./client.entity";
-import { OAuthScope } from "./scope.entity";
-import { OAuthUser } from "./user.entity";
+import { OAuthUserIdentifier } from "./user.entity";
 
 export interface OAuthAuthCode {
   code: string;
@@ -9,7 +7,7 @@ export interface OAuthAuthCode {
   codeChallenge?: string | null;
   codeChallengeMethod?: CodeChallengeMethod | null;
   expiresAt: Date;
-  user?: OAuthUser | null;
-  client: OAuthClient;
-  scopes: OAuthScope[];
+  userId?: OAuthUserIdentifier | null;
+  clientId: string;
+  scopeNames: string[];
 }

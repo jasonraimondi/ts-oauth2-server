@@ -8,6 +8,7 @@ import {
   ManyToMany,
   ManyToOne,
   PrimaryColumn,
+  RelationId,
 } from "typeorm";
 import { OAuthToken } from "@jmondi/oauth2-server";
 
@@ -56,6 +57,9 @@ export class Token implements OAuthToken {
     inverseJoinColumn: { name: "scopeId", referencedColumnName: "id" },
   })
   scopes!: Scope[];
+
+  @RelationId((s: Scope) => s.name)
+  scopeNames!: string[];
 
   @CreateDateColumn()
   createdAt!: Date;

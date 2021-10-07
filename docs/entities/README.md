@@ -22,7 +22,7 @@ interface OAuthClient {
   secret?: string;
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
-  scopes: OAuthScope[];
+  scopeNames: string[];
 }
 ```
 
@@ -37,9 +37,9 @@ interface OAuthAuthCode {
   codeChallenge?: string;
   codeChallengeMethod?: CodeChallengeMethod;
   expiresAt: Date;
-  user?: OAuthUser;
-  client: OAuthClient;
-  scopes: OAuthScope[];
+  userId?: OAuthUserIdentifier;
+  clientId: string;
+  scopeNames: string[];
 }
 ```
 
@@ -60,9 +60,9 @@ interface OAuthToken {
   accessTokenExpiresAt: Date;
   refreshToken?: string;
   refreshTokenExpiresAt?: Date;
-  client: OAuthClient;
-  user?: OAuthUser;
-  scopes: OAuthScope[];
+  clientId: string;
+  userId?: OAuthUserIdentifier;
+  scopeNames: string[];
 }
 ```
 

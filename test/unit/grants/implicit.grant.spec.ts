@@ -49,7 +49,7 @@ describe("implicit grant", () => {
       secret: "super-secret-secret",
       redirectUris: ["http://example.com"],
       allowedGrants: ["implicit"],
-      scopes: [],
+      scopeNames: [],
     };
     scope1 = { name: "scope-1" };
     scope2 = { name: "scope-2" };

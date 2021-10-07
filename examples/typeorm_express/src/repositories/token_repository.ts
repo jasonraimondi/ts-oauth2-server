@@ -20,14 +20,13 @@ export class TokenRepository implements OAuthTokenRepository {
     });
   }
 
-  async issueToken(client: Client, scopes: Scope[], user?: User): Promise<Token> {
+  async issueToken(client: Client, scopes: Scope[], user?: string): Promise<Token> {
     const token = new Token();
     token.accessToken = generateRandomToken();
     token.accessTokenExpiresAt = new DateInterval("2h").getEndDate();
     token.client = client;
     token.clientId = client.id;
-    token.user = user;
-    token.userId = user?.id;
+    if (user) token.user = {id: user} as User;
     token.scopes = [];
     scopes.forEach(scope => token.scopes.push(scope));
     return token;

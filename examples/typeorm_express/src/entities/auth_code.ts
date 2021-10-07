@@ -8,6 +8,7 @@ import {
   ManyToMany,
   ManyToOne,
   PrimaryColumn,
+  RelationId,
 } from "typeorm";
 import { CodeChallengeMethod, OAuthAuthCode } from "@jmondi/oauth2-server";
 
@@ -63,6 +64,9 @@ export class AuthCode implements OAuthAuthCode {
     inverseJoinColumn: { name: "scopeId", referencedColumnName: "id" },
   })
   scopes!: Scope[];
+
+  @RelationId((s: Scope) => s.name)
+  scopeNames!: string[];
 
   revoke() {
     this.expiresAt = new Date(0);

@@ -50,7 +50,7 @@ describe("client_credentials grant", () => {
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["client_credentials"],
-      scopes: [],
+      scopeNames: [],
     };
 
     grant = new ClientCredentialsGrant(

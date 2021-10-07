@@ -10,7 +10,7 @@ export interface OAuthUserRepository {
     password?: string,
     grantType?: GrantIdentifier,
     client?: OAuthClient,
-  ): Promise<OAuthUser | undefined>;
+  ): Promise<OAuthUser>;
 
   extraAccessTokenFields?(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined>;
 }

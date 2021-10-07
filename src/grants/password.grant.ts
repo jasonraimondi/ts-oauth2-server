@@ -49,12 +49,10 @@ export class PasswordGrant extends AbstractGrant {
       throw OAuthException.invalidRequest("password");
     }
 
-    const user = await this.userRepository.getUserByCredentials(username, password, this.identifier, client);
-
-    if (!user) {
-      throw OAuthException.invalidGrant();
+    try {
+      return await this.userRepository.getUserByCredentials(username, password, this.identifier, client);
+    } catch (err) {
+      throw OAuthException.invalidGrant(`${err}`);
     }
-
-    return user;
   }
 }

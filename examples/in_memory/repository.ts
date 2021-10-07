@@ -53,13 +53,13 @@ export const inMemoryAccessTokenRepository: OAuthTokenRepository = {
     token.refreshTokenExpiresAt = new Date(0);
     inMemoryDatabase.tokens[accessToken.accessToken] = token;
   },
-  async issueToken(client: OAuthClient, _scopes: OAuthScope[], user: OAuthUser): Promise<OAuthToken> {
+  async issueToken(client: OAuthClient, _scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken> {
     return <OAuthToken>{
       accessToken: "new token",
       accessTokenExpiresAt: oneHourInFuture,
-      client,
-      user,
-      scopes: [],
+      clientId: client.id,
+      userId: user?.id,
+      scopeNames: [],
     };
   },
   async persist(accessToken: OAuthToken): Promise<void> {
@@ -86,13 +86,13 @@ export const inMemoryAuthCodeRepository: OAuthAuthCodeRepository = {
   issueAuthCode(client: OAuthClient, user: OAuthUser | undefined, _scopes: OAuthScope[]): OAuthAuthCode {
     return {
       code: "my-super-secret-auth-code",
-      user,
-      client,
+      userId: user?.id,
+      clientId: client.id,
       redirectUri: "",
       codeChallenge: undefined,
       codeChallengeMethod: undefined,
       expiresAt: oneHourInFuture,
-      scopes: [],
+      scopeNames: [],
     };
   },
   async persist(authCode: OAuthAuthCode): Promise<void> {
@@ -116,9 +116,9 @@ export const inMemoryUserRepository: OAuthUserRepository = {
     password?: string,
     _grantType?: GrantIdentifier,
     _client?: OAuthClient,
-  ): Promise<OAuthUser | undefined> {
+  ): Promise<OAuthUser> {
     const user = inMemoryDatabase.users[identifier];
-    if (user?.password !== password) return;
+    if (user?.password !== password) throw new Error('wrong password');
     return user;
   },
   async extraAccessTokenFields(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined> {

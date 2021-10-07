@@ -94,7 +94,7 @@ export abstract class AbstractGrant implements GrantInterface {
       access_token_id: refreshToken.accessToken,
       refresh_token_id: refreshToken.refreshToken,
       scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
-      user_id: refreshToken.user?.id,
+      user_id: refreshToken.userId,
       expire_time: Math.ceil(expiresAtMs / 1000),
       // token_version: 1, // @todo token version?
     });
@@ -114,7 +114,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
       // standard claims
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
-      sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
+      sub: accessToken.userId, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
       exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
       nbf: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.5

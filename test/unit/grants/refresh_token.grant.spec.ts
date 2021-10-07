@@ -42,15 +42,15 @@ describe("refresh_token grant", () => {
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["refresh_token"],
-      scopes: [scope1, scope2],
+      scopeNames: [scope1.name, scope2.name],
     };
     accessToken = {
       accessToken: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
       accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
       refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
       refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
-      client,
-      scopes: [scope1, scope2],
+      clientId: client.id,
+      scopeNames: [scope1.name, scope2.name],
     };
     inMemoryDatabase.scopes[scope1.name] = scope1;
     inMemoryDatabase.scopes[scope2.name] = scope2;
@@ -108,7 +108,7 @@ describe("refresh_token grant", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
-    expect(tokenResponse.body.scope).toBe(accessToken.scopes.map(s => s.name).join(" "));
+    expect(tokenResponse.body.scope).toBe(accessToken.scopeNames.join(" "));
     expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
   });
 

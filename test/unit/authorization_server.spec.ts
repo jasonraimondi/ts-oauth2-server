@@ -71,7 +71,7 @@ describe("authorization_server", () => {
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["client_credentials"],
-      scopes: [],
+      scopeNames: [],
     };
     inMemoryDatabase.clients[client.id] = client;
 
@@ -100,7 +100,7 @@ describe("authorization_server", () => {
       secret: undefined,
       redirectUris: ["http://localhost"],
       allowedGrants: ["authorization_code"],
-      scopes: [scope1, scope2],
+      scopeNames: [scope1.name, scope2.name],
     };
     inMemoryDatabase.clients[client.id] = client;
 
@@ -134,7 +134,7 @@ describe("authorization_server", () => {
       secret: undefined,
       redirectUris: ["http://localhost"],
       allowedGrants: ["authorization_code"],
-      scopes: [scope1, scope2],
+      scopeNames: [scope1.name, scope2.name],
     };
     inMemoryDatabase.clients[client.id] = client;
 
@@ -160,7 +160,7 @@ describe("authorization_server", () => {
         secret: undefined,
         redirectUris: ["http://localhost"],
         allowedGrants: ["authorization_code"],
-        scopes: [scope1, scope2],
+        scopeNames: [scope1.name, scope2.name],
       };
       inMemoryDatabase.clients[client.id] = client;
     });
@@ -228,15 +228,15 @@ describe("authorization_server", () => {
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["refresh_token"],
-      scopes: [scope1, scope2],
+      scopeNames: [scope1.name, scope2.name],
     };
     accessToken = {
       accessToken: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
       accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
       refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
       refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
-      client,
-      scopes: [scope1, scope2],
+      clientId: client.id,
+      scopeNames: [scope1.name, scope2.name],
     };
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;

@@ -17,23 +17,25 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     const oldToken = await this.validateOldRefreshToken(request, client.id);
 
-    const user = oldToken.user;
+    const userId = oldToken.userId;
 
     const scopes = await this.validateScopes(
       this.getRequestParameter(
         "scope",
         request,
-        oldToken.scopes.map(s => s.name),
+        oldToken.scopeNames,
       ),
     );
 
     scopes.forEach(scope => {
-      if (!oldToken.scopes.map(scope => scope.name).includes(scope.name)) {
+      if (!oldToken.scopeNames.includes(scope.name)) {
         throw OAuthException.invalidScope(scope.name);
       }
     });
 
     await this.tokenRepository.revoke(oldToken);
+
+    const user = userId ? await this.userRepository.getUserByCredentials(userId) : undefined
 
     let newToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 

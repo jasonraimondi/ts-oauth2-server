@@ -41,7 +41,7 @@ describe("password grant", () => {
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["password"],
-      scopes: [],
+      scopeNames: [],
     };
 
     grant = new PasswordGrant(

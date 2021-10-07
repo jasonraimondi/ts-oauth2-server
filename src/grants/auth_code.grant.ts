@@ -202,11 +202,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     );
 
     const payload: IAuthCodePayload = {
-      client_id: authCode.client.id,
+      client_id: authCode.clientId,
       redirect_uri: authCode.redirectUri!, // NO NO NO JUST FOR TONIGHT
       auth_code_id: authCode.code,
-      scopes: authCode.scopes.map(scope => scope.name),
-      user_id: authCode.user?.id,
+      scopes: authCode.scopeNames,
+      user_id: authCode.userId,
       expire_time: this.authCodeTTL.getEndTimeSeconds(),
       code_challenge: authorizationRequest.codeChallenge,
       code_challenge_method: authorizationRequest.codeChallengeMethod,
@@ -266,8 +266,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     authCode.redirectUri = redirectUri;
     authCode.codeChallenge = codeChallenge;
     authCode.codeChallengeMethod = codeChallengeMethod;
-    authCode.scopes = [];
-    scopes.forEach(scope => authCode.scopes.push(scope));
+    authCode.scopeNames = [];
+    scopes.forEach(scope => authCode.scopeNames.push(scope.name));
     await this.authCodeRepository.persist(authCode);
     return authCode;
   }

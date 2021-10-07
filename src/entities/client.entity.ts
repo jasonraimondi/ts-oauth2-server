@@ -1,5 +1,4 @@
 import { GrantIdentifier } from "../grants/abstract/grant.interface";
-import { OAuthScope } from "./scope.entity";
 
 export interface OAuthClient {
   id: string;
@@ -7,7 +6,7 @@ export interface OAuthClient {
   secret?: string | null;
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
-  scopes: OAuthScope[];
+  scopeNames: string[];
 }
 
 export function isClientConfidential(client: OAuthClient): boolean {

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn, RelationId } from "typeorm";
 import { GrantIdentifier, OAuthClient } from "@jmondi/oauth2-server";
 
 import { Scope } from "./scope";
@@ -29,6 +29,9 @@ export class Client implements OAuthClient {
     inverseJoinColumn: { name: "scopeId", referencedColumnName: "id" },
   })
   scopes!: Scope[];
+
+  @RelationId((s: Scope) => s.name)
+  scopeNames!: string[];
 
   @CreateDateColumn()
   createdAt!: Date;

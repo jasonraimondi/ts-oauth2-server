@@ -50,7 +50,7 @@ describe("authorization_code grant", () => {
       secret: undefined,
       redirectUris: ["http://example.com"],
       allowedGrants: ["authorization_code"],
-      scopes: [],
+      scopeNames: [],
     };
 
     grant = new AuthCodeGrant(
