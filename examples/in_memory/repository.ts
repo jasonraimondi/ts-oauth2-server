@@ -1,5 +1,6 @@
 import { OAuthAuthCode } from "../../src/entities/auth_code.entity";
 import { OAuthClient } from "../../src/entities/client.entity";
+import { OAuthDeviceUserCode } from "../../src/entities/device_user_code.entity";
 import { OAuthScope } from "../../src/entities/scope.entity";
 import { OAuthToken } from "../../src/entities/token.entity";
 import { OAuthUser } from "../../src/entities/user.entity";
@@ -7,6 +8,7 @@ import { GrantIdentifier } from "../../src/grants/abstract/grant.interface";
 import { OAuthTokenRepository } from "../../src/repositories/access_token.repository";
 import { OAuthAuthCodeRepository } from "../../src/repositories/auth_code.repository";
 import { OAuthClientRepository } from "../../src/repositories/client.repository";
+import { OAuthDeviceUserCodeRepository } from "../../src/repositories/deviceuser_code.repository";
 import { OAuthScopeRepository } from "../../src/repositories/scope.repository";
 import { ExtraAccessTokenFields, OAuthUserRepository } from "../../src/repositories/user.repository";
 import { DateInterval } from "../../src/utils/date_interval";
@@ -127,3 +129,33 @@ export const inMemoryUserRepository: OAuthUserRepository = {
     };
   },
 };
+
+export const inMemoryDeviceCodeRepository: OAuthDeviceUserCodeRepository = {
+
+  async getByIdentifier(deviceCode: string): Promise<OAuthDeviceUserCode|undefined> {
+    return inMemoryDatabase.deviceCodes[deviceCode];
+  },
+
+  async issueDeviceUserCode(_client: OAuthClient, scopes: OAuthScope[]): Promise<OAuthDeviceUserCode> {
+    const nowString = `${Date.now()}`;
+    const lastFiveDigits = nowString.substring(nowString.length - 5);
+    const  deviceCode =`device-${Date.now()}`;
+    const retval: OAuthDeviceUserCode = {
+       deviceCode: deviceCode,
+       userCode: lastFiveDigits,
+       verificationUri: 'https://example.com/verifiy',
+       verificationUriComplete: `https://example.com/verifiy&code=${lastFiveDigits}`,
+       creationTime: new Date(),
+       expiresIn: 1800,
+       status: 'pending',
+       scopes: scopes
+    };
+    inMemoryDatabase.deviceCodes[deviceCode] = retval;
+    return retval;
+  },
+
+  async revoke(deviceCode: string): Promise<void> {
+    delete inMemoryDatabase.deviceCodes[deviceCode];
+  }
+
+}

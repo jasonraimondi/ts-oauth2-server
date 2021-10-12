@@ -5,6 +5,7 @@ import {
   inMemoryClientRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
+  inMemoryDeviceCodeRepository
 } from "../../../examples/in_memory/repository";
 import {
   DateInterval,
@@ -63,6 +64,7 @@ describe("refresh_token grant", () => {
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,
+      inMemoryDeviceCodeRepository,
       new JwtService("secret-key"),
     );
   });

@@ -4,6 +4,7 @@ import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
+  inMemoryDeviceCodeRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
@@ -59,6 +60,7 @@ describe("client_credentials grant", () => {
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
       inMemoryUserRepository,
+      inMemoryDeviceCodeRepository,
       new JwtService("secret-key"),
     );
 

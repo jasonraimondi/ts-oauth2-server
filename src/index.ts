@@ -5,6 +5,7 @@ export * from "./entities/scope.entity";
 export * from "./entities/token.entity";
 export * from "./entities/user.entity";
 export * from "./grants/auth_code.grant";
+export * from "./grants/device_code.grant";
 export * from "./grants/client_credentials.grant";
 export * from "./grants/implicit.grant";
 export * from "./grants/password.grant";

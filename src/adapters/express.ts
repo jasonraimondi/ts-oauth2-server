@@ -27,6 +27,7 @@ export function handleExpressError(e: unknown | OAuthException, res: Response): 
   if (e instanceof OAuthException) {
     res.status(e.status);
     res.send({
+      error: e.error,
       status: e.status,
       message: e.message,
     });

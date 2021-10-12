@@ -14,6 +14,9 @@ export enum ErrorType {
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
   AccessDenied = "access_denied",
+  AuthorizationPending = "authorization_pending",
+  SlowDown = "slow_down",
+  ExpiredToken = "expired_token"
 }
 
 export class OAuthException extends Error {
@@ -112,4 +115,47 @@ export class OAuthException extends Error {
       HttpStatus.UNAUTHORIZED,
     );
   }
+
+
+  /**
+   * The authorization request is still pending as the end user hasn't
+   *  yet completed the user-interaction steps.
+   * RFC 8628 
+   */
+  static authorizationPending() {
+    return new OAuthException(
+      "authorization_pending", 
+      ErrorType.AuthorizationPending,
+     "The authorization request is still pending as the end user hasn't completed the user-interaction steps"
+    );
+  }
+
+  /**
+   * A variant of "authorization_pending", the authorization request is
+   *  still pending and polling should continue, but the interval MUST
+   *  be increased
+   * RFC 8628 
+   */
+   static slowDown() {
+    return new OAuthException(
+      "slow_down", 
+      ErrorType.SlowDown,
+     "The authorization request is still pending as the end user hasn't completed the user-interaction steps.\n" +
+     "Polling should continued with increased interval"
+    );
+  }
+  
+  /**
+   * The "device_code" has expired.
+  * RFC 8628 
+   */
+ static expiredToken() {
+  return new OAuthException(
+    "expired_token", 
+    ErrorType.ExpiredToken,
+   "Request has expired" 
+  );
+}
+
+
 }

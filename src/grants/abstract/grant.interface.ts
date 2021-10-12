@@ -4,7 +4,8 @@ import { RequestInterface } from "../../requests/request";
 import { ResponseInterface } from "../../responses/response";
 import { DateInterval } from "../../utils/date_interval";
 
-export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token" | "password" | "implicit";
+export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token" | "password" | "implicit" |
+                              "urn:ietf:params:oauth:grant-type:device_code";
 
 export interface GrantInterface {
   options: AuthorizationServerOptions;
@@ -24,4 +25,10 @@ export interface GrantInterface {
   validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest>;
 
   completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface>;
+
+  canRespondToDeviceAuthorizationRequest(request: RequestInterface): boolean;
+
+  respondToDeviceAuthorizationRequest(request: RequestInterface): Promise<ResponseInterface>;
+
+
 }
