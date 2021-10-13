@@ -173,8 +173,7 @@ type AuthorizationServerOptions = {
 }
 ```
 
-* `requiresPKCE` - Enabled by default, PKCE is enabled and encouraged for all users. If you need to support a legacy 
-  client system without PKCE, you can disable PKCE with the authorization server.
+* `requiresPKCE` - Enabled by default, PKCE is enabled and encouraged for all users. If you need to support a legacy client system without PKCE, you can disable PKCE with the authorization server.
 * `notBeforeLeeway` - Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.  Its value MUST be a number containing a NumericDate value.
 
 To configure these options, pass the value in as the last argument:
