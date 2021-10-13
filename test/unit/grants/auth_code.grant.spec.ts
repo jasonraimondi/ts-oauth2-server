@@ -136,14 +136,14 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful with plain pkce", async () => {
-      client.redirectUris = ["http://example.com?this_should_work=true"];
+      client.redirectUris = ["http://example.com"];
       inMemoryDatabase.clients[client.id] = client;
       const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
       request = new OAuthRequest({
         query: {
           response_type: "code",
           client_id: client.id,
-          redirect_uri: "http://example.com?this_should_work=true",
+          redirect_uri: "http://example.com",
           scope: "scope-1",
           state: "state-is-a-secret",
           code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
@@ -155,7 +155,34 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.isAuthorizationApproved).toBe(false);
       expect(authorizationRequest.client.id).toBe(client.id);
       expect(authorizationRequest.client.name).toBe(client.name);
-      expect(authorizationRequest.redirectUri).toBe("http://example.com?this_should_work=true");
+      expect(authorizationRequest.redirectUri).toBe("http://example.com");
+      expect(authorizationRequest.state).toBe("state-is-a-secret");
+      expect(authorizationRequest.codeChallenge).toBe(base64urlencode(plainCodeChallenge));
+      expect(authorizationRequest.codeChallengeMethod).toBe("plain");
+      expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
+    });
+
+    it("is successful with request redirect uri with querystring", async () => {
+      client.redirectUris = ["http://example.com"];
+      inMemoryDatabase.clients[client.id] = client;
+      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com?this_should_work=true&also-this=yeah",
+          scope: "scope-1",
+          state: "state-is-a-secret",
+          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
+          code_challenge_method: "plain",
+        },
+      });
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.isAuthorizationApproved).toBe(false);
+      expect(authorizationRequest.client.id).toBe(client.id);
+      expect(authorizationRequest.client.name).toBe(client.name);
+      expect(authorizationRequest.redirectUri).toBe("http://example.com?this_should_work=true&also-this=yeah");
       expect(authorizationRequest.state).toBe("state-is-a-secret");
       expect(authorizationRequest.codeChallenge).toBe(base64urlencode(plainCodeChallenge));
       expect(authorizationRequest.codeChallengeMethod).toBe("plain");
