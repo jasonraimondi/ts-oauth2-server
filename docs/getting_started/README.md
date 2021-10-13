@@ -48,8 +48,9 @@ authorizationServer.enableGrantType("password"); // password grant is not recomm
 The authorization server has a few optional settings with the following default values;
 
 ```typescript
-AuthorizationServerOptions {
+type AuthorizationServerOptions = {
   requiresPKCE: true;
+  notBeforeLeeway: 0;
 }
 ```
 
@@ -65,6 +66,7 @@ const authorizationServer = new AuthorizationServer(
   new JwtService("secret-key"),
   {
     requiresPKCE: false, // default is true
+    notBeforeLeeway: 10, // default is 0
   }
 );
 ```

@@ -169,8 +169,13 @@ The authorization server has a few optional settings with the following default 
 ```typescript
 type AuthorizationServerOptions = {
   requiresPKCE: true;
+  notBeforeLeeway: 0;
 }
 ```
+
+* `requiresPKCE` - Enabled by default, PKCE is enabled and encouraged for all users. If you need to support a legacy 
+  client system without PKCE, you can disable PKCE with the authorization server.
+* `notBeforeLeeway` - Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.  Its value MUST be a number containing a NumericDate value.
 
 To configure these options, pass the value in as the last argument:
 
@@ -184,6 +189,7 @@ const authorizationServer = new AuthorizationServer(
   new JwtService("secret-key"),
   {
     requiresPKCE: false, // default is true
+    notBeforeLeeway: 5,  // default is 0
   }
 );
 ```

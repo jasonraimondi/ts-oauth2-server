@@ -17,8 +17,10 @@ import { DateInterval } from "./utils/date_interval";
 import { JwtInterface } from "./utils/jwt";
 
 export interface AuthorizationServerOptions {
-  requiresPKCE: boolean;
-  jwtNbfLeeway: number;  // see https://datatracker.ietf.org/doc/html/rfc7519  4.1.5 
+  requiresPKCE: Readonly<boolean>;
+
+  // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5
+  notBeforeLeeway: Readonly<number>;
 }
 
 type EnableGrantTuple = GrantIdentifier | [GrantIdentifier, DateInterval];
@@ -31,7 +33,7 @@ export class AuthorizationServer {
 
   private options: AuthorizationServerOptions = {
     requiresPKCE: true,
-    jwtNbfLeeway: 1
+    notBeforeLeeway: 0,
   };
 
   constructor(
