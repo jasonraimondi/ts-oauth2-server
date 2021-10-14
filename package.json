@@ -16,7 +16,7 @@
     "clean": "rimraf dist",
     "prebuild": "run-s clean",
     "build": "tsc -p tsconfig.build.json",
-    "prepare": "npm run build",
+    "prepare-disables": "npm run build",
     "start": "tsc -p tsconfig.build.json --watch",
     "test": "jest",
     "test:cov": "jest --coverage",
