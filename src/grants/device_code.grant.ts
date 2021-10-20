@@ -40,7 +40,7 @@ export class DeviceCodeGrant extends AbstractGrant {
           case 'allow':
             const expirationTime = deviceUserCode.creationTime.getTime()+deviceUserCode.expiresIn*1000;
             if (expirationTime <= Date.now()) {
-              this.deviceUserCodeRepository.revoke(deviceCode);
+              await this.deviceUserCodeRepository.revoke(deviceCode);
               throw OAuthException.expiredToken();
             }
             if (deviceUserCode.userId !== undefined) {
@@ -48,14 +48,14 @@ export class DeviceCodeGrant extends AbstractGrant {
             }
             break;
           case 'access_denied':
-            this.deviceUserCodeRepository.revoke(deviceCode);
+            await this.deviceUserCodeRepository.revoke(deviceCode);
             throw OAuthException.accessDenied();  
           case 'pending':
             throw OAuthException.authorizationPending();
           case 'slow_down':
             throw OAuthException.slowDown();  
           case 'expired_token':
-            this.deviceUserCodeRepository.revoke(deviceCode);
+            await this.deviceUserCodeRepository.revoke(deviceCode);
             throw OAuthException.expiredToken();
         }
 
