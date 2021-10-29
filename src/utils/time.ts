@@ -4,5 +4,5 @@ export function getSecondsUntil(date: Date) {
 
 export function roundToSeconds(ms: Date | number) {
   if (ms instanceof Date) ms = ms.getTime();
-  return Math.ceil(ms / 1000);
+  return Math.floor(ms / 1000);
 }
