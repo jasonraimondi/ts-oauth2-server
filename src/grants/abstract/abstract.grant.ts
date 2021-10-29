@@ -110,7 +110,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return this.encrypt(<ITokenData | any>{
       // non standard claims
       ...extraJwtFields,
-      cid: client.name,
+      cid: client.id,
       scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
 
       // standard claims
