@@ -11,7 +11,7 @@ import { OAuthClientRepository } from "./repositories/client.repository";
 import { OAuthScopeRepository } from "./repositories/scope.repository";
 import { OAuthUserRepository } from "./repositories/user.repository";
 import { AuthorizationRequest } from "./requests/authorization.request";
-import { RequestInterface } from "./requests/request";
+import { OAuthRequest, RequestInterface } from "./requests/request";
 import { ResponseInterface } from "./responses/response";
 import { DateInterval } from "./utils/date_interval";
 import { JwtInterface } from "./utils/jwt";
@@ -89,19 +89,23 @@ export class AuthorizationServer {
     this.grantTypeAccessTokenTTL[grantType] = accessTokenTTL;
   }
 
-  respondToAccessTokenRequest(req: RequestInterface, res: ResponseInterface): Promise<ResponseInterface> {
+  respondToAccessTokenRequest(req: RequestInterface): Promise<ResponseInterface> {
+    req = new OAuthRequest(req)
+
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (!grantType.canRespondToAccessTokenRequest(req)) {
         continue;
       }
       const accessTokenTTL = this.grantTypeAccessTokenTTL[grantType.identifier];
-      return grantType.respondToAccessTokenRequest(req, res, accessTokenTTL);
+      return grantType.respondToAccessTokenRequest(req, accessTokenTTL);
     }
 
     throw OAuthException.unsupportedGrantType();
   }
 
   validateAuthorizationRequest(req: RequestInterface): Promise<AuthorizationRequest> {
+    req = new OAuthRequest(req)
+
     for (const grant of Object.values(this.enabledGrantTypes)) {
       if (grant.canRespondToAuthorizationRequest(req)) {
         return grant.validateAuthorizationRequest(req);

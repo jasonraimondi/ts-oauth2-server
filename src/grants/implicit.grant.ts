@@ -14,7 +14,6 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
 
   respondToAccessTokenRequest(
     _req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    _res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
     _tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<ResponseInterface> {
     throw OAuthException.logicException("The implicit grant can't respond to access token requests");

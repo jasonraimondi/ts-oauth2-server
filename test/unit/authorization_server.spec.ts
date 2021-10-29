@@ -19,7 +19,6 @@ import {
   RefreshTokenGrant,
   AuthorizationRequest,
   OAuthRequest,
-  OAuthResponse,
   base64encode,
   DateInterval,
   JwtService,
@@ -76,7 +75,6 @@ describe("authorization_server", () => {
     inMemoryDatabase.clients[client.id] = client;
 
     const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
-    const response = new OAuthResponse();
     const request = new OAuthRequest({
       headers: {
         authorization: basicAuth,
@@ -87,7 +85,7 @@ describe("authorization_server", () => {
     });
 
     // act
-    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
+    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -250,10 +248,9 @@ describe("authorization_server", () => {
         scope: "scope-1",
       },
     });
-    const response = new OAuthResponse();
 
     // act
-    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
+    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request);
 
     // assert
     expectTokenResponse(tokenResponse);

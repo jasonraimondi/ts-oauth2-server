@@ -2,7 +2,6 @@ import { json, urlencoded } from "body-parser";
 import Express from "express";
 import {
   requestFromExpress,
-  responseFromExpress,
   handleExpressError,
   handleExpressResponse,
 } from "../../src/adapters/express";
@@ -45,7 +44,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
   try {
-    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, responseFromExpress(res));
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
     return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);

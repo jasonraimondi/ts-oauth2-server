@@ -3,7 +3,6 @@ import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";
 import {
   requestFromFastify,
-  responseFromFastify,
   handleFastifyError,
   handleFastifyReply,
 } from "@jmondi/oauth2-server/dist/adapters/fastify";
@@ -63,9 +62,8 @@ async function bootstrap() {
 
   fastify.post("/token", async (req: FastifyRequest, res: FastifyReply) => {
     const request = requestFromFastify(req);
-    const response = responseFromFastify(res);
     try {
-      const oauthResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
+      const oauthResponse = await authorizationServer.respondToAccessTokenRequest(request);
       return handleFastifyReply(res, oauthResponse);
     } catch (e) {
       handleFastifyError(e, res);

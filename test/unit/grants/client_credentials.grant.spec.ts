@@ -14,7 +14,6 @@ import {
   JwtService,
   OAuthClient,
   OAuthRequest,
-  OAuthResponse,
   REGEX_ACCESS_TOKEN,
   ResponseInterface,
 } from "../../../src";
@@ -38,11 +37,9 @@ describe("client_credentials grant", () => {
   let grant: ClientCredentialsGrant;
 
   let request: OAuthRequest;
-  let response: OAuthResponse;
 
   beforeEach(() => {
     request = new OAuthRequest();
-    response = new OAuthResponse();
 
     client = {
       id: "1",
@@ -79,7 +76,7 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -98,7 +95,7 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -120,7 +117,7 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -142,7 +139,7 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(
@@ -161,7 +158,7 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Client authentication failed/);
@@ -178,7 +175,7 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Check the `grant_type` parameter/);

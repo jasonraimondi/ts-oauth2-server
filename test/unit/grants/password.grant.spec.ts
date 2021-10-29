@@ -11,7 +11,6 @@ import {
   JwtService,
   OAuthClient,
   OAuthRequest,
-  OAuthResponse,
   OAuthUser,
   PasswordGrant,
   REGEX_ACCESS_TOKEN,
@@ -25,11 +24,9 @@ describe("password grant", () => {
   let grant: PasswordGrant;
 
   let request: OAuthRequest;
-  let response: OAuthResponse;
 
   beforeEach(() => {
     request = new OAuthRequest();
-    response = new OAuthResponse();
 
     user = {
       id: "512ab9a4-c786-48a6-8ad6-94c53a8dc651",
@@ -71,7 +68,7 @@ describe("password grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -89,7 +86,7 @@ describe("password grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Check the `grant_type` parameter/);
@@ -107,7 +104,7 @@ describe("password grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Check the `username` parameter/);
@@ -126,7 +123,7 @@ describe("password grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Check the `password` parameter/);
@@ -146,7 +143,7 @@ describe("password grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(

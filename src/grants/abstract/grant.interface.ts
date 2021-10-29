@@ -15,7 +15,6 @@ export interface GrantInterface {
 
   respondToAccessTokenRequest(
     request: RequestInterface,
-    response: ResponseInterface,
     accessTokenTTL: DateInterval,
   ): Promise<ResponseInterface>;
 

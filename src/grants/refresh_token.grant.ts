@@ -10,7 +10,6 @@ export class RefreshTokenGrant extends AbstractGrant {
 
   async respondToAccessTokenRequest(
     request: RequestInterface,
-    _response: ResponseInterface,
     accessTokenTTL: DateInterval,
   ): Promise<ResponseInterface> {
     const client = await this.validateClient(request);

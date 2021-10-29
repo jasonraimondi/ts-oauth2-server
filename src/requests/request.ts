@@ -12,9 +12,7 @@ export class OAuthRequest implements RequestInterface {
   query: { [key: string]: any };
 
   constructor(options: Options = {}) {
-    this.headers = {
-      ...options.headers,
-    };
+    this.headers = !options.headers ? {} : Object.entries(options.headers).reduce((p, c) => p[c[0].toLowerCase()] = c[1], {} as RequestInterface['headers'])
     this.query = {
       ...options.query,
     };
