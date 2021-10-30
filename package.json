@@ -40,6 +40,7 @@
     "eslint-plugin-import": "^2.24.2",
     "express": "^4.17.1",
     "fastify": "^3.21.5",
+    "prettier": "^2.4.1",
     "jest": "^27.2.1",
     "jest-date-mock": "^1.0.8",
     "npm-run-all": "^4.1.5",
@@ -60,6 +61,7 @@
     "semi": true,
     "singleQuote": false,
     "tabWidth": 2,
-    "trailingComma": "all"
+    "trailingComma": "all",
+    "arrowParens": "avoid"
   }
 }

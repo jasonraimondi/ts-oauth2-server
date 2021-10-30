@@ -9,8 +9,5 @@ export function base64decode(str: string | Buffer) {
 }
 
 export function base64urlencode(str: string | Buffer) {
-  return base64encode(str)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
+  return base64encode(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }

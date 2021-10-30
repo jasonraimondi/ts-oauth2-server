@@ -6,7 +6,7 @@ import { OAuthResponse } from "../responses/response";
 
 export function responseFromFastify(res: FastifyReply) {
   return new OAuthResponse({
-    headers: <Record<string, unknown>><unknown>res.headers ?? {},
+    headers: <Record<string, unknown>>(<unknown>res.headers) ?? {},
   });
 }
 

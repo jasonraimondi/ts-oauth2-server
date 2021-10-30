@@ -45,7 +45,7 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
         "Redirection endpoint must not contain url fragment based on RFC6749, section 3.1.2",
       );
     }
-    
+
     const redirectUriWithoutQuery = redirectUri.split("?")[0];
     if (!client.redirectUris.includes(redirectUriWithoutQuery)) {
       throw OAuthException.invalidClient("Invalid redirect_uri");
