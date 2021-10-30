@@ -26,7 +26,7 @@ export function expectTokenResponse(tokenResponse: ResponseInterface) {
   expect(tokenResponse.headers["cache-control"]).toBe("no-store");
   expect(tokenResponse.headers["pragma"]).toBe("no-cache");
   expect(tokenResponse.body.token_type).toBe("Bearer");
-  expect(tokenResponse.body.expires_in).toBe(3600);
+  expect(tokenResponse.body.expires_in).toBe(3599);
   expect(tokenResponse.body.access_token).toMatch(REGEX_ACCESS_TOKEN);
 
   expect(decodedToken.exp).toBeTruthy();
