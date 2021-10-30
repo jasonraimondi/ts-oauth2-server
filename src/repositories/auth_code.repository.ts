@@ -6,7 +6,11 @@ import { OAuthUser } from "../entities/user.entity";
 export interface OAuthAuthCodeRepository {
   getByIdentifier(authCodeCode: string): Promise<OAuthAuthCode>;
 
-  issueAuthCode(client: OAuthClient, user: OAuthUser | undefined, scopes: OAuthScope[]): OAuthAuthCode | Promise<OAuthAuthCode>;
+  issueAuthCode(
+    client: OAuthClient,
+    user: OAuthUser | undefined,
+    scopes: OAuthScope[],
+  ): OAuthAuthCode | Promise<OAuthAuthCode>;
 
   persist(authCode: OAuthAuthCode): Promise<void>;
 
