@@ -31,7 +31,7 @@ export class DeviceCodeGrant extends AbstractGrant {
         }
 
         const deviceUserCode = await this.deviceUserCodeRepository.getByIdentifier(deviceCode);
-        if (deviceUserCode === undefined) {
+        if (deviceUserCode === undefined || deviceUserCode === null) {
           throw OAuthException.invalidRequest("device_code");
         }
 
