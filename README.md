@@ -433,3 +433,8 @@ Please look at these great resources:
 
 This project is inspired by the [PHP League's OAuth2 Server](https://oauth2.thephpleague.com/). Check out the [PHP
  League's other packages](https://thephpleague.com/#packages) for some other great PHP projects.
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/jasonraimondi/ts-oauth2-server.svg)](https://starchart.cc/jasonraimondi/ts-oauth2-server)
+
