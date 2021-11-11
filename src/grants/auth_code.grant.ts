@@ -50,7 +50,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     if (!encryptedAuthCode) throw OAuthException.invalidRequest("code");
 
-    const decryptedCode = await this.decrypt(encryptedAuthCode);
+    const decryptedCode = await this.decrypt(encryptedAuthCode, client.id);
 
     const validatedPayload = await this.validateAuthorizationCode(decryptedCode, client, request);
 
@@ -214,7 +214,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const jsonPayload = JSON.stringify(payload);
 
-    const code = await this.encrypt(jsonPayload);
+    const code = await this.encrypt(jsonPayload, authCode.client.id);
 
     const finalRedirectUri = this.makeRedirectUrl(redirectUri, {
       code,

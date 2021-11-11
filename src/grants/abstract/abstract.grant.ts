@@ -101,7 +101,7 @@ export abstract class AbstractGrant implements GrantInterface {
       user_id: refreshToken.user?.id,
       expire_time: Math.ceil(expiresAtMs / 1000),
       // token_version: 1, // @todo token version?
-    });
+    }, client.id);
   }
 
   protected encryptAccessToken(
@@ -125,7 +125,7 @@ export abstract class AbstractGrant implements GrantInterface {
       nbf: roundToSeconds(Date.now()) - this.options.notBeforeLeeway, // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
       iat: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
       jti: accessToken.accessToken, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
-    });
+    }, client.id);
   }
 
   protected async validateClient(request: RequestInterface): Promise<OAuthClient> {
@@ -257,12 +257,12 @@ export abstract class AbstractGrant implements GrantInterface {
     return request.query?.[param] ?? defaultValue;
   }
 
-  protected encrypt(unencryptedData: string | Buffer | Record<string, unknown>): Promise<string> {
-    return this.jwt.sign(unencryptedData);
+  protected encrypt(unencryptedData: string | Buffer | Record<string, unknown>, clientId: string): Promise<string> {
+    return this.jwt.sign(unencryptedData, clientId);
   }
 
-  protected async decrypt(encryptedData: string) {
-    return await this.jwt.verify(encryptedData);
+  protected async decrypt(encryptedData: string, clientId: string) {
+    return await this.jwt.verify(encryptedData, clientId);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -122,7 +122,7 @@ describe("refresh_token grant", () => {
     const decoded: any = await jwt.decode(bearerResponse.body.refresh_token);
     decoded.expire_time = decoded.expire_time + 10000000; // extend the expire date
     decoded.scope = "admin made-up-scope";
-    const reEncodedToken = await jwt.sign(decoded);
+    const reEncodedToken = await jwt.sign(decoded, client.id);
 
     request = new OAuthRequest({
       body: {
