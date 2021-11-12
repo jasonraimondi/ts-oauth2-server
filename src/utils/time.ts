@@ -1,7 +1,6 @@
-export function getSecondsUntil(date: Date, iat?: Date) {
-  const start = iat ? iat.getTime() / 1000 : Math.floor(Date.now() / 1000);
-  const time = date.getTime() / 1000;
-  return Math.floor(time - start);
+export function getSecondsUntil(end: Date, start: Date = new Date()) {
+  const time = end.getTime() - start.getTime();
+  return Math.floor(time / 1000);
 }
 
 export function roundToSeconds(ms: Date | number) {

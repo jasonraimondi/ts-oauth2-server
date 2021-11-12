@@ -25,6 +25,5 @@ module.exports = {
   testEnvironment: "node",
   setupFiles: [
     "<rootDir>/test/jest_setup.ts",
-    "jest-date-mock",
   ],
 };
