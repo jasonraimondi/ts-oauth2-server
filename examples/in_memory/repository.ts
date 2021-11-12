@@ -113,6 +113,11 @@ export const inMemoryAuthCodeRepository: OAuthAuthCodeRepository = {
 };
 
 export const inMemoryUserRepository: OAuthUserRepository = {
+
+  async getUserByIdentifiers(identifier: string, client: OAuthClient): Promise<OAuthUser|undefined> {
+    return this.getUserByCredentials(identifier, undefined, undefined, client);
+  },
+
   async getUserByCredentials(
     identifier: string,
     password?: string,

@@ -44,7 +44,7 @@ export class DeviceCodeGrant extends AbstractGrant {
               throw OAuthException.expiredToken();
             }
             if (deviceUserCode.userId !== undefined) {
-              user = await this.userRepository.getUserByCredentials(deviceUserCode.userId, undefined, this.identifier, client);
+              user = await this.userRepository.getUserByIdentifiers(deviceUserCode.userId, client);
             }
             break;
           case 'access_denied':

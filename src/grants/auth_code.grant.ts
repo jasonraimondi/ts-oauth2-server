@@ -56,7 +56,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const userId = validatedPayload.user_id;
 
-    const user = userId ? await this.userRepository.getUserByCredentials(userId) : undefined;
+    const user = userId ? await this.userRepository.getUserByIdentifiers(userId, client) : undefined;
 
     const scopes: OAuthScope[] = [];
 
@@ -259,7 +259,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     codeChallengeMethod?: CodeChallengeMethod,
     scopes: OAuthScope[] = [],
   ): Promise<OAuthAuthCode> {
-    const user = userIdentifier ? await this.userRepository.getUserByCredentials(userIdentifier) : undefined;
+    const user = userIdentifier ? await this.userRepository.getUserByIdentifiers(userIdentifier, client) : undefined;
 
     const authCode = await this.authCodeRepository.issueAuthCode(client, user, scopes);
     authCode.expiresAt = authCodeTTL.getEndDate();
