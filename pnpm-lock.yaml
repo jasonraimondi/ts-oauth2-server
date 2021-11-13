@@ -31,6 +31,7 @@ importers:
       typescript: ^4.4.3
       uri-js: ^4.4.1
       vuepress: ^1.8.2
+      vuepress-plugin-plausible: ^0.0.2
     dependencies:
       jsonwebtoken: 8.5.1
       ms: 2.1.3
@@ -60,6 +61,7 @@ importers:
       tslib: 2.3.1
       typescript: 4.4.3
       vuepress: 1.8.2
+      vuepress-plugin-plausible: 0.0.2
 
   examples/prisma_express:
     specifiers:
@@ -10975,6 +10977,11 @@ packages:
     dependencies:
       '@vuepress/shared-utils': 1.8.2
       markdown-it-container: 2.0.0
+    dev: true
+
+  /vuepress-plugin-plausible/0.0.2:
+    resolution: {integrity: sha512-EbfcZZpsGb46K2C9zrhQZaj1fRCT4uZFDu9XRxecuFrqGX84dBTquTwRF/4SMUes3m7iAKVaK/qmZaSG08P1uA==}
+    engines: {node: '>=8'}
     dev: true
 
   /vuepress-plugin-smooth-scroll/0.0.3:
