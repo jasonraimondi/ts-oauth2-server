@@ -30,4 +30,7 @@ module.exports = {
       "/sources/",
     ],
   },
+  plugins: {
+    'plausible': { domain: 'jasonraimondi.github.io/ts-oauth2-server' },
+  }
 };
