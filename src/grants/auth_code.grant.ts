@@ -39,20 +39,16 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     S256: new S256Verifier(),
   };
 
-  async respondToAccessTokenRequest(
-    request: RequestInterface,
-    _response: ResponseInterface,
-    accessTokenTTL: DateInterval,
-  ): Promise<ResponseInterface> {
-    const client = await this.validateClient(request);
+  async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {
+    const client = await this.validateClient(req);
 
-    const encryptedAuthCode = this.getRequestParameter("code", request);
+    const encryptedAuthCode = this.getRequestParameter("code", req);
 
     if (!encryptedAuthCode) throw OAuthException.invalidRequest("code");
 
     const decryptedCode = await this.decrypt(encryptedAuthCode);
 
-    const validatedPayload = await this.validateAuthorizationCode(decryptedCode, client, request);
+    const validatedPayload = await this.validateAuthorizationCode(decryptedCode, client, req);
 
     const userId = validatedPayload.user_id;
 
@@ -81,7 +77,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         throw OAuthException.invalidRequest("code_challenge", "Provided code challenge does not match auth code");
       }
 
-      const codeVerifier = this.getRequestParameter("code_verifier", request);
+      const codeVerifier = this.getRequestParameter("code_verifier", req);
 
       if (!codeVerifier) {
         throw OAuthException.invalidRequest("code_verifier");

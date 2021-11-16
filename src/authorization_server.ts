@@ -89,13 +89,24 @@ export class AuthorizationServer {
     this.grantTypeAccessTokenTTL[grantType] = accessTokenTTL;
   }
 
-  respondToAccessTokenRequest(req: RequestInterface, res: ResponseInterface): Promise<ResponseInterface> {
+  respondToAccessTokenRequest(
+    req: RequestInterface,
+    _deprecatedRemoveInV3?: ResponseInterface,
+  ): Promise<ResponseInterface> {
+    if (!!_deprecatedRemoveInV3 && process.env.NODE_ENV !== "production") {
+      console.warn(`deprecation: respondToAccessTokenRequest has removed response parameter and will be removed in 3.0.0.
+      
+- respondToAccessTokenRequest(request, response, accessTokenTTL)
++ respondToAccessTokenRequest(request, accessTokenTTL)
+      `);
+    }
+
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (!grantType.canRespondToAccessTokenRequest(req)) {
         continue;
       }
       const accessTokenTTL = this.grantTypeAccessTokenTTL[grantType.identifier];
-      return grantType.respondToAccessTokenRequest(req, res, accessTokenTTL);
+      return grantType.respondToAccessTokenRequest(req, accessTokenTTL);
     }
 
     throw OAuthException.unsupportedGrantType();

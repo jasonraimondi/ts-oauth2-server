@@ -280,11 +280,7 @@ export abstract class AbstractGrant implements GrantInterface {
     throw new Error("Grant does not support the request");
   }
 
-  async respondToAccessTokenRequest(
-    _req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    _res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    _tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
-  ): Promise<ResponseInterface> {
+  async respondToAccessTokenRequest(_req: RequestInterface, _accessTokenTTL: DateInterval): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
 }

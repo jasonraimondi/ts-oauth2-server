@@ -76,12 +76,9 @@ const authorizationServer = new AuthorizationServer(
 The `/token` endpoint is a back channel endpoint that issues a useable access token.
 
 ```typescript
-import { responseFromExpress } from "@jmondi/oauth2-server/dist/adapters/express";
-
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
-  const response = responseFromExpress(res);
   try {
-    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, response);
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
     return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);

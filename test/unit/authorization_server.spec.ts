@@ -19,7 +19,6 @@ import {
   RefreshTokenGrant,
   AuthorizationRequest,
   OAuthRequest,
-  OAuthResponse,
   base64encode,
   DateInterval,
   JwtService,
@@ -58,13 +57,6 @@ describe("authorization_server", () => {
     user = { id: "abc123" };
     scope1 = { name: "scope-1" };
     scope2 = { name: "scope-2" };
-    inMemoryDatabase.scopes[scope1.name] = scope1;
-    inMemoryDatabase.scopes[scope2.name] = scope2;
-    inMemoryDatabase.users[user.id] = user;
-  });
-
-  it("can enable client_credentials grant", async () => {
-    // arrange
     client = {
       id: "1",
       name: "test client",
@@ -73,10 +65,16 @@ describe("authorization_server", () => {
       allowedGrants: ["client_credentials"],
       scopes: [],
     };
+    inMemoryDatabase.scopes[scope1.name] = scope1;
+    inMemoryDatabase.scopes[scope2.name] = scope2;
+    inMemoryDatabase.users[user.id] = user;
+  });
+
+  it("can enable client_credentials grant", async () => {
+    // arrange
     inMemoryDatabase.clients[client.id] = client;
 
     const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
-    const response = new OAuthResponse();
     const request = new OAuthRequest({
       headers: {
         authorization: basicAuth,
@@ -87,7 +85,7 @@ describe("authorization_server", () => {
     });
 
     // act
-    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
+    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -250,10 +248,9 @@ describe("authorization_server", () => {
         scope: "scope-1",
       },
     });
-    const response = new OAuthResponse();
 
     // act
-    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request, response);
+    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request);
 
     // assert
     expectTokenResponse(tokenResponse);

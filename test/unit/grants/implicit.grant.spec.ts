@@ -17,7 +17,6 @@ import {
   JwtService,
   OAuthClient,
   OAuthRequest,
-  OAuthResponse,
   OAuthScope,
   OAuthUser,
   REGEX_ACCESS_TOKEN,
@@ -33,11 +32,9 @@ describe("implicit grant", () => {
   let grant: ImplicitGrant;
 
   let request: OAuthRequest;
-  let response: OAuthResponse;
 
   beforeEach(() => {
     request = new OAuthRequest();
-    response = new OAuthResponse();
 
     user = {
       id: "512ab9a4-c786-48a6-8ad6-94c53a8dc651",
@@ -237,7 +234,7 @@ describe("implicit grant", () => {
   describe("respondToAccessTokenRequest", () => {
     it("throws because implicit grant cannot respond to access token requests", async () => {
       // assert
-      expect(() => grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"))).toThrowError(
+      expect(() => grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).toThrowError(
         /The implicit grant can't respond to access token requests/,
       );
     });
