@@ -30,6 +30,8 @@ export function expectTokenResponse(tokenResponse: ResponseInterface) {
 
   expect(decodedToken.exp).toBeTruthy();
   expect(decodedToken.jti).toBeTruthy();
+
+  return decodedToken;
 }
 
 describe("client_credentials grant", () => {
@@ -76,10 +78,12 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
+    grant.options.tokenCID = "id";
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
-    expectTokenResponse(tokenResponse);
+    const decodedToken = expectTokenResponse(tokenResponse);
+    expect(decodedToken.cid).toBe(client.id);
     expect(tokenResponse.body.refresh_token).toBeUndefined();
   });
 
@@ -95,10 +99,12 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
+    grant.options.tokenCID = "name";
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
-    expectTokenResponse(tokenResponse);
+    const decodedToken = expectTokenResponse(tokenResponse);
+    expect(decodedToken.cid).toBe(client.name);
     expect(tokenResponse.body.refresh_token).toBeUndefined();
   });
 
@@ -120,7 +126,9 @@ describe("client_credentials grant", () => {
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
-    expectTokenResponse(tokenResponse);
+    const decodedToken = expectTokenResponse(tokenResponse);
+    // defaults to name
+    expect(decodedToken.cid).toBe(client.name);
     expect(tokenResponse.body.refresh_token).toBeUndefined();
     expect(tokenResponse.body.scope).toBe("scope-1 scope-2");
   });
