@@ -168,11 +168,14 @@ The authorization server has a few optional settings with the following default 
 type AuthorizationServerOptions = {
   requiresPKCE: true;
   notBeforeLeeway: 0;
+  tokenCID: "name"|"id"; // in v2.x default is "name", in 3.x default will be "id"
 }
 ```
 
 * `requiresPKCE` - Enabled by default, PKCE is enabled and encouraged for all users. If you need to support a legacy client system without PKCE, you can disable PKCE with the authorization server.
 * `notBeforeLeeway` - Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.  Its value MUST be a number containing a NumericDate value.
+* `tokenCID` - Sets the `accessToken.cid` to either the `client.id` or `client.name`. In v2.x default is **"name"**, in 
+  3.x default will be **"id"**.
 
 To configure these options, pass the value in as the last argument:
 

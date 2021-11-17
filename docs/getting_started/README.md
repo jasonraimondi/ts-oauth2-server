@@ -51,6 +51,7 @@ The authorization server has a few optional settings with the following default 
 type AuthorizationServerOptions = {
   requiresPKCE: true;
   notBeforeLeeway: 0;
+  tokenCID: "name"|"id"; // in v2.x default is "name", in 3.x default will be "id"
 }
 ```
 
