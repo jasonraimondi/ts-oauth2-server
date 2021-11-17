@@ -12,7 +12,7 @@
     "express": "^4.17.1",
     "mysql": "^2.18.1",
     "pg": "^8.7.1",
-    "typeorm": "^0.2.37",
+    "typeorm": "^0.2.40",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
