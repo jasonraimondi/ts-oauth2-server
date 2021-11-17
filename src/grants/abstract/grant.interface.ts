@@ -13,11 +13,7 @@ export interface GrantInterface {
 
   canRespondToAccessTokenRequest(request: RequestInterface): boolean;
 
-  respondToAccessTokenRequest(
-    request: RequestInterface,
-    response: ResponseInterface,
-    accessTokenTTL: DateInterval,
-  ): Promise<ResponseInterface>;
+  respondToAccessTokenRequest(request: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface>;
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean;
 

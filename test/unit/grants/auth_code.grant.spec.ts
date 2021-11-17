@@ -18,7 +18,6 @@ import {
   JwtService,
   OAuthClient,
   OAuthRequest,
-  OAuthResponse,
   OAuthScope,
   OAuthUser,
   REGEX_ACCESS_TOKEN,
@@ -32,14 +31,12 @@ describe("authorization_code grant", () => {
   let grant: AuthCodeGrant;
 
   let request: OAuthRequest;
-  let response: OAuthResponse;
 
   const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
   const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest());
 
   beforeEach(() => {
     request = new OAuthRequest();
-    response = new OAuthResponse();
 
     user = { id: "abc123", email: "jason@example.com" };
     scope1 = { name: "scope-1" };
@@ -389,7 +386,7 @@ describe("authorization_code grant", () => {
           code_verifier: codeVerifier,
         },
       });
-      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       // assert
       expectTokenResponse(accessTokenResponse);
@@ -416,7 +413,7 @@ describe("authorization_code grant", () => {
           code_verifier: codeChallenge,
         },
       });
-      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       // assert
       expectTokenResponse(accessTokenResponse);
@@ -441,7 +438,7 @@ describe("authorization_code grant", () => {
           client_id: client.id,
         },
       });
-      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       // assert
       expectTokenResponse(accessTokenResponse);
@@ -467,7 +464,7 @@ describe("authorization_code grant", () => {
           code_verifier: codeVerifier + "invalid",
         },
       });
-      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       // assert
       await expect(accessTokenResponse).rejects.toThrowError(/Client authentication failed/);
@@ -484,7 +481,7 @@ describe("authorization_code grant", () => {
           code_verifier: "invalid",
         },
       });
-      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       // assert
       await expect(accessTokenResponse).rejects.toThrowError(
@@ -503,7 +500,7 @@ describe("authorization_code grant", () => {
           code_verifier: codeVerifier + "broken",
         },
       });
-      const accessTokenResponse = grant.respondToAccessTokenRequest(request, response, new DateInterval("1h"));
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       // assert
       await expect(accessTokenResponse).rejects.toThrowError(/Failed to verify code challenge/);

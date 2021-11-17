@@ -261,7 +261,6 @@ export abstract class AbstractGrant implements GrantInterface {
     return await this.jwt.verify(encryptedData);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validateAuthorizationRequest(_request: RequestInterface): Promise<AuthorizationRequest> {
     throw new Error("Grant does not support the request");
   }
@@ -270,21 +269,15 @@ export abstract class AbstractGrant implements GrantInterface {
     return this.getRequestParameter("grant_type", request) === this.identifier;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canRespondToAuthorizationRequest(_request: RequestInterface): boolean {
     return false;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async completeAuthorizationRequest(_authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
 
-  async respondToAccessTokenRequest(
-    _req: RequestInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    _res: ResponseInterface, // eslint-disable-line @typescript-eslint/no-unused-vars
-    _tokenTTL: DateInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
-  ): Promise<ResponseInterface> {
+  async respondToAccessTokenRequest(_req: RequestInterface, _accessTokenTTL: DateInterval): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
 }

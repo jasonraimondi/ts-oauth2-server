@@ -8,21 +8,17 @@ import { AbstractGrant } from "./abstract/abstract.grant";
 export class RefreshTokenGrant extends AbstractGrant {
   readonly identifier = "refresh_token";
 
-  async respondToAccessTokenRequest(
-    request: RequestInterface,
-    _response: ResponseInterface,
-    accessTokenTTL: DateInterval,
-  ): Promise<ResponseInterface> {
-    const client = await this.validateClient(request);
+  async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {
+    const client = await this.validateClient(req);
 
-    const oldToken = await this.validateOldRefreshToken(request, client.id);
+    const oldToken = await this.validateOldRefreshToken(req, client.id);
 
     const user = oldToken.user;
 
     const scopes = await this.validateScopes(
       this.getRequestParameter(
         "scope",
-        request,
+        req,
         oldToken.scopes.map(s => s.name),
       ),
     );

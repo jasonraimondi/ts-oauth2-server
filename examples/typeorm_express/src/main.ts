@@ -4,7 +4,6 @@ import { Connection, createConnection } from "typeorm";
 import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";
 import {
   requestFromExpress,
-  responseFromExpress,
   handleExpressError,
   handleExpressResponse,
 } from "@jmondi/oauth2-server/dist/adapters/express";
@@ -73,7 +72,7 @@ async function bootstrap() {
 
   app.post("/token", async (req: Express.Request, res: Express.Response) => {
     try {
-      const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req, responseFromExpress(res));
+      const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
       return handleExpressResponse(res, oauthResponse);
     } catch (e) {
       handleExpressError(e, res);

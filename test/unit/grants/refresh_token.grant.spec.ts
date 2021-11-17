@@ -11,7 +11,6 @@ import {
   JwtService,
   OAuthClient,
   OAuthRequest,
-  OAuthResponse,
   OAuthScope,
   OAuthToken,
   RefreshTokenGrant,
@@ -28,11 +27,9 @@ describe("refresh_token grant", () => {
   let grant: RefreshTokenGrant;
 
   let request: OAuthRequest;
-  let response: OAuthResponse;
 
   beforeEach(() => {
     request = new OAuthRequest();
-    response = new OAuthResponse();
 
     scope1 = { name: "scope-1" };
     scope2 = { name: "scope-2" };
@@ -82,7 +79,7 @@ describe("refresh_token grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -104,7 +101,7 @@ describe("refresh_token grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = await grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     expectTokenResponse(tokenResponse);
@@ -133,7 +130,7 @@ describe("refresh_token grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Cannot verify the refresh token/);
@@ -152,7 +149,7 @@ describe("refresh_token grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    const tokenResponse = grant.respondToAccessTokenRequest(request, response, accessTokenTTL);
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Cannot decrypt the refresh token/);

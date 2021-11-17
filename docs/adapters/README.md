@@ -12,18 +12,11 @@ Adapters are a set of helper functions to provide framework specific integration
 
 ```typescript 
 import {
-  responseFromExpress,
   requestFromExpress,
   handleExpressResponse,
   handleExpressError,
 } from "@jmondi/oauth2-server/dist/adapters/express"
 ```
-
-```typescript
-responseFromExpress(res: Express.Response): OAuthResponse;
-```
-
-Helper function to return an OAuthResponse from an `Express.Response`.
 
 ```typescript
 requestFromExpress(req: Express.Request): OAuthRequest;
@@ -49,7 +42,6 @@ Helper function that handles the express response if an error was thrown.
 
 ```typescript 
 import {
-  responseFromFastify,
   requestFromFastify,
   handleFastifyReply,
   handleFastifyError,
@@ -57,12 +49,6 @@ import {
 ```
 
 The following functions are imported directly from the adapter instead of the root package.
-
-```typescript
-responseFromFastify(reply: FasitfyReply): OAuthResponse;
-```
-
-Helper function to return an OAuthResponse from an `FasitfyReply`.
 
 ```typescript
 requestFromFastify(req: FastifyRequest): OAuthRequest;

@@ -9,16 +9,12 @@ import { AbstractGrant } from "./abstract/abstract.grant";
 export class PasswordGrant extends AbstractGrant {
   readonly identifier = "password";
 
-  async respondToAccessTokenRequest(
-    request: RequestInterface,
-    _response: ResponseInterface,
-    accessTokenTTL: DateInterval,
-  ): Promise<ResponseInterface> {
-    const client = await this.validateClient(request);
+  async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {
+    const client = await this.validateClient(req);
 
-    const bodyScopes = this.getRequestParameter("scope", request, []);
+    const bodyScopes = this.getRequestParameter("scope", req, []);
 
-    const user = await this.validateUser(request, client);
+    const user = await this.validateUser(req, client);
 
     const finalizedScopes = await this.scopeRepository.finalize(
       await this.validateScopes(bodyScopes),
