@@ -36,6 +36,7 @@ export abstract class AbstractGrant implements GrantInterface {
   public readonly options: AuthorizationServerOptions = {
     requiresPKCE: true,
     notBeforeLeeway: 0,
+    tokenCID: "name",
   };
 
   protected readonly scopeDelimiterString = " ";
@@ -110,7 +111,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return this.encrypt(<ITokenData | any>{
       // non standard claims
       ...extraJwtFields,
-      cid: client.id,
+      cid: client[this.options.tokenCID],
       scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
 
       // standard claims
