@@ -18,9 +18,9 @@ import { JwtInterface } from "./utils/jwt";
 
 export interface AuthorizationServerOptions {
   // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5
-  notBeforeLeeway: Readonly<number>;
-  requiresPKCE: Readonly<boolean>;
-  tokenCID: Readonly<"id"|"name">;
+  notBeforeLeeway: number;
+  requiresPKCE: boolean;
+  tokenCID: "id"|"name";
 }
 
 type EnableGrantTuple = GrantIdentifier | [GrantIdentifier, DateInterval];
