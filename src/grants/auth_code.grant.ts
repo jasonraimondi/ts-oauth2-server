@@ -181,6 +181,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.logicException("A user should be set on the authorization request");
     }
 
+    if (!authorizationRequest.client) {
+      throw OAuthException.logicException("A client should be set on the authorization request");
+    }
+
     const redirectUri = authorizationRequest.redirectUri;
 
     if (!redirectUri) {
