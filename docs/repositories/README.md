@@ -112,11 +112,7 @@ interface OAuthUserRepository {
   ): Promise<OAuthUser | undefined>;
 
   // Optionally you can add extra claims to access token
-  extraAccessTokenFields(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined> {
-  return {
-    anything_here: "will be appended to the token",
-    anything_else: "will be appended to the token",
-  }
-}
+  extraAccessTokenFields?(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined>;
+  
 }
 ```
