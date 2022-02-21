@@ -148,7 +148,7 @@ For devices that can perform a SHA256 hash, the code challenge is a BASE64-URL-e
 const code_challenge = base64urlencode(
   crypto.createHash("sha256")
     .update(code_verifier)
-    .digest("hex")
+    .digest()
 );
 ```
 
