@@ -5,6 +5,7 @@
 [![Maintainability](https://img.shields.io/codeclimate/coverage-letter/jasonraimondi/typescript-oauth2-server?label=maintainability&style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/maintainability)
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/jasonraimondi/ts-oauth2-server?style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server/releases/latest)
 [![NPM Downloads](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjasonraimondi%2Fts-oauth2-server.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjasonraimondi%2Fts-oauth2-server?ref=badge_shield)
 
 `@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server for Node, written in TypeScript. 
 
@@ -439,3 +440,7 @@ This project is inspired by the [PHP League's OAuth2 Server](https://oauth2.thep
 
 [![Stargazers over time](https://starchart.cc/jasonraimondi/ts-oauth2-server.svg)](https://starchart.cc/jasonraimondi/ts-oauth2-server)
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjasonraimondi%2Fts-oauth2-server.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjasonraimondi%2Fts-oauth2-server?ref=badge_large)
