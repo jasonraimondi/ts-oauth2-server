@@ -216,7 +216,7 @@ describe("implicit grant", () => {
       });
 
       // act
-      const canRespond = grant.canRespondToAccessTokenRequest(request);
+      const canRespond = grant.canRespondToAuthorizationRequest(request);
 
       // assert
       expect(canRespond).toBeTruthy();

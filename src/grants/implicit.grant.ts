@@ -16,7 +16,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     throw OAuthException.logicException("The implicit grant can't respond to access token requests");
   }
 
-  canRespondToAccessTokenRequest(request: RequestInterface): boolean {
+  canRespondToAuthorizationRequest(request: RequestInterface): boolean {
     const clientId = this.getQueryStringParameter("client_id", request);
     return this.getQueryStringParameter("response_type", request) === "token" && !!clientId;
   }
