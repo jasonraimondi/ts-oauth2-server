@@ -223,11 +223,12 @@ describe("implicit grant", () => {
     });
 
     it("invalid request cannot respond", async () => {
-      // act
-      const canRespond = grant.canRespondToAccessTokenRequest(request);
+      // arrange
+      request = new OAuthRequest({ query: {} });
 
       // assert
-      expect(canRespond).toBeFalsy();
+      expect(grant.canRespondToAuthorizationRequest(request)).toBeFalsy();
+      expect(grant.canRespondToAccessTokenRequest(request)).toBeFalsy();
     });
   });
 

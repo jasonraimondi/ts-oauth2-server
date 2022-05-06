@@ -21,6 +21,10 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     return this.getQueryStringParameter("response_type", request) === "token" && !!clientId;
   }
 
+  canRespondToAccessTokenRequest(_request: RequestInterface): boolean {
+    return false;
+  }
+
   async validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
     const clientId = this.getQueryStringParameter("client_id", request);
 
