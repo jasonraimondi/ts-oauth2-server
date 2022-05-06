@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  PNPM_VERSION: 6.22.2
+
 jobs:
   build:
 
@@ -17,20 +20,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2
         with:
-          path: |
-            ~/.pnpm-store
-            ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install -g pnpm@6
-      - run: pnpm install --frozen-lockfile
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --production false
       - run: pnpm test:cov --ci --maxWorkers=2
         env:
           CI: true
