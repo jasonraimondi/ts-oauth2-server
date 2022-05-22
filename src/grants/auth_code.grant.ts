@@ -199,7 +199,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const payload: IAuthCodePayload = {
       client_id: authCode.client.id,
-      redirect_uri: authCode.redirectUri!, // NO NO NO JUST FOR TONIGHT
+      redirect_uri: authCode.redirectUri,
       auth_code_id: authCode.code,
       scopes: authCode.scopes.map(scope => scope.name),
       user_id: authCode.user?.id,
