@@ -4,6 +4,7 @@ export * from "./entities/client.entity";
 export * from "./entities/scope.entity";
 export * from "./entities/token.entity";
 export * from "./entities/user.entity";
+export * from "./exceptions/oauth.exception";
 export * from "./grants/auth_code.grant";
 export * from "./grants/client_credentials.grant";
 export * from "./grants/implicit.grant";
