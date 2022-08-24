@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect } from "vitest";
 import { decode } from "jsonwebtoken";
 import querystring from "querystring";
 
@@ -163,7 +164,7 @@ describe("authorization_server", () => {
       inMemoryDatabase.clients[client.id] = client;
     });
 
-    test("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
+    it("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
       authorizationServer.setOptions({ requiresPKCE: false });
       authorizationServer.enableGrantType("authorization_code");
       const request = new OAuthRequest({
@@ -189,7 +190,7 @@ describe("authorization_server", () => {
       expect(decodedCode.code_challenge).toBeUndefined();
     });
 
-    test("auth server requiring pkce throws if request is missing code_challenge", async () => {
+    it("auth server requiring pkce throws if request is missing code_challenge", async () => {
       authorizationServer = new AuthorizationServer(
         inMemoryAuthCodeRepository,
         inMemoryClientRepository,

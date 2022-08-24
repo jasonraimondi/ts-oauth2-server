@@ -1,3 +1,5 @@
+import { beforeEach } from "vitest";
+
 import { OAuthAuthCode } from "../../src/entities/auth_code.entity";
 import { OAuthClient } from "../../src/entities/client.entity";
 import { OAuthScope } from "../../src/entities/scope.entity";

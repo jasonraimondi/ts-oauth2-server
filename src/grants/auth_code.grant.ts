@@ -27,7 +27,7 @@ export interface IAuthCodePayload {
 
 export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
 
-export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-\._~\+\/]+=*/g;
+export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-._~+\/]+=*/;
 
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantIdentifier = "authorization_code";

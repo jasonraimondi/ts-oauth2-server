@@ -1,3 +1,4 @@
+import { it, expect } from "vitest";
 import { JwtService } from "../../src";
 
 it("can use the index.ts file", async () => {

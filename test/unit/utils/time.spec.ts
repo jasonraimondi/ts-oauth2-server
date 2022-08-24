@@ -1,3 +1,5 @@
+import { describe, it, expect } from "vitest";
+
 import { getSecondsUntil } from "../../../src/utils/time";
 
 describe("utils/time", () => {
