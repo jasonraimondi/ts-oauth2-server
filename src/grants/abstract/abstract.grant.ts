@@ -30,6 +30,7 @@ export interface ITokenData {
   jti: string;
   cid: string;
   scope: string;
+  [key: string]: unknown;
 }
 
 export abstract class AbstractGrant implements GrantInterface {
@@ -108,7 +109,8 @@ export abstract class AbstractGrant implements GrantInterface {
     scopes: OAuthScope[],
     extraJwtFields: ExtraAccessTokenFields,
   ) {
-    return this.encrypt(<ITokenData | any>{
+    const now = Date.now();
+    return this.encrypt(<ITokenData>{
       // non standard claims
       ...extraJwtFields,
       cid: client[this.options.tokenCID],
@@ -119,8 +121,8 @@ export abstract class AbstractGrant implements GrantInterface {
       sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
       exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
-      nbf: roundToSeconds(Date.now()) - this.options.notBeforeLeeway, // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
-      iat: roundToSeconds(Date.now()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
+      nbf: roundToSeconds(now) - this.options.notBeforeLeeway, // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
+      iat: roundToSeconds(now), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
       jti: accessToken.accessToken, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
     });
   }
