@@ -1,7 +1,11 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    setupFiles: ["test/setup.ts"]
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "lcovonly"],
+    },
+    setupFiles: ["test/setup.ts"],
   },
-})
+});
