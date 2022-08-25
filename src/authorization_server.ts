@@ -20,7 +20,7 @@ export interface AuthorizationServerOptions {
   // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5
   notBeforeLeeway: number;
   requiresPKCE: boolean;
-  tokenCID: "id"|"name";
+  tokenCID: "id" | "name";
 }
 
 type EnableGrantTuple = GrantIdentifier | [GrantIdentifier, DateInterval];
