@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  PNPM_VERSION: 6.22.2
+  PNPM_VERSION: 7.9.1
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
         node-version: [ 16.x, 18.x ]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
           version: ${{ env.PNPM_VERSION }}
@@ -29,7 +29,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile --production false
-      - run: pnpm test:cov --ci --maxWorkers=2
+      - run: pnpm test:cov
         env:
           CI: true
           DOMAIN: localhost
