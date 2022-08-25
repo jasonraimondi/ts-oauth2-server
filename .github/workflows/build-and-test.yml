@@ -2,9 +2,9 @@ name: build and test
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
   PNPM_VERSION: 7.9.1
@@ -35,8 +35,8 @@ jobs:
           DOMAIN: localhost
           JWT_SECRET: testing-access-token-secret
       - name: report coverage to code climate
-        # code coverage report will only run on the master branch and not on pull request
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        # code coverage report will only run on the main branch and not on pull request
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter

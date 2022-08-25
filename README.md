@@ -30,7 +30,7 @@ Adapters are included for the following frameworks:
 - [Express](https://jasonraimondi.github.io/ts-oauth2-server/adapters/#express)
 - [Fastify](https://jasonraimondi.github.io/ts-oauth2-server/adapters/#fastify)
 
-The included adapters are just helper functions, really any framework should be supported. Take a look at the adapter implementations for [express](https://github.com/jasonraimondi/ts-oauth2-server/blob/master/src/adapters/express.ts) and [fastify](https://github.com/jasonraimondi/ts-oauth2-server/blob/master/src/adapters/fastify.ts) to learn how you can implement one for your favorite tool!
+The included adapters are just helper functions, really any framework should be supported. Take a look at the adapter implementations for [express](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/src/adapters/express.ts) and [fastify](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/src/adapters/fastify.ts) to learn how you can implement one for your favorite tool!
 
 ## Getting Started
 
