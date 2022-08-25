@@ -144,12 +144,6 @@ export abstract class AbstractGrant implements GrantInterface {
       throw OAuthException.invalidClient();
     }
 
-    if (grantType === "client_credentials") {
-      if (!client.secret || client.secret !== clientSecret) {
-        throw OAuthException.invalidClient("Invalid client_credentials");
-      }
-    }
-
     return client;
   }
 
