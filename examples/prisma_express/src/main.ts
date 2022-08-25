@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { PrismaClient } from "@prisma/client";
 import { json, urlencoded } from "body-parser";
 import Express from "express";

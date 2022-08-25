@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { PrismaClient } from "@prisma/client";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";

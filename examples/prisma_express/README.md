@@ -1,4 +1,4 @@
-# Prisma Fastify
+# Prisma Express
 
 ```bash
 cp .env.example .env

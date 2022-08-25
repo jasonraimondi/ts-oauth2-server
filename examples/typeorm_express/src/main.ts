@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { json, urlencoded } from "body-parser";
 import Express from "express";
 import { Connection, createConnection } from "typeorm";

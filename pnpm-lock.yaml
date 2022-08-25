@@ -68,10 +68,12 @@ importers:
       '@jmondi/oauth2-server': workspace:^2.0.3-rc.0
       '@prisma/client': ^4.2.1
       '@types/bcryptjs': ^2.4.2
+      '@types/body-parser': ^1.19.2
       '@types/express': ^4.17.13
       '@types/node': ^18.7.13
       bcryptjs: ^2.4.3
       body-parser: ^1.20.0
+      dotenv: ^16.0.1
       express: ^4.18.1
       prisma: ^4.2.1
       ts-node: ^10.9.1
@@ -82,9 +84,11 @@ importers:
       '@prisma/client': 4.2.1_prisma@4.2.1
       bcryptjs: 2.4.3
       body-parser: 1.20.0
+      dotenv: 16.0.1
       express: 4.18.1
     devDependencies:
       '@types/bcryptjs': 2.4.2
+      '@types/body-parser': 1.19.2
       '@types/express': 4.17.13
       '@types/node': 18.7.13
       prisma: 4.2.1
@@ -100,6 +104,7 @@ importers:
       '@types/node': ^18.7.13
       bcryptjs: ^2.4.3
       body-parser: ^1.20.0
+      dotenv: ^16.0.1
       fastify: ^4.5.2
       prisma: ^4.2.1
       ts-node: ^10.9.1
@@ -110,6 +115,7 @@ importers:
       '@prisma/client': 4.2.1_prisma@4.2.1
       bcryptjs: 2.4.3
       body-parser: 1.20.0
+      dotenv: 16.0.1
       fastify: 4.5.2
     devDependencies:
       '@types/bcryptjs': 2.4.2
@@ -122,22 +128,26 @@ importers:
   examples/typeorm_express:
     specifiers:
       '@jmondi/oauth2-server': workspace:^2.0.3-rc.0
+      '@types/body-parser': ^1.19.2
       '@types/uuid': ^8.3.4
-      body-parser: ^1.20.0
-      express: ^4.18.1
+      body-parser: ^1.19.2
+      dotenv: ^16.0.1
+      express: ^4.17.3
       mysql: ^2.18.1
-      pg: ^8.8.0
-      typeorm: ^0.3.7
+      pg: ^8.7.3
+      typeorm: ^0.2.45
       uuid: ^8.3.2
     dependencies:
       '@jmondi/oauth2-server': link:../..
       body-parser: 1.20.0
+      dotenv: 16.0.1
       express: 4.18.1
       mysql: 2.18.1
       pg: 8.8.0
-      typeorm: 0.3.7_pg@8.8.0
+      typeorm: 0.2.45_pg@8.8.0
       uuid: 8.3.2
     devDependencies:
+      '@types/body-parser': 1.19.2
       '@types/uuid': 8.3.4
 
 packages:
@@ -1777,6 +1787,10 @@ packages:
       anymatch: 3.1.2
       source-map: 0.6.1
     dev: true
+
+  /@types/zen-observable/0.8.3:
+    resolution: {integrity: sha512-fbF6oTd4sGGy0xjHPKAt+eS2CrxJ3+6gQ3FGcBoIJR2TLAyCkCyI8JqZNy+FeON0AhVgNJoUumVoZQjBFUqHkw==}
+    dev: false
 
   /@typescript-eslint/eslint-plugin/5.35.1_ktjxjibzrfqejavile4bhmzhjq:
     resolution: {integrity: sha512-RBZZXZlI4XCY4Wzgy64vB+0slT9+yAPQRjj/HSaRwUot33xbDjF1oN9BLwOLTewoOI0jothIltZRe9uJCHf8gg==}
@@ -4291,11 +4305,6 @@ packages:
       assert-plus: 1.0.0
     dev: true
 
-  /date-fns/2.29.2:
-    resolution: {integrity: sha512-0VNbwmWJDS/G3ySwFSJA3ayhbURMTJLtwM2DTxf9CWondCnh6DTNlO9JgRSq6ibf4eD0lfMJNBxUdEAHHix+bA==}
-    engines: {node: '>=0.11'}
-    dev: false
-
   /de-indent/1.0.2:
     resolution: {integrity: sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==}
     dev: true
@@ -4663,6 +4672,11 @@ packages:
   /dotenv/16.0.1:
     resolution: {integrity: sha512-1K6hR6wtk2FviQ4kEiSjFiH5rpzEVi8WW0x96aztHVMhEspNpc4DVOUTEHtEva5VThQ8IaBX1Pe4gSzpVVUsKQ==}
     engines: {node: '>=12'}
+    dev: false
+
+  /dotenv/8.6.0:
+    resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
+    engines: {node: '>=10'}
     dev: false
 
   /duplexer3/0.1.5:
@@ -10609,31 +10623,26 @@ packages:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
     dev: true
 
-  /typeorm/0.3.7_pg@8.8.0:
-    resolution: {integrity: sha512-MsPJeP6Zuwfe64c++l80+VRqpGEGxf0CkztIEnehQ+CMmQPSHjOnFbFxwBuZ2jiLqZTjLk2ZqQdVF0RmvxNF3Q==}
-    engines: {node: '>= 12.9.0'}
+  /typeorm/0.2.45_pg@8.8.0:
+    resolution: {integrity: sha512-c0rCO8VMJ3ER7JQ73xfk0zDnVv0WDjpsP6Q1m6CVKul7DB9iVdWLRjPzc8v2eaeBuomsbZ2+gTaYr8k1gm3bYA==}
     hasBin: true
     peerDependencies:
-      '@google-cloud/spanner': ^5.18.0
-      '@sap/hana-client': ^2.12.25
+      '@sap/hana-client': ^2.11.14
       better-sqlite3: ^7.1.2
       hdb-pool: ^0.1.6
-      ioredis: ^5.0.4
+      ioredis: ^4.28.3
       mongodb: ^3.6.0
-      mssql: ^7.3.0
+      mssql: ^6.3.1
       mysql2: ^2.2.5
       oracledb: ^5.1.0
       pg: ^8.5.1
       pg-native: ^3.0.0
       pg-query-stream: ^4.0.0
-      redis: ^3.1.1 || ^4.0.0
+      redis: ^3.1.1
       sql.js: ^1.4.0
-      sqlite3: ^5.0.3
-      ts-node: ^10.7.0
+      sqlite3: ^5.0.2
       typeorm-aurora-data-api-driver: ^2.0.0
     peerDependenciesMeta:
-      '@google-cloud/spanner':
-        optional: true
       '@sap/hana-client':
         optional: true
       better-sqlite3:
@@ -10662,8 +10671,6 @@ packages:
         optional: true
       sqlite3:
         optional: true
-      ts-node:
-        optional: true
       typeorm-aurora-data-api-driver:
         optional: true
     dependencies:
@@ -10672,9 +10679,8 @@ packages:
       buffer: 6.0.3
       chalk: 4.1.2
       cli-highlight: 2.1.11
-      date-fns: 2.29.2
       debug: 4.3.4
-      dotenv: 16.0.1
+      dotenv: 8.6.0
       glob: 7.2.3
       js-yaml: 4.1.0
       mkdirp: 1.0.4
@@ -10685,6 +10691,7 @@ packages:
       uuid: 8.3.2
       xml2js: 0.4.23
       yargs: 17.5.1
+      zen-observable-ts: 1.1.0
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -11683,6 +11690,17 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  /zen-observable-ts/1.1.0:
+    resolution: {integrity: sha512-1h4zlLSqI2cRLPJUHJFL8bCWHhkpuXkF+dbGkRaWjgDIG26DmzyshUMrdV/rL3UnR+mhaX4fRq8LPouq0MYYIA==}
+    dependencies:
+      '@types/zen-observable': 0.8.3
+      zen-observable: 0.8.15
+    dev: false
+
+  /zen-observable/0.8.15:
+    resolution: {integrity: sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==}
+    dev: false
 
   /zepto/1.2.0:
     resolution: {integrity: sha512-C1x6lfvBICFTQIMgbt3JqMOno3VOtkWat/xEakLTOurskYIHPmzJrzd1e8BnmtdDVJlGuk5D+FxyCA8MPmkIyA==}

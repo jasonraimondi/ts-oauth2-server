@@ -1,4 +1,4 @@
-# Prisma Fastify
+# TypeORM Express
 
 ```bash
 cp .env.example .env
