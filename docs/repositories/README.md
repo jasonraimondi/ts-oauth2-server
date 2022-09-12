@@ -82,9 +82,9 @@ interface OAuthTokenRepository {
   persist(accessToken: OAuthToken): Promise<void>;
 
   // This async method is called when a refresh token is used to reissue 
-  // an access token. The original access token is revoked a new access 
-  // token is issued.
-  revoke(accessTokenToken: OAuthToken): Promise<void>;
+  // an access token. The original access token is revoked, and a new
+  // access token is issued.
+  revoke(accessToken: OAuthToken): Promise<void>;
 
   // This async method is called when an access token is validated by the 
   // authorization server. Return `true` if the access token has been 
