@@ -161,6 +161,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     if (codeChallenge) {
       const codeChallengeMethod: string = this.getQueryStringParameter("code_challenge_method", request, "plain");
 
+      if (codeChallengeMethod !== "S256" && this.options.requiresS256) {
+        throw OAuthException.invalidRequest("code_challenge_method", "Must be `S256`");
+      }
+
       if (!(codeChallengeMethod === "S256" || codeChallengeMethod === "plain")) {
         throw OAuthException.invalidRequest("code_challenge_method", "Must be `S256` or `plain`");
       }

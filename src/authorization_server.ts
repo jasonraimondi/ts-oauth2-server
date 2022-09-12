@@ -20,6 +20,7 @@ export interface AuthorizationServerOptions {
   // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5
   notBeforeLeeway: number;
   requiresPKCE: boolean;
+  requiresS256: boolean;
   tokenCID: "id" | "name";
 }
 
@@ -33,6 +34,7 @@ export class AuthorizationServer {
 
   private options: AuthorizationServerOptions = {
     requiresPKCE: true,
+    requiresS256: false,
     notBeforeLeeway: 0,
     tokenCID: "name", // @todo v3.0.0 switch to "id"
   };

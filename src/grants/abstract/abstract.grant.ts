@@ -36,6 +36,7 @@ export interface ITokenData {
 export abstract class AbstractGrant implements GrantInterface {
   public readonly options: AuthorizationServerOptions = {
     requiresPKCE: true,
+    requiresS256: false,
     notBeforeLeeway: 0,
     tokenCID: "name",
   };

@@ -244,6 +244,27 @@ describe("authorization_code grant", () => {
       );
     });
 
+    it("throws when S256 is required and plain is used for code_challenge_method", async () => {
+      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          state: "state-is-a-secret",
+          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
+          code_challenge_method: "plain",
+        },
+      });
+      grant.options.requiresS256 = true;
+
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(
+        /Must be `S256`/,
+      );
+    });
+
     it.skip("throws for invalid code_challenge pkce format regex", async () => {
       request = new OAuthRequest({
         query: {
