@@ -13,7 +13,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
   private accessTokenTTL: DateInterval = new DateInterval("1h");
 
   respondToAccessTokenRequest(_req: RequestInterface, _tokenTTL?: DateInterval): Promise<ResponseInterface> {
-    throw OAuthException.logicException("The implicit grant can't respond to access token requests");
+    throw OAuthException.badRequest("The implicit grant can't respond to access token requests");
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
@@ -29,7 +29,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     const clientId = this.getQueryStringParameter("client_id", request);
 
     if (!clientId) {
-      throw OAuthException.invalidRequest("client_id");
+      throw OAuthException.invalidParameter("client_id");
     }
 
     const client = await this.clientRepository.getByIdentifier(clientId);
@@ -58,7 +58,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     if (!authorizationRequest.user || !authorizationRequest.user?.id) {
-      throw OAuthException.logicException("A user must be set on the AuthorizationRequest");
+      throw OAuthException.badRequest("A user must be set on the AuthorizationRequest");
     }
 
     let finalRedirectUri = authorizationRequest.redirectUri;
@@ -68,7 +68,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     }
 
     if (!finalRedirectUri) {
-      throw OAuthException.invalidRequest(
+      throw OAuthException.invalidParameter(
         "redirect_uri",
         "Neither the request nor the client contain a valid refresh token",
       );

@@ -260,9 +260,7 @@ describe("authorization_code grant", () => {
 
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
-      await expect(authorizationRequest).rejects.toThrowError(
-        /Must be `S256`/,
-      );
+      await expect(authorizationRequest).rejects.toThrowError(/Must be `S256`/);
     });
 
     it.skip("throws for invalid code_challenge pkce format regex", async () => {
@@ -511,6 +509,7 @@ describe("authorization_code grant", () => {
         /Code verifier must follow the specifications of RFS-7636/,
       );
     });
+
 
     it("throws for incorrect code_verifier", async () => {
       // act

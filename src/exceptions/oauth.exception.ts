@@ -35,7 +35,7 @@ export class OAuthException extends Error {
    * may also be returned if the request includes an unsupported parameter or repeats a
    * parameter.
    */
-  static invalidRequest(parameter: string, errorDescription?: string): OAuthException {
+  static invalidParameter(parameter: string, errorDescription?: string): OAuthException {
     let message = "The request is missing a required parameter, includes an invalid parameter value, ";
     message += "includes a parameter more than once, or is otherwise malformed";
     errorDescription = errorDescription ? errorDescription : `Check the \`${parameter}\` parameter`;
@@ -99,8 +99,8 @@ export class OAuthException extends Error {
     return new OAuthException("unsupported grant_type", ErrorType.UnsupportedGrantType);
   }
 
-  static logicException(message: string) {
-    return new OAuthException(message, ErrorType.InvalidRequest);
+  static badRequest(message: string) {
+    return new OAuthException(message, ErrorType.InvalidRequest, undefined, undefined, HttpStatus.BAD_REQUEST);
   }
 
   static accessDenied(errorDescription?: string) {

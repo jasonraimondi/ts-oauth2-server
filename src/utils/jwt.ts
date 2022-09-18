@@ -2,7 +2,7 @@ import jwt, { Secret, SignOptions, VerifyOptions } from "jsonwebtoken";
 
 export interface JwtInterface {
   verify(token: string, options?: VerifyOptions): Promise<Record<string, unknown>>;
-  decode(encryptedData: string): null | { [key: string]: any } | string;
+  decode(encryptedData: string): null | Record<string, any> | string;
   sign(payload: string | Buffer | Record<string, unknown>, options?: SignOptions): Promise<string>;
 }
 

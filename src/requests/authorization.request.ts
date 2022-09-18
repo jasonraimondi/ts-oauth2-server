@@ -22,6 +22,6 @@ export class AuthorizationRequest {
     this.scopes = [];
     this.isAuthorizationApproved = false;
     this.redirectUri = redirectUri ?? client.redirectUris[0];
-    if (!this.redirectUri) throw OAuthException.logicException("Unknown redirect_uri");
+    if (!this.redirectUri) throw OAuthException.badRequest("Unknown redirect_uri");
   }
 }

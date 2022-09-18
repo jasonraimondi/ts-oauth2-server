@@ -30,17 +30,17 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
 
   private validateRedirectUri(redirectUri: any, client: OAuthClient) {
     if (typeof redirectUri !== "string" || redirectUri === "") {
-      throw OAuthException.invalidRequest("redirect_uri");
+      throw OAuthException.invalidParameter("redirect_uri");
     }
 
     const parsed = parse(redirectUri);
 
     if (!parsed.scheme) {
-      throw OAuthException.invalidRequest("redirect_uri");
+      throw OAuthException.invalidParameter("redirect_uri");
     }
 
     if (!!parsed.fragment) {
-      throw OAuthException.invalidRequest(
+      throw OAuthException.invalidParameter(
         "redirect_uri",
         "Redirection endpoint must not contain url fragment based on RFC6749, section 3.1.2",
       );

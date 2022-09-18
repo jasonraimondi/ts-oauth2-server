@@ -36,13 +36,13 @@ export class PasswordGrant extends AbstractGrant {
     const username = this.getRequestParameter("username", request);
 
     if (!username) {
-      throw OAuthException.invalidRequest("username");
+      throw OAuthException.invalidParameter("username");
     }
 
     const password = this.getRequestParameter("password", request);
 
     if (!password) {
-      throw OAuthException.invalidRequest("password");
+      throw OAuthException.invalidParameter("password");
     }
 
     const user = await this.userRepository.getUserByCredentials(username, password, this.identifier, client);

@@ -154,7 +154,7 @@ export abstract class AbstractGrant implements GrantInterface {
     let clientId = this.getRequestParameter("client_id", request, basicAuthUser);
 
     if (!clientId) {
-      throw OAuthException.invalidRequest("client_id");
+      throw OAuthException.invalidParameter("client_id");
     }
 
     let clientSecret = this.getRequestParameter("client_secret", request, basicAuthPass);
@@ -233,11 +233,11 @@ export abstract class AbstractGrant implements GrantInterface {
       this.getRequestParameter("grant_type", request) ?? this.getQueryStringParameter("grant_type", request);
 
     if (!result || !this.supportedGrantTypes.includes(result)) {
-      throw OAuthException.invalidRequest("grant_type");
+      throw OAuthException.invalidParameter("grant_type");
     }
 
     if (this.identifier !== result) {
-      throw OAuthException.invalidRequest("grant_type", "something went wrong"); // @todo remove the something went wrong
+      throw OAuthException.invalidParameter("grant_type", "something went wrong"); // @todo remove the something went wrong
     }
 
     return result;

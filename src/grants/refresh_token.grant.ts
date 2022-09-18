@@ -44,7 +44,7 @@ export class RefreshTokenGrant extends AbstractGrant {
     const encryptedRefreshToken = this.getRequestParameter("refresh_token", request);
 
     if (!encryptedRefreshToken) {
-      throw OAuthException.invalidRequest("refresh_token");
+      throw OAuthException.invalidParameter("refresh_token");
     }
 
     let refreshTokenData: any;
@@ -53,27 +53,27 @@ export class RefreshTokenGrant extends AbstractGrant {
       refreshTokenData = await this.decrypt(encryptedRefreshToken);
     } catch (e) {
       if (e instanceof Error && e.message === "invalid signature") {
-        throw OAuthException.invalidRequest("refresh_token", "Cannot verify the refresh token");
+        throw OAuthException.invalidParameter("refresh_token", "Cannot verify the refresh token");
       }
-      throw OAuthException.invalidRequest("refresh_token", "Cannot decrypt the refresh token");
+      throw OAuthException.invalidParameter("refresh_token", "Cannot decrypt the refresh token");
     }
 
     if (!refreshTokenData?.refresh_token_id) {
-      throw OAuthException.invalidRequest("refresh_token", "Token missing");
+      throw OAuthException.invalidParameter("refresh_token", "Token missing");
     }
 
     if (refreshTokenData?.client_id !== clientId) {
-      throw OAuthException.invalidRequest("refresh_token", "Token is not linked to client");
+      throw OAuthException.invalidParameter("refresh_token", "Token is not linked to client");
     }
 
     if (Date.now() / 1000 > refreshTokenData?.expire_time) {
-      throw OAuthException.invalidRequest("refresh_token", "Token has expired");
+      throw OAuthException.invalidParameter("refresh_token", "Token has expired");
     }
 
     const refreshToken = await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
 
     if (await this.tokenRepository.isRefreshTokenRevoked(refreshToken)) {
-      throw OAuthException.invalidRequest("refresh_token", "Token has been revoked");
+      throw OAuthException.invalidParameter("refresh_token", "Token has been revoked");
     }
 
     return refreshToken;

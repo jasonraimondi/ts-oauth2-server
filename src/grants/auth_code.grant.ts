@@ -44,7 +44,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const encryptedAuthCode = this.getRequestParameter("code", req);
 
-    if (!encryptedAuthCode) throw OAuthException.invalidRequest("code");
+    if (!encryptedAuthCode) throw OAuthException.invalidParameter("code");
 
     const decryptedCode = await this.decrypt(encryptedAuthCode);
 
@@ -65,28 +65,28 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       );
       finalizedScopes.forEach(scope => scopes.push(scope));
     } catch (_) {
-      throw OAuthException.invalidRequest("code", "Cannot verify scopes");
+      throw OAuthException.invalidParameter("code", "Cannot verify scopes");
     }
 
     const authCode = await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id);
 
     if (authCode.codeChallenge) {
-      if (!validatedPayload.code_challenge) throw OAuthException.invalidRequest("code_challenge");
+      if (!validatedPayload.code_challenge) throw OAuthException.invalidParameter("code_challenge");
 
       if (authCode.codeChallenge !== validatedPayload.code_challenge) {
-        throw OAuthException.invalidRequest("code_challenge", "Provided code challenge does not match auth code");
+        throw OAuthException.invalidParameter("code_challenge", "Provided code challenge does not match auth code");
       }
 
       const codeVerifier = this.getRequestParameter("code_verifier", req);
 
       if (!codeVerifier) {
-        throw OAuthException.invalidRequest("code_verifier");
+        throw OAuthException.invalidParameter("code_verifier");
       }
 
       // Validate code_verifier according to RFC-7636
       // @see: https://tools.ietf.org/html/rfc7636#section-4.1
       if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
-        throw OAuthException.invalidRequest(
+        throw OAuthException.invalidParameter(
           "code_verifier",
           "Code verifier must follow the specifications of RFS-7636",
         );
@@ -126,7 +126,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const clientId = this.getQueryStringParameter("client_id", request);
 
     if (typeof clientId !== "string") {
-      throw OAuthException.invalidRequest("client_id");
+      throw OAuthException.invalidParameter("client_id");
     }
 
     const client = await this.clientRepository.getByIdentifier(clientId);
@@ -152,7 +152,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const codeChallenge = this.getQueryStringParameter("code_challenge", request);
 
     if (this.options.requiresPKCE && !codeChallenge) {
-      throw OAuthException.invalidRequest(
+      throw OAuthException.invalidParameter(
         "code_challenge",
         "The authorization server requires public clients to use PKCE RFC-7636",
       );
@@ -162,11 +162,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       const codeChallengeMethod: string = this.getQueryStringParameter("code_challenge_method", request, "plain");
 
       if (codeChallengeMethod !== "S256" && this.options.requiresS256) {
-        throw OAuthException.invalidRequest("code_challenge_method", "Must be `S256`");
+        throw OAuthException.invalidParameter("code_challenge_method", "Must be `S256`");
       }
 
       if (!(codeChallengeMethod === "S256" || codeChallengeMethod === "plain")) {
-        throw OAuthException.invalidRequest("code_challenge_method", "Must be `S256` or `plain`");
+        throw OAuthException.invalidParameter("code_challenge_method", "Must be `S256` or `plain`");
       }
 
       authorizationRequest.codeChallenge = codeChallenge;
@@ -178,17 +178,17 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     if (!authorizationRequest.user) {
-      throw OAuthException.logicException("A user should be set on the authorization request");
+      throw OAuthException.badRequest("A user should be set on the authorization request");
     }
 
     const redirectUri = authorizationRequest.redirectUri;
 
     if (!redirectUri) {
-      throw OAuthException.invalidRequest("redirect_uri");
+      throw OAuthException.invalidParameter("redirect_uri");
     }
 
     if (!authorizationRequest.isAuthorizationApproved) {
-      throw OAuthException.logicException("Authorization is not approved");
+      throw OAuthException.badRequest("Authorization is not approved");
     }
 
     const authCode = await this.issueAuthCode(
@@ -226,26 +226,26 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
   private async validateAuthorizationCode(payload: any, client: OAuthClient, request: RequestInterface) {
     if (!payload.auth_code_id) {
-      throw OAuthException.invalidRequest("code", "Authorization code malformed");
+      throw OAuthException.invalidParameter("code", "Authorization code malformed");
     }
 
     const isCodeRevoked = await this.authCodeRepository.isRevoked(payload.auth_code_id);
 
     if (Date.now() / 1000 > payload.expire_time || isCodeRevoked) {
-      throw OAuthException.invalidRequest("code", "Authorization code is expired or revoked");
+      throw OAuthException.invalidParameter("code", "Authorization code is expired or revoked");
     }
 
     if (payload.client_id !== client.id) {
-      throw OAuthException.invalidRequest("code", "Authorization code was not issued to this client");
+      throw OAuthException.invalidParameter("code", "Authorization code was not issued to this client");
     }
 
     const redirectUri = this.getRequestParameter("redirect_uri", request);
     if (!!payload.redirect_uri && !redirectUri) {
-      throw OAuthException.invalidRequest("redirect_uri");
+      throw OAuthException.invalidParameter("redirect_uri");
     }
 
     if (payload.redirect_uri !== redirectUri) {
-      throw OAuthException.invalidRequest("redirect_uri", "Invalid redirect URI");
+      throw OAuthException.invalidParameter("redirect_uri", "Invalid redirect URI");
     }
     return payload;
   }
