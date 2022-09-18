@@ -46,7 +46,9 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     if (!encryptedAuthCode) throw OAuthException.invalidParameter("code");
 
-    const decryptedCode = await this.decrypt(encryptedAuthCode);
+    const decryptedCode = await this.decrypt(encryptedAuthCode).catch(e => {
+      throw OAuthException.badRequest(e.message ?? "malformed jwt");
+    });
 
     const validatedPayload = await this.validateAuthorizationCode(decryptedCode, client, req);
 

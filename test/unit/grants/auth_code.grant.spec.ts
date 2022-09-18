@@ -18,6 +18,7 @@ import {
   IAuthCodePayload,
   JwtService,
   OAuthClient,
+  OAuthException,
   OAuthRequest,
   OAuthScope,
   OAuthUser,
@@ -524,6 +525,23 @@ describe("authorization_code grant", () => {
 
       // assert
       await expect(accessTokenResponse).rejects.toThrowError(/Failed to verify code challenge/);
+    });
+
+    it("throws for invalid jwt decode", async () => {
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeVerifier,
+          code: "invalid_jwt_code",
+        },
+      });
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+      // assert
+      await expect(accessTokenResponse).rejects.toThrow(OAuthException);
     });
   });
 });
