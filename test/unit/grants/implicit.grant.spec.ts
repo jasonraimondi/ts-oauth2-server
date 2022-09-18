@@ -1,6 +1,5 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { decode } from "jsonwebtoken";
-import querystring from "querystring";
 
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
@@ -179,11 +178,11 @@ describe("implicit grant", () => {
 
       // act
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
-      const decodedCode = <ITokenData>decode(String(authorizeResponseQuery.access_token));
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+      const decodedCode = <ITokenData>decode(String(authorizeResponseQuery.get("access_token")));
 
       // assert
-      expect(authorizeResponseQuery.state).toBe("abc123-state");
+      expect(authorizeResponseQuery.get("state")).toBe("abc123-state");
       expect(decodedCode.sub).toBe(user.id);
       expect(decodedCode.jti).toMatch(REGEX_ACCESS_TOKEN);
       expect(decodedCode.exp).toBeGreaterThan(now);

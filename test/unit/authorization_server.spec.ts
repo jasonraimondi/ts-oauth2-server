@@ -1,6 +1,5 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { decode } from "jsonwebtoken";
-import querystring from "querystring";
 
 import { inMemoryDatabase } from "../../examples/in_memory/database";
 import {
@@ -144,8 +143,8 @@ describe("authorization_server", () => {
     authorizationRequest.user = user;
 
     const response = await authorizationServer.completeAuthorizationRequest(authorizationRequest);
-    const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
-    const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+    const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+    const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.get("code")));
 
     expect(decodedCode.client_id).toBe(client.id);
     expect(decodedCode.redirect_uri).toBe("http://localhost");
@@ -183,8 +182,8 @@ describe("authorization_server", () => {
       const response = await authorizationServer.completeAuthorizationRequest(validResponse);
 
       // assert
-      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
-      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.get("code")));
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://localhost");
       expect(decodedCode.code_challenge).toBeUndefined();

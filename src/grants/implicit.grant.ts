@@ -103,13 +103,14 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       extraFields ?? {},
     );
 
-    return new RedirectResponse(
-      this.makeRedirectUrl(finalRedirectUri, {
-        access_token: encryptedAccessToken,
-        token_type: "Bearer",
-        expires_in: getSecondsUntil(accessToken.accessTokenExpiresAt),
-        state: authorizationRequest.state,
-      }),
-    );
+    const params: Record<string, string> = {
+      access_token: encryptedAccessToken,
+      token_type: "Bearer",
+      expires_in: getSecondsUntil(accessToken.accessTokenExpiresAt).toString(),
+    };
+
+    if (authorizationRequest.state) params.state = authorizationRequest.state.toString();
+
+    return new RedirectResponse(this.makeRedirectUrl(finalRedirectUri, params));
   }
 }

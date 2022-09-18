@@ -1,6 +1,5 @@
 import { describe, beforeEach, it, expect } from "vitest";
 
-import querystring from "querystring";
 import { decode } from "jsonwebtoken";
 
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
@@ -332,8 +331,8 @@ describe("authorization_code grant", () => {
       authorizationRequest.state = "abc123";
       authorizationRequest.user = user;
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
-      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.get("code")));
 
       expect(response.headers.location.includes("http://example.com?code=")).toBeTruthy();
       expect(decodedCode.client_id).toBe(client.id);
@@ -355,8 +354,8 @@ describe("authorization_code grant", () => {
       authorizationRequest.state = "abc123";
       authorizationRequest.user = user;
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
-      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.get("code")));
 
       expect(response.headers.location).toMatch(/http\:\/\/example\.com\?this_should_work=true\&code\=/);
       expect(decodedCode.client_id).toBe(client.id);
@@ -372,8 +371,8 @@ describe("authorization_code grant", () => {
       authorizationRequest.state = "abc123";
       authorizationRequest.user = user;
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(response.headers.location.split("?")[1]);
-      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.code));
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+      const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.get("code")));
 
       expect(response.headers.location.includes("http://example.com?code=")).toBeTruthy();
       expect(decodedCode.client_id).toBe(client.id);
@@ -392,8 +391,8 @@ describe("authorization_code grant", () => {
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.user = user;
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
-      authorizationCode = String(authorizeResponseQuery.code);
+      const authorizeResponseQuery = new URLSearchParams(redirectResponse.headers.location.split("?")[1]);
+      authorizationCode = String(authorizeResponseQuery.get("code"));
     });
 
     it("is successful with pkce S256", async () => {
@@ -421,8 +420,8 @@ describe("authorization_code grant", () => {
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.user = user;
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
-      authorizationCode = String(authorizeResponseQuery.code);
+      const authorizeResponseQuery = new URLSearchParams(redirectResponse.headers.location.split("?")[1]);
+      authorizationCode = String(authorizeResponseQuery.get("code"));
 
       // act
       request = new OAuthRequest({
@@ -447,8 +446,8 @@ describe("authorization_code grant", () => {
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
       const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = querystring.parse(redirectResponse.headers.location.split("?")[1]);
-      authorizationCode = String(authorizeResponseQuery.code);
+      const authorizeResponseQuery = new URLSearchParams(redirectResponse.headers.location.split("?")[1]);
+      authorizationCode = String(authorizeResponseQuery.get("code"));
 
       // act
       request = new OAuthRequest({
@@ -509,7 +508,6 @@ describe("authorization_code grant", () => {
         /Code verifier must follow the specifications of RFS-7636/,
       );
     });
-
 
     it("throws for incorrect code_verifier", async () => {
       // act

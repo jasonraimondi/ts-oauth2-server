@@ -1,4 +1,3 @@
-import querystring, { ParsedUrlQueryInput } from "querystring";
 import { parse } from "uri-js";
 
 import { OAuthClient } from "../../entities/client.entity";
@@ -7,9 +6,14 @@ import { RequestInterface } from "../../requests/request";
 import { AbstractGrant } from "./abstract.grant";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
-  protected makeRedirectUrl(uri: string, params: ParsedUrlQueryInput, queryDelimiter = "?") {
+  protected makeRedirectUrl(
+    uri: string,
+    params: URLSearchParams | Record<string, string | string[]>,
+    queryDelimiter = "?",
+  ) {
+    params = new URLSearchParams(params);
     const split = uri.includes(queryDelimiter) ? "&" : queryDelimiter;
-    return uri + split + querystring.stringify(params);
+    return uri + split + params.toString();
   }
 
   protected getRedirectUri(request: RequestInterface, client: OAuthClient): string | undefined {

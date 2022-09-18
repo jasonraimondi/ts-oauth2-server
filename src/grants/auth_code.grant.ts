@@ -216,10 +216,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const code = await this.encrypt(jsonPayload);
 
-    const finalRedirectUri = this.makeRedirectUrl(redirectUri, {
-      code,
-      state: authorizationRequest.state,
-    });
+    const params: Record<string, string> = { code };
+
+    if (authorizationRequest.state) params.state = authorizationRequest.state;
+
+    const finalRedirectUri = this.makeRedirectUrl(redirectUri, params);
 
     return new RedirectResponse(finalRedirectUri);
   }
