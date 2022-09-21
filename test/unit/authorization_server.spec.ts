@@ -150,6 +150,29 @@ describe("authorization_server", () => {
     expect(decodedCode.redirect_uri).toBe("http://localhost");
   });
 
+  it("throws if requested grant type is not enabled", async () => {
+    authorizationServer = new AuthorizationServer(
+      inMemoryAuthCodeRepository,
+      inMemoryClientRepository,
+      inMemoryAccessTokenRepository,
+      inMemoryScopeRepository,
+      inMemoryUserRepository,
+      new JwtService("secret-key"),
+    );
+    authorizationServer.enableGrantType("refresh_token");
+    const request = new OAuthRequest({
+      query: {
+        response_type: "code",
+        client_id: client.id
+      },
+    });
+
+    // act & assert
+    expect(() => authorizationServer.validateAuthorizationRequest(request)).toThrowError(
+      /unsupported grant_type/,
+    );
+  });
+
   describe("option requirePKCE", () => {
     beforeEach(() => {
       client = {

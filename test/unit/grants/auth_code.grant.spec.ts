@@ -66,7 +66,7 @@ describe("authorization_code grant", () => {
     inMemoryDatabase.scopes[scope1.name] = scope1;
   });
 
-  describe("can respond to authorization request", () => {
+  describe("handles response_type for authorization request", () => {
     let validQueryData: any;
 
     beforeEach(() => {
@@ -83,18 +83,7 @@ describe("authorization_code grant", () => {
     it("returns true for valid request", async () => {
       request = new OAuthRequest({ query: validQueryData });
 
-      expect(grant.canRespondToAuthorizationRequest(request)).toBe(true);
-    });
-
-    it("returns false for missing client_id", async () => {
-      request = new OAuthRequest({
-        query: {
-          ...validQueryData,
-          client_id: undefined,
-        },
-      });
-
-      expect(grant.canRespondToAuthorizationRequest(request)).toBe(false);
+      expect(grant.handlesResponseTypeForAuthorizationRequest(request)).toBe(true);
     });
 
     it("returns false when response_type !== code", async () => {
@@ -105,7 +94,7 @@ describe("authorization_code grant", () => {
         },
       });
 
-      expect(grant.canRespondToAuthorizationRequest(request)).toBe(false);
+      expect(grant.handlesResponseTypeForAuthorizationRequest(request)).toBe(false);
     });
   });
 
@@ -241,6 +230,23 @@ describe("authorization_code grant", () => {
 
       await expect(authorizationRequest).rejects.toThrowError(
         /The authorization server requires public clients to use PKCE RFC-7636/,
+      );
+    });
+
+    it("throws for missing client_id", async () => {
+      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
+      request = new OAuthRequest({
+        query: {
+          redirect_uri: undefined,
+          response_type: "code",
+          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
+        },
+      });
+
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(
+        /Check the `client_id` parameter/,
       );
     });
 

@@ -16,9 +16,8 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     throw OAuthException.badRequest("The implicit grant can't respond to access token requests");
   }
 
-  canRespondToAuthorizationRequest(request: RequestInterface): boolean {
-    const clientId = this.getQueryStringParameter("client_id", request);
-    return this.getQueryStringParameter("response_type", request) === "token" && !!clientId;
+  handlesResponseTypeForAuthorizationRequest(request: RequestInterface): boolean {
+    return this.getQueryStringParameter("response_type", request) === "token"
   }
 
   canRespondToAccessTokenRequest(_request: RequestInterface): boolean {
@@ -28,7 +27,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
   async validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
     const clientId = this.getQueryStringParameter("client_id", request);
 
-    if (!clientId) {
+    if (typeof clientId !== "string") {
       throw OAuthException.invalidParameter("client_id");
     }
 
