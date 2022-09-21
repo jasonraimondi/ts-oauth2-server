@@ -118,10 +118,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     return await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
   }
 
-  canRespondToAuthorizationRequest(request: RequestInterface): boolean {
-    const responseType = this.getQueryStringParameter("response_type", request);
-    const hasClientId = !!this.getQueryStringParameter("client_id", request);
-    return responseType === "code" && hasClientId;
+  handlesResponseTypeForAuthorizationRequest(request: RequestInterface): boolean {
+    return this.getQueryStringParameter("response_type", request) === "code"
   }
 
   async validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {

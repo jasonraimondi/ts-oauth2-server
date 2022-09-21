@@ -267,7 +267,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return this.getRequestParameter("grant_type", request) === this.identifier;
   }
 
-  canRespondToAuthorizationRequest(_request: RequestInterface): boolean {
+  handlesResponseTypeForAuthorizationRequest(_request: RequestInterface): boolean {
     return false;
   }
 
