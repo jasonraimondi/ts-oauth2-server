@@ -506,7 +506,7 @@ describe("authorization_code grant", () => {
 
       // assert
       await expect(accessTokenResponse).rejects.toThrowError(
-        /Code verifier must follow the specifications of RFS-7636/,
+        /Code verifier must follow the specifications of RFC-7636/,
       );
     });
 

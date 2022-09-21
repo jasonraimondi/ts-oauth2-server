@@ -16,7 +16,7 @@ interface OAuthAuthCodeRepository {
     scopes: OAuthScope[]
   ): OAuthAuthCode | Promise<OAuthAuthCode>;
 
-  // An async call that should persist an OAuthToken into your storage. 
+  // An async call that should persist an OAuthAuthCode into your storage.
   persist(authCode: OAuthAuthCode): Promise<void>;
 
   // This async method is called when an auth code is validated by the 
@@ -78,7 +78,7 @@ interface OAuthTokenRepository {
 
   issueRefreshToken(accessToken: OAuthToken): Promise<OAuthToken>
 
-  // An async call that should persist an OAuthToken into your storage. 
+  // An async call that should persist an OAuthToken into your storage.
   persist(accessToken: OAuthToken): Promise<void>;
 
   // This async method is called when a refresh token is used to reissue 

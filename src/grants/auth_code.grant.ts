@@ -90,7 +90,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
         throw OAuthException.invalidParameter(
           "code_verifier",
-          "Code verifier must follow the specifications of RFS-7636",
+          "Code verifier must follow the specifications of RFC-7636",
         );
       }
 
