@@ -15,7 +15,7 @@ export interface GrantInterface {
 
   respondToAccessTokenRequest(request: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface>;
 
-  handlesResponseTypeForAuthorizationRequest(request: RequestInterface): boolean;
+  canRespondToAuthorizationRequest(request: RequestInterface): boolean;
 
   validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest>;
 

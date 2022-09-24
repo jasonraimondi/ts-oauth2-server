@@ -83,7 +83,7 @@ describe("authorization_code grant", () => {
     it("returns true for valid request", async () => {
       request = new OAuthRequest({ query: validQueryData });
 
-      expect(grant.handlesResponseTypeForAuthorizationRequest(request)).toBe(true);
+      expect(grant.canRespondToAuthorizationRequest(request)).toBe(true);
     });
 
     it("returns false when response_type !== code", async () => {
@@ -94,7 +94,7 @@ describe("authorization_code grant", () => {
         },
       });
 
-      expect(grant.handlesResponseTypeForAuthorizationRequest(request)).toBe(false);
+      expect(grant.canRespondToAuthorizationRequest(request)).toBe(false);
     });
   });
 

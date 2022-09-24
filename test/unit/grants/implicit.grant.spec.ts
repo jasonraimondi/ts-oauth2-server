@@ -216,7 +216,7 @@ describe("implicit grant", () => {
       });
 
       // act
-      const canRespond = grant.handlesResponseTypeForAuthorizationRequest(request);
+      const canRespond = grant.canRespondToAuthorizationRequest(request);
 
       // assert
       expect(canRespond).toBeTruthy();
@@ -227,7 +227,7 @@ describe("implicit grant", () => {
       request = new OAuthRequest({ query: {} });
 
       // assert
-      expect(grant.handlesResponseTypeForAuthorizationRequest(request)).toBeFalsy();
+      expect(grant.canRespondToAuthorizationRequest(request)).toBeFalsy();
       expect(grant.canRespondToAccessTokenRequest(request)).toBeFalsy();
     });
   });
