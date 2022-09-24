@@ -118,7 +118,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     return await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
   }
 
-  handlesResponseTypeForAuthorizationRequest(request: RequestInterface): boolean {
+  canRespondToAuthorizationRequest(request: RequestInterface): boolean {
     return this.getQueryStringParameter("response_type", request) === "code"
   }
 
