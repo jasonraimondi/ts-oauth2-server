@@ -8,6 +8,7 @@ export interface OAuthClient {
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
   scopes: OAuthScope[];
+  [key: string]: any;
 }
 
 export function isClientConfidential(client: OAuthClient): boolean {
