@@ -109,7 +109,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
-    accessToken = await this.issueRefreshToken(accessToken);
+    accessToken = await this.issueRefreshToken(accessToken, client);
 
     await this.authCodeRepository.revoke(validatedPayload.auth_code_id);
 

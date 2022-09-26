@@ -33,7 +33,7 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     let newToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
-    newToken = await this.issueRefreshToken(newToken);
+    newToken = await this.issueRefreshToken(newToken, client);
 
     const extraJwtFields = user ? await this.userRepository.extraAccessTokenFields?.(user) : undefined;
 
