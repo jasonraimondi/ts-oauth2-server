@@ -55,7 +55,7 @@ export class TokenRepository implements OAuthTokenRepository {
     return Date.now() > (token.refreshTokenExpiresAt?.getTime() ?? 0);
   }
 
-  async issueRefreshToken(token: Token): Promise<Token> {
+  async issueRefreshToken(token: Token, _: Client): Promise<Token> {
     token.refreshToken = generateRandomToken();
     token.refreshTokenExpiresAt = new DateInterval("2h").getEndDate();
     await this.repo.update({

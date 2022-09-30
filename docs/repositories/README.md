@@ -71,15 +71,17 @@ interface OAuthTokenRepository {
   // An async call that should return an OAuthToken that has not been 
   // persisted to storage yet.
   issueToken(
-    client: OAuthClient, 
-    scopes: OAuthScope[], 
+    client: OAuthClient,
+    scopes: OAuthScope[],
     user?: OAuthUser
   ): Promise<OAuthToken>;
 
-  issueRefreshToken(accessToken: OAuthToken): Promise<OAuthToken>
-
   // An async call that should persist an OAuthToken into your storage.
   persist(accessToken: OAuthToken): Promise<void>;
+
+  // An async call that enhances an already-persisted OAuthToken with
+  // refresh token fields.
+  issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken>
 
   // This async method is called when a refresh token is used to reissue 
   // an access token. The original access token is revoked, and a new

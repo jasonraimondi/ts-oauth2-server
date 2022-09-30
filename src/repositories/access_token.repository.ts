@@ -6,7 +6,7 @@ import { OAuthUser } from "../entities/user.entity";
 export interface OAuthTokenRepository {
   issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser | null): Promise<OAuthToken>;
 
-  issueRefreshToken(accessToken: OAuthToken): Promise<OAuthToken>;
+  issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken>;
 
   persist(accessToken: OAuthToken): Promise<void>;
 
