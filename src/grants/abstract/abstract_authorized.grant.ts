@@ -8,7 +8,7 @@ import { AbstractGrant } from "./abstract.grant";
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(
     uri: string,
-    params: URLSearchParams | Record<string, string | string[]>,
+    params: URLSearchParams | string | Record<string, string | ReadonlyArray<string>> | Iterable<[string, string]> | ReadonlyArray<[string, string]>,
     queryDelimiter = "?",
   ) {
     params = new URLSearchParams(params);
