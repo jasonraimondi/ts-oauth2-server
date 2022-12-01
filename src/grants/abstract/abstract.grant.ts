@@ -271,6 +271,10 @@ export abstract class AbstractGrant implements GrantInterface {
     return false;
   }
 
+  canRespondToRevokeRequest(request: RequestInterface): boolean {
+    return this.getRequestParameter("token_type_hint", request) === this.identifier;
+  }
+
   async completeAuthorizationRequest(_authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
@@ -278,4 +282,9 @@ export abstract class AbstractGrant implements GrantInterface {
   async respondToAccessTokenRequest(_req: RequestInterface, _accessTokenTTL: DateInterval): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
+
+  async respondToRevokeRequest(_req: RequestInterface): Promise<ResponseInterface> {
+    throw new Error("Grant does not support the request");
+  }
+
 }
