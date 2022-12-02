@@ -1,7 +1,7 @@
 import { OAuthToken } from "../entities/token.entity";
 import { OAuthException } from "../exceptions/oauth.exception";
 import { RequestInterface } from "../requests/request";
-import { OAuthResponse, ResponseInterface } from "../responses/response";
+import { ResponseInterface } from "../responses/response";
 import { DateInterval } from "../utils/date_interval";
 import { AbstractGrant } from "./abstract/abstract.grant";
 
@@ -79,43 +79,32 @@ export class RefreshTokenGrant extends AbstractGrant {
     return refreshToken;
   }
 
-  async respondToRevokeTokenRequest(request: RequestInterface): Promise<ResponseInterface> {
-
-    // https://www.rfc-editor.org/rfc/rfc7009#section-2.2
-    // The authorization server responds with HTTP status code 200 if the token has been revoked successfully or if the
-    // client submitted an invalid token.
-    const okResponse = new OAuthResponse();
-
-    const encryptedRefreshToken = this.getRequestParameter("refresh_token", request);
-
-    if (!encryptedRefreshToken) {
-      throw OAuthException.invalidParameter("refresh_token");
-    }
+  async doRevoke(encryptedToken: string): Promise<void> {
 
     let refreshTokenData: any;
 
     try {
-      refreshTokenData = await this.decrypt(encryptedRefreshToken);
+      refreshTokenData = await this.decrypt(encryptedToken);
     } catch (e) {
-      return okResponse;
+      return;
     }
 
     if (!refreshTokenData?.refresh_token_id) {
-      return okResponse;
+      return;
     }
 
     if (Date.now() / 1000 > refreshTokenData?.expire_time) {
-      return okResponse;
+      return;
     }
 
     const refreshToken = await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
 
     if (await this.tokenRepository.isRefreshTokenRevoked(refreshToken)) {
-      return okResponse;
+      return;
     }
 
     await this.tokenRepository.revoke(refreshToken);
 
-    return okResponse
+    return;
   }
 }
