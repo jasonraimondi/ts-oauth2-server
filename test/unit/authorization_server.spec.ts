@@ -164,7 +164,7 @@ describe("authorization_server", () => {
       query: {
         response_type: "code",
         client_id: client.id
-      },
+      }
     });
 
     // act & assert

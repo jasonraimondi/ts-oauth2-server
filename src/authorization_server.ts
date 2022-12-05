@@ -128,7 +128,7 @@ export class AuthorizationServer {
   }
 
   async revoke(req: RequestInterface): Promise<ResponseInterface> {
-    const tokenTypeHint = req.body?.['token_type_hint']
+    const tokenTypeHint = req.body?.['token_type_hint'];
     let response;
 
     for (const grantType of Object.values(this.enabledGrantTypes)) {
@@ -139,12 +139,12 @@ export class AuthorizationServer {
       }
     }
 
-    if (response) {
-      return response
+    if (!response) {
+      // token_type_hint must have been specified, but none of our grant types handled it
+      throw OAuthException.unsupportedGrantType();
     }
 
-    // token_type_hint must have been specified, but none of our grant types handled it
-    throw OAuthException.unsupportedGrantType();
+    return response;
   }
 
   /**

@@ -119,7 +119,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
-    return this.getQueryStringParameter("response_type", request) === "code"
+    return this.getQueryStringParameter("response_type", request) === "code";
   }
 
   async validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
