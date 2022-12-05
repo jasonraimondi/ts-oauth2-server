@@ -10,7 +10,7 @@ export interface OAuthTokenRepository {
 
   persist(accessToken: OAuthToken): Promise<void>;
 
-  revoke(accessToken: OAuthToken): Promise<void>;
+  revoke?(accessToken: OAuthToken): Promise<void>;
 
   isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 
