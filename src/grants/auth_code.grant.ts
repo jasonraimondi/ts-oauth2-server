@@ -119,7 +119,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
-    return this.getQueryStringParameter("response_type", request) === "code"
+    return this.getQueryStringParameter("response_type", request) === "code";
   }
 
   async validateAuthorizationRequest(request: RequestInterface): Promise<AuthorizationRequest> {
@@ -223,6 +223,25 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const finalRedirectUri = this.makeRedirectUrl(redirectUri, params);
 
     return new RedirectResponse(finalRedirectUri);
+  }
+
+  async doRevoke(encryptedToken: string): Promise<void> {
+
+    let decryptedCode: any;
+
+    try {
+      decryptedCode = await this.decrypt(encryptedToken);
+    } catch (e) {
+      return;
+    }
+
+    if (!decryptedCode?.auth_code_id) {
+      return;
+    }
+
+    await this.authCodeRepository.revoke(decryptedCode.auth_code_id);
+
+    return;
   }
 
   private async validateAuthorizationCode(payload: any, client: OAuthClient, request: RequestInterface) {

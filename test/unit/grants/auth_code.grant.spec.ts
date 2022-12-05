@@ -550,4 +550,42 @@ describe("authorization_code grant", () => {
       await expect(accessTokenResponse).rejects.toThrow(OAuthException);
     });
   });
+
+  describe("respond to revoke request with code", () => {
+    let authorizationRequest: AuthorizationRequest;
+    let authorizationCode: string;
+
+    beforeEach(async () => {
+      authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.user = user;
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = new URLSearchParams(redirectResponse.headers.location.split("?")[1]);
+      authorizationCode = String(authorizeResponseQuery.get("code"));
+    });
+
+    it("revokes an auth code token successfully", async () => {
+      // arrange
+      request = new OAuthRequest({
+        body: {
+          token_type_hint: "auth_code",
+          token: authorizationCode,
+        },
+      });
+
+      // act
+      let authCodeInStore = await inMemoryAuthCodeRepository.getByIdentifier("my-super-secret-auth-code")
+      const expiryBefore = authCodeInStore.expiresAt.valueOf();
+      const revokeResponse = await grant.respondToRevokeRequest(request);
+      authCodeInStore = await inMemoryAuthCodeRepository.getByIdentifier("my-super-secret-auth-code")
+      const expiryAfter = authCodeInStore.expiresAt.valueOf();
+
+      // assert
+      expect(revokeResponse.status).toBe(200);
+      expect(expiryBefore).toBeGreaterThan(1000000);
+      expect(expiryAfter).toBe(0);
+    });
+  });
 });

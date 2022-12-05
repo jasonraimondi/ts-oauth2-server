@@ -127,6 +127,26 @@ export class AuthorizationServer {
     return await grant.completeAuthorizationRequest(authorizationRequest);
   }
 
+  async revoke(req: RequestInterface): Promise<ResponseInterface> {
+    const tokenTypeHint = req.body?.['token_type_hint'];
+    let response;
+
+    for (const grantType of Object.values(this.enabledGrantTypes)) {
+      // As per https://www.rfc-editor.org/rfc/rfc7009#section-2.1, the `token_type_hint` field is optional, and in
+      //  case we MUST extend our search across all supported token types.
+      if (!tokenTypeHint || grantType.canRespondToRevokeRequest(req)) {
+        response = grantType.respondToRevokeRequest(req);
+      }
+    }
+
+    if (!response) {
+      // token_type_hint must have been specified, but none of our grant types handled it
+      throw OAuthException.unsupportedGrantType();
+    }
+
+    return response;
+  }
+
   /**
    * I am only using this in testing... should it be here?
    * @param grantType

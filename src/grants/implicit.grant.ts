@@ -17,7 +17,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
-    return this.getQueryStringParameter("response_type", request) === "token"
+    return this.getQueryStringParameter("response_type", request) === "token";
   }
 
   canRespondToAccessTokenRequest(_request: RequestInterface): boolean {

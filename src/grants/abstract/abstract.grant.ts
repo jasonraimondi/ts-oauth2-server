@@ -12,7 +12,7 @@ import { ExtraAccessTokenFields, OAuthUserRepository } from "../../repositories/
 import { AuthorizationRequest } from "../../requests/authorization.request";
 import { RequestInterface } from "../../requests/request";
 import { BearerTokenResponse } from "../../responses/bearer_token.response";
-import { ResponseInterface } from "../../responses/response";
+import { OAuthResponse, ResponseInterface } from "../../responses/response";
 import { arrayDiff } from "../../utils/array";
 import { base64decode } from "../../utils/base64";
 import { DateInterval } from "../../utils/date_interval";
@@ -271,6 +271,10 @@ export abstract class AbstractGrant implements GrantInterface {
     return false;
   }
 
+  canRespondToRevokeRequest(request: RequestInterface): boolean {
+    return this.getRequestParameter("token_type_hint", request) === this.identifier;
+  }
+
   async completeAuthorizationRequest(_authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
@@ -278,4 +282,21 @@ export abstract class AbstractGrant implements GrantInterface {
   async respondToAccessTokenRequest(_req: RequestInterface, _accessTokenTTL: DateInterval): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
   }
+
+  async respondToRevokeRequest(request: RequestInterface): Promise<ResponseInterface> {
+    const encryptedToken = this.getRequestParameter("token", request);
+
+    if (!encryptedToken) {
+      throw OAuthException.invalidParameter("token");
+    }
+
+    await this.doRevoke(encryptedToken);
+    return new OAuthResponse();
+  }
+
+  protected async doRevoke(_encryptedToken: string): Promise<void> {
+    // default: nothing to do, be quiet about it
+    return;
+  }
+
 }

@@ -24,6 +24,7 @@ _Did you know?_ You can authenticate by passing the `client_id` and `client_secr
 ```http request
 POST /token HTTP/1.1
 Host: example.com
+Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials
 &client_id=xxxxxxxxxx
