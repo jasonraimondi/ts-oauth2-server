@@ -16,6 +16,7 @@ npm install --save @jmondi/oauth2-server
 pnpm add @jmondi/oauth2-server
 ```
 </code-block>
+
 <code-block title="YARN">
 ```bash
 yarn add @jmondi/oauth2-server
@@ -74,7 +75,7 @@ const authorizationServer = new AuthorizationServer(
 
 ## The Token Endpoint
 
-The `/token` endpoint is a back channel endpoint that issues a useable access token.
+The `/token` endpoint is a back channel endpoint that issues a usable access token.
 
 ```typescript
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
@@ -139,3 +140,20 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   }
 });
 ```
+
+## The Revoke Token Endpoint
+
+The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.
+
+```typescript
+app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.revoke(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+    return;
+  }
+});
+```
+

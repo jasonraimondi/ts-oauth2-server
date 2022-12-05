@@ -67,6 +67,7 @@ Clients such as Browser Based Apps and Native Mobile Apps should **NEVER** have 
 ```http request
 POST /token HTTP/1.1
 Host: example.com
+Content-Type: application/x-www-form-urlencoded
 
 grant_type=authorization_code
 &client_id=xxxxxxxxxx
@@ -91,7 +92,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=UTF-8
 Cache-Control: no-store
 Pragma: no-cache
- 
+
 {
   token_type: 'Bearer',
   expires_in: 3600,
@@ -167,5 +168,36 @@ function base64urlencode(str: string) {
     .replace(/\//g, "_")
     .replace(/=/g, "");
 }
+```
+:::
+
+### Revocation
+
+Authorization codes are only valid for a single use. In addition, they can be explicitly revoked on a server that supports
+[RFC7009 “OAuth 2.0 Token Revocation”](https://tools.ietf.org/html/rfc7009).
+
+An authorization code revocation request will include the following parameters:
+
+- **token** is the authorization code previously issued to the client
+- **token_type_hint** (optional) should be set to `authorization_code`
+
+::: details View sample revoke authorization_code request
+```http request
+POST /token HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+
+token_type_hint=authorization_code
+&refresh_token=xxxxxxxxx
+```
+:::
+
+The authorization server will respond with the following response
+
+::: details View sample revoke authorization_code response
+```http request
+HTTP/1.1 200 OK
+Cache-Control: no-store
+Pragma: no-cache
 ```
 :::

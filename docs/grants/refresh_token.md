@@ -13,17 +13,34 @@ A complete refresh token request will include the following parameters:
 - **scope** (optional) the requested scope must not include any additional scopes that were not previously issued to the original token
 
 ::: details View sample refresh_token request
+<code-group>
+<code-block title="Query String" active>
 ```http request
 POST /token HTTP/1.1
 Host: example.com
-Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
- 
+Content-Type: application/x-www-form-urlencoded
+
 grant_type=refresh_token
 &refresh_token=xxxxxxxxx
 &client_id=xxxxxxxxx
 &client_secret=xxxxxxxxx
 &scope="contacts.read contacts.write"
 ```
+</code-block>
+
+<code-block title="Basic Auth">
+```http request
+POST /token HTTP/1.1
+Host: example.com
+Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token
+&refresh_token=xxxxxxxxx
+&scope="contacts.read contacts.write"
+```
+</code-block>
+</code-group>
 :::
 
 The authorization server will respond with the following response
@@ -40,7 +57,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=UTF-8
 Cache-Control: no-store
 Pragma: no-cache
- 
+
 {
   token_type: 'Bearer',
   expires_in: 3600,
@@ -48,5 +65,36 @@ Pragma: no-cache
   refresh_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIzNTYxNWYyZi0xM2ZhLTQ3MzEtODNhMS05ZTM0NTU2YWIzOTAiLCJhY2Nlc3NfdG9rZW5faWQiOiJuZXcgdG9rZW4iLCJyZWZyZXNoX3Rva2VuX2lkIjoidGhpcy1pcy1teS1zdXBlci1zZWNyZXQtcmVmcmVzaC10b2tlbiIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjUxMmFiOWE0LWM3ODYtNDhhNi04YWQ2LTk0YzUzYThkYzY1MSIsImV4cGlyZV90aW1lIjoxNjAxNzY3MjEyLCJpYXQiOjE2MDE3NjM2MTF9.du4KfAzelSA8hzBaqGlrSvPtH-BxOcoUBXW4HS3pJkM',
   scope: 'contacts.read contacts.write'
 }
+```
+:::
+
+### Revocation
+
+Refresh tokens are only valid for a single use. In addition, they can be explicitly revoked on a server that supports
+[RFC7009 “OAuth 2.0 Token Revocation”](https://tools.ietf.org/html/rfc7009).
+
+A refresh token revocation request will include the following parameters:
+
+- **token** is the signed token previously issued to the client
+- **token_type_hint** (optional) should be set to `refresh_token`
+
+::: details View sample revoke refresh_token request
+```http request
+POST /token HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+
+token_type_hint=refresh_token
+&refresh_token=xxxxxxxxx
+```
+:::
+
+The authorization server will respond with the following response
+
+::: details View sample revoke refresh_token response
+```http request
+HTTP/1.1 200 OK
+Cache-Control: no-store
+Pragma: no-cache
 ```
 :::
