@@ -112,15 +112,19 @@ export abstract class AbstractGrant implements GrantInterface {
   ) {
     const now = Date.now();
     return this.encrypt(<ITokenData>{
-      // non standard claims
+      // optional claims which the `userRepository.extraAccessTokenFields()` method may overwrite
+      iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
+      aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
+
+      // the contents of `userRepository.extraAccessTokenFields()`
       ...extraJwtFields,
+
+      // non-standard claims over which this library asserts control
       cid: client[this.options.tokenCID],
       scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
 
-      // standard claims
-      iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
+      // standard claims over which this library asserts control
       sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
-      aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
       exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
       nbf: roundToSeconds(now) - this.options.notBeforeLeeway, // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
       iat: roundToSeconds(now), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
