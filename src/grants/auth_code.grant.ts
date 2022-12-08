@@ -256,7 +256,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     //   If an authorization code is used more than, the authorization server... SHOULD revoke (when possible) all
     //   tokens previously issued based on that authorization code.
     if (isCodeRevoked) {
-      this.tokenRepository.revokeDescendantsOf?.(payload.auth_code_id);
+      await this.tokenRepository.revokeDescendantsOf?.(payload.auth_code_id);
     }
 
     if (Date.now() / 1000 > payload.expire_time || isCodeRevoked) {
