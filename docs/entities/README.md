@@ -12,8 +12,8 @@ This entity represents the client that wants to access the resource server. The 
 
 * URI must be an absolute URI
 * The endpoint may include application/x-www-form-urlencoded formatted query component which must be retained when adding additional query params
-    * // @todo verify this second point, i know we can append urls, but we need to enccode/decode the redirectUri
-* the endpoint uri must not include a fragment component
+    * // @todo verify this second point, I know we can append urls, but we need to encode/decode the redirectUri
+* the endpoint URI must not include a fragment component
 
 ```typescript
 interface OAuthClient {
@@ -53,16 +53,18 @@ type CodeChallengeMethod = "S256" | "plain";
 ## Token Entity
 
 The access and refresh token that can be used to authenticate into the resource server.
+The `originatingAuthCodeId` will be present only for tokens originating from the authorization code grant; see the `revokeDescendantsOf()` method on the [Token Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#token-repository) for its significance.
 
 ```typescript
 interface OAuthToken {
   accessToken: string;
   accessTokenExpiresAt: Date;
-  refreshToken?: string;
-  refreshTokenExpiresAt?: Date;
+  refreshToken?: string | null;
+  refreshTokenExpiresAt?: Date | null;
   client: OAuthClient;
-  user?: OAuthUser;
+  user?: OAuthUser | null;
   scopes: OAuthScope[];
+  originatingAuthCodeId?: string;
 }
 ```
 

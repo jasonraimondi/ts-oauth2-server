@@ -228,8 +228,8 @@ export abstract class AbstractGrant implements GrantInterface {
     return accessToken;
   }
 
-  issueRefreshToken(accessToken: OAuthToken, client: OAuthClient, authCodeId?: string): Promise<OAuthToken> {
-    return this.tokenRepository.issueRefreshToken(accessToken, client, authCodeId);
+  issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken> {
+    return this.tokenRepository.issueRefreshToken(accessToken, client);
   }
 
   private getGrantType(request: RequestInterface): GrantIdentifier {

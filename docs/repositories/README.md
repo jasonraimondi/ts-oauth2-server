@@ -81,13 +81,9 @@ interface OAuthTokenRepository {
 
   // An async call that enhances an already-persisted OAuthToken with
   // refresh token fields.
-  // The authCodeId will be provided only for token chains originating
-  // from the authorization code grant; see revokeDescendantsOf() for
-  // its significance.
   issueRefreshToken(
     accessToken: OAuthToken,
     client: OAuthClient,
-    authCodeId?: string
   ): Promise<OAuthToken>
 
   // This async method is called when a refresh token is used to reissue 
