@@ -29,7 +29,7 @@ export class RefreshTokenGrant extends AbstractGrant {
       }
     });
 
-    await this.tokenRepository.revoke?.(oldToken);
+    await this.tokenRepository.revoke(oldToken);
 
     let newToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
 
@@ -103,7 +103,7 @@ export class RefreshTokenGrant extends AbstractGrant {
       return;
     }
 
-    await this.tokenRepository.revoke?.(refreshToken);
+    await this.tokenRepository.revoke(refreshToken);
 
     return;
   }
