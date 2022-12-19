@@ -81,12 +81,20 @@ interface OAuthTokenRepository {
 
   // An async call that enhances an already-persisted OAuthToken with
   // refresh token fields.
-  issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken>
+  issueRefreshToken(
+    accessToken: OAuthToken,
+    client: OAuthClient,
+  ): Promise<OAuthToken>
 
   // This async method is called when a refresh token is used to reissue 
   // an access token. The original access token is revoked, and a new
   // access token is issued.
   revoke(accessToken: OAuthToken): Promise<void>;
+
+  // This async method, if implemented, will be called by the authorization
+  // code grant if the original authorization code is reused.
+  // See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2 for why.
+  revokeDescendantsOf?(authCodeId: string): Promise<void>;
 
   // This async method is called when an access token is validated by the 
   // authorization server. Return `true` if the access token has been 

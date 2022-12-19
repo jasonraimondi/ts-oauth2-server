@@ -108,6 +108,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
+    accessToken.originatingAuthCodeId = validatedPayload.auth_code_id
 
     accessToken = await this.issueRefreshToken(accessToken, client);
 
@@ -250,6 +251,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     const isCodeRevoked = await this.authCodeRepository.isRevoked(payload.auth_code_id);
+
+    // https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2
+    //   If an authorization code is used more than, the authorization server... SHOULD revoke (when possible) all
+    //   tokens previously issued based on that authorization code.
+    if (isCodeRevoked) {
+      await this.tokenRepository.revokeDescendantsOf?.(payload.auth_code_id);
+    }
 
     if (Date.now() / 1000 > payload.expire_time || isCodeRevoked) {
       throw OAuthException.invalidParameter("code", "Authorization code is expired or revoked");

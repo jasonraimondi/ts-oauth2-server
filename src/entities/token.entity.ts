@@ -10,4 +10,5 @@ export interface OAuthToken {
   client: OAuthClient;
   user?: OAuthUser | null;
   scopes: OAuthScope[];
+  originatingAuthCodeId?: string;
 }

@@ -12,6 +12,8 @@ export interface OAuthTokenRepository {
 
   revoke(accessToken: OAuthToken): Promise<void>;
 
+  revokeDescendantsOf?(authCodeId: string): Promise<void>;
+
   isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 
   getByRefreshToken(refreshTokenToken: string): Promise<OAuthToken>;
