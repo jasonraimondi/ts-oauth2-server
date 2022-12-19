@@ -40,7 +40,7 @@ Save some eye strain, **use the [documentation site](https://jasonraimondi.githu
 ### Install
 
 ```bash
-npm install --save @jmondi/oauth2-server
+pnpm add @jmondi/oauth2-server
 ```
 
 ### Endpoints 
