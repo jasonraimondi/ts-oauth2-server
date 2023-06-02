@@ -7,19 +7,19 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
-    "@types/node": "^18.7.13",
-    "prisma": "^4.2.1",
+    "@types/node": "^20.2.5",
+    "prisma": "^4.15.0",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^4.7.4"
+    "typescript": "^5.1.3"
   },
   "dependencies": {
-    "@jmondi/oauth2-server": "workspace:^2.0.3-rc.0",
-    "@prisma/client": "^4.2.1",
+    "@jmondi/oauth2-server": "workspace:*",
+    "@prisma/client": "^4.15.0",
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.0",
-    "dotenv": "^16.0.1",
-    "fastify": "^4.5.2"
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.1.3",
+    "fastify": "^4.17.0"
   },
   "engines": {
     "node": ">=10.0.0"
