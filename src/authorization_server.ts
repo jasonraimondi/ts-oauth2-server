@@ -92,15 +92,7 @@ export class AuthorizationServer {
     this.grantTypeAccessTokenTTL[grantType] = accessTokenTTL;
   }
 
-  respondToAccessTokenRequest(req: RequestInterface, _deprecated?: ResponseInterface): Promise<ResponseInterface> {
-    if (!!_deprecated && process.env.NODE_ENV !== "production") {
-      console.warn(`deprecation: respondToAccessTokenRequest has removed response parameter and will be removed in 3.0.0.
-      
-- respondToAccessTokenRequest(request, response)
-+ respondToAccessTokenRequest(request)
-      `);
-    }
-
+  respondToAccessTokenRequest(req: RequestInterface): Promise<ResponseInterface> {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (!grantType.canRespondToAccessTokenRequest(req)) {
         continue;
