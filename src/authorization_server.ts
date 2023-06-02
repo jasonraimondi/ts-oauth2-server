@@ -36,7 +36,7 @@ export class AuthorizationServer {
     requiresPKCE: true,
     requiresS256: false,
     notBeforeLeeway: 0,
-    tokenCID: "name", // @todo v3.0.0 switch to "id"
+    tokenCID: "id",
   };
 
   constructor(
