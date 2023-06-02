@@ -25,6 +25,7 @@ export default defineConfig({
         items: [
           { text: "TypeScript OAuth2.0 Server", link: "/" },
           { text: "Getting Started", link: "/getting_started/" },
+          { text: "Configuration", link: "/configuration/" },
         ],
       },
       {

@@ -32,6 +32,7 @@ const authorizationServer = new AuthorizationServer(
   scopeRepository,
   userRepository,
   new JwtService("secret-key"),
+  {} // optional configuration
 );
 authorizationServer.enableGrantType("client_credentials");
 authorizationServer.enableGrantType("authorization_code");
@@ -40,32 +41,7 @@ authorizationServer.enableGrantType("implicit"); // implicit grant is not recomm
 authorizationServer.enableGrantType("password"); // password grant is not recommended
 ```
 
-The authorization server has a few optional settings with the following default values;
-
-```typescript
-type AuthorizationServerOptions = {
-  requiresPKCE: true;
-  notBeforeLeeway: 0;
-  tokenCID: "name"|"id"; // in v2.x default is "name", in 3.x default will be "id"
-}
-```
-
-To configure these options, pass the value in as the last argument:
-
-```typescript
-const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
-  clientRepository,
-  accessTokenRepository,
-  scopeRepository,
-  userRepository,
-  new JwtService("secret-key"),
-  {
-    requiresPKCE: false, // default is true
-    notBeforeLeeway: 10, // default is 0
-  }
-);
-```
+See the [configuration](../configuration/index.md) documentation for a full list of config options.
 
 ## The Token Endpoint
 

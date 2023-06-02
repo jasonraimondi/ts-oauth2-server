@@ -156,46 +156,6 @@ authorizationServer.enableGrantType("implicit"); // implicit grant is not recomm
 authorizationServer.enableGrantType("password"); // password grant is not recommended
 ```
 
-By default, all access tokens have a 1 hour time to live. An optional second parameter in `enableGrantType` allows the Access Token TTL for each grant type to be set.
-
-```typescript
-authorizationServer.enableGrantType("client_credentials", new DateInterval("5h"));
-authorizationServer.enableGrantType("authorization_code", new DateInterval("2h"));
-```
-
-The authorization server has a few optional settings with the following default values;
-
-```typescript
-type AuthorizationServerOptions = {
-  requiresPKCE: true;
-  requiresS256: false;
-  notBeforeLeeway: 0;
-  tokenCID: "name"|"id"; // in v2.x default is "name", in 3.x default will be "id"
-}
-```
-
-* `requiresPKCE` - Enabled by default, PKCE is enabled and encouraged for all users. If you need to support a legacy client system without PKCE, you can disable PKCE with the authorization server.
-* `requiresS256` - Disabled by default. If you want to require all clients to use S256, you can enable that here.
-* `notBeforeLeeway` - Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.  Its value MUST be a number containing a NumericDate value.
-* `tokenCID` - Sets the `accessToken.cid` to either the `client.id` or `client.name`. In v2.x default is **"name"**, in 
-  3.x default will be **"id"**.
-
-To configure these options, pass the value in as the last argument:
-
-```typescript
-const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
-  clientRepository,
-  accessTokenRepository,
-  scopeRepository,
-  userRepository,
-  new JwtService("secret-key"),
-  {
-    requiresS256: true, // default is false
-  }
-);
-```
-
 ### Repositories
 
 There are a few repositories you are going to need to implement in order to create an `AuthorizationServer`.
