@@ -4,7 +4,8 @@ title: Grants
 
 # {{ $frontmatter.title }}
 
-Grants are different ways a [client](../glossary/README.md#client) can obtain an `access_token` that will authorize it to use the [resource server](../glossary/README.md#resource-server).
+Grants are different ways a [client](../glossary/index.md#client) can obtain an `access_token` that will authorize 
+it to use the [resource server](../glossary/index.md#resource-server).
 
 ## Which Grant?
 

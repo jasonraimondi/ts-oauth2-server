@@ -19,9 +19,8 @@ The client sends a **POST** to the `/token` endpoint with the following body:
 
 _Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
 
-<code-group>
-<code-block title="Query String" active>
-```http request
+::: code-group
+```http request [Query String]
 POST /token HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -31,10 +30,7 @@ grant_type=client_credentials
 &client_secret=xxxxxxxxxx
 &scope="contacts.read contacts.write"
 ```
-</code-block>
-
-<code-block title="Basic Auth">
-```http request
+```http request [Basic Auth]
 POST /token HTTP/1.1
 Host: example.com
 Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
@@ -42,8 +38,6 @@ Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
 grant_type=client_credentials
 &scope="contacts.read contacts.write"
 ```
-</code-block>
-</code-group>
 :::
 
 The authorization server will respond with the following response.

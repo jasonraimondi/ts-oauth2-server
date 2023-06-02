@@ -4,25 +4,19 @@
 
 [![npm](https://img.shields.io/npm/v/@jmondi/oauth2-server?style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
 
-<code-group>
-<code-block title="NPM" active>
-```bash
-npm install --save @jmondi/oauth2-server
-```
-</code-block>
-
-<code-block title="PNPM">
-```bash
+::: code-group
+```bash [PNPM]
 pnpm add @jmondi/oauth2-server
 ```
-</code-block>
 
-<code-block title="YARN">
-```bash
+```bash [NPM]
+npm install --save @jmondi/oauth2-server
+```
+
+```bash [YARN]
 yarn add @jmondi/oauth2-server
 ```
-</code-block>
-</code-group>
+:::
 
 ## The Authorization Server
 

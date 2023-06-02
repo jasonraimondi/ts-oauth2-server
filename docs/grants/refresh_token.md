@@ -13,9 +13,10 @@ A complete refresh token request will include the following parameters:
 - **scope** (optional) the requested scope must not include any additional scopes that were not previously issued to the original token
 
 ::: details View sample refresh_token request
-<code-group>
-<code-block title="Query String" active>
-```http request
+
+::: code-group
+
+```http request [Query String]
 POST /token HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -26,10 +27,8 @@ grant_type=refresh_token
 &client_secret=xxxxxxxxx
 &scope="contacts.read contacts.write"
 ```
-</code-block>
 
-<code-block title="Basic Auth">
-```http request
+```http request [Basic Auth]
 POST /token HTTP/1.1
 Host: example.com
 Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
@@ -39,8 +38,7 @@ grant_type=refresh_token
 &refresh_token=xxxxxxxxx
 &scope="contacts.read contacts.write"
 ```
-</code-block>
-</code-group>
+
 :::
 
 The authorization server will respond with the following response

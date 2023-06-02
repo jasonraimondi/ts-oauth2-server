@@ -18,9 +18,10 @@ A complete refresh token request will include the following parameters:
 - **scope** (optional) 
 
 ::: details View sample password grant request
-<code-group>
-<code-block title="Query String" active>
-```http request
+
+::: code-group
+
+```http request [Query String]
 POST /token HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -32,10 +33,8 @@ grant_type=password
 &password=xxxxxxxxx
 &scope="contacts.read contacts.write"
 ```
-</code-block>
 
-<code-block title="Basic Auth">
-```http request
+```http request [Basic Auth]
 POST /token HTTP/1.1
 Host: example.com
 Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
@@ -45,8 +44,7 @@ grant_type=password
 &password=xxxxxxxxx
 &scope="contacts.read contacts.write"
 ```
-</code-block>
-</code-group>
+
 :::
 
 The authorization server will respond with the following response
