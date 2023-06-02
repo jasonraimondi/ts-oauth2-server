@@ -4,14 +4,13 @@ on:
   push:
     branches: [ main ]
 
+env:
+  PNPM_VERSION: 8.4.x
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -20,14 +19,15 @@ jobs:
           path: |
             ~/.pnpm-store
             ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+            node-
+      - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm install -g pnpm
+          node-version-file: '.tool-versions'
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
       - run: pnpm install --frozen-lockfile
       - name: vuepress-deploy
         uses: jenkey2011/vuepress-deploy@master

@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  PNPM_VERSION: 7.9.1
+  PNPM_VERSION: 8.4.x
 
 jobs:
   build:
