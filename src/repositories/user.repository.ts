@@ -12,5 +12,8 @@ export interface OAuthUserRepository {
     client?: OAuthClient,
   ): Promise<OAuthUser | undefined>;
 
-  extraAccessTokenFields?(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined>;
+  extraAccessTokenFields?(
+    user: OAuthUser | undefined | null,
+    client: OAuthClient,
+  ): Promise<ExtraAccessTokenFields | undefined>;
 }
