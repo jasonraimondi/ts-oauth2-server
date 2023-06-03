@@ -115,6 +115,7 @@ export abstract class AbstractGrant implements GrantInterface {
       // optional claims which the `userRepository.extraAccessTokenFields()` method may overwrite
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
+      sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
 
       // the contents of `userRepository.extraAccessTokenFields()`
       ...extraJwtFields,
@@ -124,7 +125,6 @@ export abstract class AbstractGrant implements GrantInterface {
       scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
 
       // standard claims over which this library asserts control
-      sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
       exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
       nbf: roundToSeconds(now) - this.options.notBeforeLeeway, // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
       iat: roundToSeconds(now), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
@@ -302,5 +302,4 @@ export abstract class AbstractGrant implements GrantInterface {
     // default: nothing to do, be quiet about it
     return;
   }
-
 }
