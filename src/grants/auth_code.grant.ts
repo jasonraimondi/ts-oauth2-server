@@ -108,13 +108,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
-    accessToken.originatingAuthCodeId = validatedPayload.auth_code_id
+    accessToken.originatingAuthCodeId = validatedPayload.auth_code_id;
 
     accessToken = await this.issueRefreshToken(accessToken, client);
 
     await this.authCodeRepository.revoke(validatedPayload.auth_code_id);
 
-    const extraJwtFields = user ? await this.userRepository.extraAccessTokenFields?.(user) : undefined;
+    const extraJwtFields = await this.userRepository.extraAccessTokenFields?.(user, client);
 
     return await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
   }
@@ -227,7 +227,6 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   async doRevoke(encryptedToken: string): Promise<void> {
-
     let decryptedCode: any;
 
     try {
