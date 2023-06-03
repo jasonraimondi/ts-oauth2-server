@@ -123,7 +123,7 @@ export const inMemoryUserRepository: OAuthUserRepository = {
   },
   async extraAccessTokenFields(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined> {
     return {
-      email: user.email,
+      email: user?.email,
     };
   },
 };
