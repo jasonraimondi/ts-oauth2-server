@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es2019",
+    "target": "esnext",
     "module": "commonjs",
-    "lib": ["es2019"],
+    "lib": ["esnext", "esnext.asynciterable"],
     "outDir": "dist",
     "declaration": true,
 
