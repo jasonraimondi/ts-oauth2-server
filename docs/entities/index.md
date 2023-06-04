@@ -8,11 +8,8 @@ title: Entity Interfaces
 
 This entity represents the client that wants to access the resource server. The client will retrieve an access token from our authorization server and use it to access the resource server.
 
-// document what a good redirectUrl is
-
 * URI must be an absolute URI
 * The endpoint may include application/x-www-form-urlencoded formatted query component which must be retained when adding additional query params
-    * // @todo verify this second point, I know we can append urls, but we need to encode/decode the redirectUri
 * the endpoint URI must not include a fragment component
 
 ```typescript
