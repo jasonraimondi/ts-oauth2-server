@@ -120,9 +120,5 @@ interface OAuthUserRepository {
     grantType?: GrantIdentifier,
     client?: OAuthClient,
   ): Promise<OAuthUser | undefined>;
-
-  // Optionally you can add extra claims to access token
-  extraAccessTokenFields?(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined>;
-  
 }
 ```

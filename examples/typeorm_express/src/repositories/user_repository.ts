@@ -1,5 +1,5 @@
+import { GrantIdentifier, OAuthUserRepository } from "@jmondi/oauth2-server";
 import { Repository } from "typeorm";
-import { ExtraAccessTokenFields, GrantIdentifier, OAuthUserRepository } from "@jmondi/oauth2-server";
 
 import { Client } from "../entities/client";
 import { User } from "../entities/user";
@@ -15,9 +15,5 @@ export class UserRepository implements OAuthUserRepository {
     const user = await this.userRepository.findOneOrFail({ id: identifier });
     // verity password and if user is allowed to use grant, etc...
     return user;
-  }
-
-  async extraAccessTokenFields(user: User): Promise<ExtraAccessTokenFields | undefined> {
-    return { mail: user.email, name: `${user.firstName} ${user.lastName}` };
   }
 }

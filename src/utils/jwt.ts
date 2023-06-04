@@ -1,9 +1,17 @@
 import jwt, { Secret, SignOptions, VerifyOptions } from "jsonwebtoken";
+import { OAuthClient } from "../entities/client.entity";
+import { OAuthUser } from "../entities/user.entity";
 
+export type ExtraAccessTokenFields = Record<string, string | number | boolean>;
+export type ExtraAccessTokenFieldArgs = {
+  user?: OAuthUser | null;
+  client: OAuthClient;
+}
 export interface JwtInterface {
   verify(token: string, options?: VerifyOptions): Promise<Record<string, unknown>>;
   decode(encryptedData: string): null | Record<string, any> | string;
   sign(payload: string | Buffer | Record<string, unknown>, options?: SignOptions): Promise<string>;
+  extraTokenFields?(params: ExtraAccessTokenFieldArgs): ExtraAccessTokenFields | Promise<ExtraAccessTokenFields>;
 }
 
 export class JwtService implements JwtInterface {

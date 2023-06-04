@@ -1,5 +1,5 @@
+import { GrantIdentifier, OAuthUserRepository } from "@jmondi/oauth2-server";
 import { Prisma } from "@prisma/client";
-import { ExtraAccessTokenFields, GrantIdentifier, OAuthUserRepository } from "@jmondi/oauth2-server";
 
 import { Client } from "../entities/client";
 import { User } from "../entities/user";
@@ -24,9 +24,5 @@ export class UserRepository implements OAuthUserRepository {
     if (password) await user.verify(password);
 
     return user;
-  }
-
-  async extraAccessTokenFields(user: User): Promise<ExtraAccessTokenFields | undefined> {
-    return { email: user.email };
   }
 }

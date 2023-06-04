@@ -8,7 +8,7 @@ import { OAuthTokenRepository } from "../../repositories/access_token.repository
 import { OAuthAuthCodeRepository } from "../../repositories/auth_code.repository";
 import { OAuthClientRepository } from "../../repositories/client.repository";
 import { OAuthScopeRepository } from "../../repositories/scope.repository";
-import { ExtraAccessTokenFields, OAuthUserRepository } from "../../repositories/user.repository";
+import { OAuthUserRepository } from "../../repositories/user.repository";
 import { AuthorizationRequest } from "../../requests/authorization.request";
 import { RequestInterface } from "../../requests/request";
 import { BearerTokenResponse } from "../../responses/bearer_token.response";
@@ -16,7 +16,7 @@ import { OAuthResponse, ResponseInterface } from "../../responses/response";
 import { arrayDiff } from "../../utils/array";
 import { base64decode } from "../../utils/base64";
 import { DateInterval } from "../../utils/date_interval";
-import { JwtInterface } from "../../utils/jwt";
+import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time";
 import { GrantIdentifier, GrantInterface } from "./grant.interface";
 
@@ -112,11 +112,11 @@ export abstract class AbstractGrant implements GrantInterface {
   ) {
     const now = Date.now();
     return this.encrypt(<ITokenData>{
-      // optional claims which the `userRepository.extraAccessTokenFields()` method may overwrite
+      // optional claims which the `jwtService.extraTokenFields()` method may overwrite
       iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
       aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
 
-      // the contents of `userRepository.extraAccessTokenFields()`
+      // the contents of `jwtService.extraTokenFields()`
       ...extraJwtFields,
 
       // non-standard claims over which this library asserts control

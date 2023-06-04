@@ -8,7 +8,7 @@ import { OAuthTokenRepository } from "../../src/repositories/access_token.reposi
 import { OAuthAuthCodeRepository } from "../../src/repositories/auth_code.repository";
 import { OAuthClientRepository } from "../../src/repositories/client.repository";
 import { OAuthScopeRepository } from "../../src/repositories/scope.repository";
-import { ExtraAccessTokenFields, OAuthUserRepository } from "../../src/repositories/user.repository";
+import { OAuthUserRepository } from "../../src/repositories/user.repository";
 import { DateInterval } from "../../src/utils/date_interval";
 import { inMemoryDatabase } from "./database";
 
@@ -65,7 +65,6 @@ export const inMemoryAccessTokenRepository: OAuthTokenRepository = {
   async persist(accessToken: OAuthToken): Promise<void> {
     inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
   },
-  // @todo
   async getByRefreshToken(refreshTokenToken: string): Promise<OAuthToken> {
     const token = Object.values(inMemoryDatabase.tokens).find(token => token.refreshToken === refreshTokenToken);
     if (!token) throw new Error("token not found");
@@ -120,10 +119,5 @@ export const inMemoryUserRepository: OAuthUserRepository = {
     const user = inMemoryDatabase.users[identifier];
     if (user?.password !== password) return;
     return user;
-  },
-  async extraAccessTokenFields(user: OAuthUser): Promise<ExtraAccessTokenFields | undefined> {
-    return {
-      email: user.email,
-    };
   },
 };
