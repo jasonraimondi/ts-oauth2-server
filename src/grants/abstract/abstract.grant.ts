@@ -100,7 +100,6 @@ export abstract class AbstractGrant implements GrantInterface {
       scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
       user_id: refreshToken.user?.id,
       expire_time: Math.ceil(expiresAtMs / 1000),
-      // token_version: 1, // @todo token version?
     });
   }
 
