@@ -8,7 +8,7 @@
 
 `@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server for Node, written in TypeScript. 
 
-Requires `node >= 12`
+Requires `node >= 16`
 
 Out of the box it supports the following grants:
 
