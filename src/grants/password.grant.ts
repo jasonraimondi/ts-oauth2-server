@@ -1,13 +1,28 @@
 import { OAuthClient } from "../entities/client.entity";
 import { OAuthUser } from "../entities/user.entity";
 import { OAuthException } from "../exceptions/oauth.exception";
+import { OAuthTokenRepository } from "../repositories/access_token.repository";
+import { OAuthClientRepository } from "../repositories/client.repository";
+import { OAuthScopeRepository } from "../repositories/scope.repository";
+import { OAuthUserRepository } from "../repositories/user.repository";
 import { RequestInterface } from "../requests/request";
 import { ResponseInterface } from "../responses/response";
 import { DateInterval } from "../utils/date_interval";
+import { JwtInterface } from "../utils/jwt";
 import { AbstractGrant } from "./abstract/abstract.grant";
 
 export class PasswordGrant extends AbstractGrant {
   readonly identifier = "password";
+
+  constructor(
+    protected readonly userRepository: OAuthUserRepository,
+    clientRepository: OAuthClientRepository,
+    tokenRepository: OAuthTokenRepository,
+    scopeRepository: OAuthScopeRepository,
+    jwt: JwtInterface,
+  ) {
+    super(clientRepository, tokenRepository, scopeRepository, jwt);
+  }
 
   async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {
     const client = await this.validateClient(req);

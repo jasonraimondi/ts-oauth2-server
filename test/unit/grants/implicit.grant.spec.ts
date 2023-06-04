@@ -4,10 +4,8 @@ import { decode } from "jsonwebtoken";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
-  inMemoryAuthCodeRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
-  inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
 import {
   AuthorizationRequest,
@@ -52,11 +50,9 @@ describe("implicit grant", () => {
     scope2 = { name: "scope-2" };
 
     grant = new ImplicitGrant(
-      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      inMemoryUserRepository,
       new JwtService("secret-key"),
     );
 

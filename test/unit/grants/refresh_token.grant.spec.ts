@@ -2,10 +2,8 @@ import { describe, beforeEach, it, expect } from "vitest";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
-  inMemoryAuthCodeRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
-  inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
 import {
   DateInterval,
@@ -56,11 +54,9 @@ describe("refresh_token grant", () => {
     inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
 
     grant = new RefreshTokenGrant(
-      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      inMemoryUserRepository,
       new JwtService("secret-key"),
     );
   });

@@ -3,10 +3,8 @@ import { decode } from "jsonwebtoken";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
-  inMemoryAuthCodeRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
-  inMemoryUserRepository,
 } from "../../../examples/in_memory/repository";
 import {
   base64encode,
@@ -54,11 +52,9 @@ describe("client_credentials grant", () => {
     };
 
     grant = new ClientCredentialsGrant(
-      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      inMemoryUserRepository,
       new JwtService("secret-key"),
     );
 

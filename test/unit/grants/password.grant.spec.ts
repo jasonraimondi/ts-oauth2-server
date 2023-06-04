@@ -2,7 +2,6 @@ import { describe, beforeEach, it, expect } from "vitest";
 import { inMemoryDatabase } from "../../../examples/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
-  inMemoryAuthCodeRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
@@ -43,11 +42,10 @@ describe("password grant", () => {
     };
 
     grant = new PasswordGrant(
-      inMemoryAuthCodeRepository,
+      inMemoryUserRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      inMemoryUserRepository,
       new JwtService("secret-key"),
     );
 

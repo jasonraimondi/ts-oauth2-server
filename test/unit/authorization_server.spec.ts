@@ -40,19 +40,24 @@ describe("authorization_server", () => {
 
   beforeEach(() => {
     authorizationServer = new AuthorizationServer(
-      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      inMemoryUserRepository,
       new JwtService("secret-key"),
     );
-    refreshGrant = authorizationServer.getGrant("refresh_token");
-    authorizationServer.enableGrantType("authorization_code");
+    authorizationServer.enableGrantType({
+      grant: "authorization_code",
+      authCodeRepository: inMemoryAuthCodeRepository,
+      userRepository: inMemoryUserRepository,
+    });
     authorizationServer.enableGrantType("client_credentials");
     authorizationServer.enableGrantType("implicit");
-    authorizationServer.enableGrantType("password");
+    authorizationServer.enableGrantType({
+      grant: "password",
+      userRepository: inMemoryUserRepository,
+    });
     authorizationServer.enableGrantType("refresh_token");
+    refreshGrant = authorizationServer.getGrant("refresh_token");
 
     user = { id: "abc123" };
     scope1 = { name: "scope-1" };
@@ -152,11 +157,9 @@ describe("authorization_server", () => {
 
   it("throws if requested grant type is not enabled", async () => {
     authorizationServer = new AuthorizationServer(
-      inMemoryAuthCodeRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      inMemoryUserRepository,
       new JwtService("secret-key"),
     );
     authorizationServer.enableGrantType("refresh_token");
@@ -186,7 +189,11 @@ describe("authorization_server", () => {
 
     it("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
       authorizationServer.setOptions({ requiresPKCE: false });
-      authorizationServer.enableGrantType("authorization_code");
+      authorizationServer.enableGrantType({
+        grant: "authorization_code",
+        authCodeRepository: inMemoryAuthCodeRepository,
+        userRepository: inMemoryUserRepository,
+      });
       const request = new OAuthRequest({
         query: {
           response_type: "code",
@@ -212,14 +219,16 @@ describe("authorization_server", () => {
 
     it("auth server requiring pkce throws if request is missing code_challenge", async () => {
       authorizationServer = new AuthorizationServer(
-        inMemoryAuthCodeRepository,
         inMemoryClientRepository,
         inMemoryAccessTokenRepository,
         inMemoryScopeRepository,
-        inMemoryUserRepository,
         new JwtService("secret-key"),
       );
-      authorizationServer.enableGrantType("authorization_code");
+      authorizationServer.enableGrantType({
+        grant: "authorization_code",
+        authCodeRepository: inMemoryAuthCodeRepository,
+        userRepository: inMemoryUserRepository,
+      });
       const request = new OAuthRequest({
         query: {
           response_type: "code",

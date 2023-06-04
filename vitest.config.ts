@@ -7,5 +7,6 @@ export default defineConfig({
       reporter: ["text", "lcovonly"],
     },
     setupFiles: ["test/setup.ts"],
+    exclude: ["node_modules/**", "examples/**"],
   },
 });

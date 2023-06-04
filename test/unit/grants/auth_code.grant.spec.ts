@@ -15,6 +15,7 @@ import {
   AuthorizationRequest,
   base64urlencode,
   DateInterval,
+  ExtraAccessTokenFieldArgs,
   IAuthCodePayload,
   JwtService,
   OAuthClient,
@@ -25,6 +26,14 @@ import {
   REGEX_ACCESS_TOKEN,
 } from "../../../src";
 import { expectTokenResponse } from "./client_credentials.grant.spec";
+
+export class CustomJwtService extends JwtService {
+  extraTokenFields(params: ExtraAccessTokenFieldArgs) {
+    return {
+      email: params.user?.email,
+    };
+  }
+}
 
 describe("authorization_code grant", () => {
   let user: OAuthUser;
@@ -54,11 +63,11 @@ describe("authorization_code grant", () => {
 
     grant = new AuthCodeGrant(
       inMemoryAuthCodeRepository,
+      inMemoryUserRepository,
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      inMemoryUserRepository,
-      new JwtService("secret-key"),
+      new CustomJwtService("secret-key"),
     );
 
     inMemoryDatabase.clients[client.id] = client;

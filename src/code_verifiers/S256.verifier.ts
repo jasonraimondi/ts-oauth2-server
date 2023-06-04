@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 import { base64urlencode } from "../utils/base64";
 import { ICodeChallenge } from "./verifier";

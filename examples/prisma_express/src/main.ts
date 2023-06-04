@@ -19,12 +19,10 @@ import { UserRepository } from "./repositories/user_repository";
 async function bootstrap() {
   const prisma = new PrismaClient();
   const authorizationServer = new AuthorizationServer(
-    new AuthCodeRepository(prisma.oAuthAuthCode),
     new ClientRepository(prisma.oAuthClient),
     new TokenRepository(prisma.oAuthToken),
     new ScopeRepository(prisma.oAuthScope),
-    new UserRepository(prisma.user),
-    new JwtService(process.env.OAUTH_CODES_SECRET!),
+    process.env.OAUTH_CODES_SECRET!,
   );
   authorizationServer.enableGrantTypes(
     ["authorization_code", new DateInterval("15m")],

@@ -6,11 +6,17 @@ import { OAuthClient } from "../entities/client.entity";
 import { OAuthScope } from "../entities/scope.entity";
 import { OAuthUserIdentifier } from "../entities/user.entity";
 import { OAuthException } from "../exceptions/oauth.exception";
+import { OAuthTokenRepository } from "../repositories/access_token.repository";
+import { OAuthAuthCodeRepository } from "../repositories/auth_code.repository";
+import { OAuthClientRepository } from "../repositories/client.repository";
+import { OAuthScopeRepository } from "../repositories/scope.repository";
+import { OAuthUserRepository } from "../repositories/user.repository";
 import { AuthorizationRequest } from "../requests/authorization.request";
 import { RequestInterface } from "../requests/request";
 import { RedirectResponse } from "../responses/redirect.response";
 import { ResponseInterface } from "../responses/response";
 import { DateInterval } from "../utils/date_interval";
+import { JwtInterface } from "../utils/jwt";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant";
 import { GrantIdentifier } from "./abstract/grant.interface";
 
@@ -38,6 +44,17 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     plain: new PlainVerifier(),
     S256: new S256Verifier(),
   };
+
+  constructor(
+    protected readonly authCodeRepository: OAuthAuthCodeRepository,
+    protected readonly userRepository: OAuthUserRepository,
+    clientRepository: OAuthClientRepository,
+    tokenRepository: OAuthTokenRepository,
+    scopeRepository: OAuthScopeRepository,
+    jwt: JwtInterface,
+  ) {
+    super(clientRepository, tokenRepository, scopeRepository, jwt);
+  }
 
   async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {
     const client = await this.validateClient(req);

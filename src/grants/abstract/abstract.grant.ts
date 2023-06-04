@@ -34,15 +34,16 @@ export interface ITokenData {
 }
 
 export abstract class AbstractGrant implements GrantInterface {
-  public readonly options: AuthorizationServerOptions = {
+  public options: AuthorizationServerOptions = {
     requiresPKCE: true,
     requiresS256: false,
     notBeforeLeeway: 0,
     tokenCID: "name",
   };
 
+  protected authCodeRepository?: OAuthAuthCodeRepository;
+  protected userRepository?: OAuthUserRepository;
   protected readonly scopeDelimiterString = " ";
-
   protected readonly supportedGrantTypes: GrantIdentifier[] = [
     "client_credentials",
     "authorization_code",
@@ -54,11 +55,9 @@ export abstract class AbstractGrant implements GrantInterface {
   abstract readonly identifier: GrantIdentifier;
 
   constructor(
-    protected readonly authCodeRepository: OAuthAuthCodeRepository,
     protected readonly clientRepository: OAuthClientRepository,
     protected readonly tokenRepository: OAuthTokenRepository,
     protected readonly scopeRepository: OAuthScopeRepository,
-    protected readonly userRepository: OAuthUserRepository,
     protected readonly jwt: JwtInterface,
   ) {}
 

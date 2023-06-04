@@ -14,6 +14,7 @@ export enum ErrorType {
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
   AccessDenied = "access_denied",
+  InternalServerError = "server_error",
 }
 
 export class OAuthException extends Error {
@@ -110,6 +111,16 @@ export class OAuthException extends Error {
       errorDescription,
       undefined,
       HttpStatus.UNAUTHORIZED,
+    );
+  }
+
+  static internalServerError(errorDescription?: string) {
+    return new OAuthException(
+      "Internal server error",
+      ErrorType.InternalServerError,
+      errorDescription,
+      undefined,
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
