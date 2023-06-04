@@ -81,7 +81,6 @@ export class RefreshTokenGrant extends AbstractGrant {
   }
 
   async doRevoke(encryptedToken: string): Promise<void> {
-
     let refreshTokenData: any;
 
     try {

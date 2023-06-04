@@ -163,14 +163,12 @@ describe("authorization_server", () => {
     const request = new OAuthRequest({
       query: {
         response_type: "code",
-        client_id: client.id
-      }
+        client_id: client.id,
+      },
     });
 
     // act & assert
-    expect(() => authorizationServer.validateAuthorizationRequest(request)).toThrowError(
-      /unsupported grant_type/,
-    );
+    expect(() => authorizationServer.validateAuthorizationRequest(request)).toThrowError(/unsupported grant_type/);
   });
 
   describe("option requirePKCE", () => {

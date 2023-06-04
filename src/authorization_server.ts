@@ -128,7 +128,7 @@ export class AuthorizationServer {
   }
 
   async revoke(req: RequestInterface): Promise<ResponseInterface> {
-    const tokenTypeHint = req.body?.['token_type_hint'];
+    const tokenTypeHint = req.body?.["token_type_hint"];
     let response;
 
     for (const grantType of Object.values(this.enabledGrantTypes)) {

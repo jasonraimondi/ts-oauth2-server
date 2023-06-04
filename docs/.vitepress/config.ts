@@ -2,17 +2,18 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
   title: "@jmondi/oauth2-server",
-  description: "A standards compliant implementation of an OAuth 2.0 authorization server for Node that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript. ",
+  description:
+    "A standards compliant implementation of an OAuth 2.0 authorization server for Node that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript. ",
   base: "/ts-oauth2-server/",
   head: [
     [
-      'script',
+      "script",
       {
         "data-domain": "jasonraimondi.github.io/ts-oauth2-server",
         src: "https://plausible.io/js/script.js",
         defer: "true",
       },
-    ]
+    ],
   ],
   themeConfig: {
     nav: [

@@ -184,11 +184,13 @@ describe("refresh_token grant", () => {
     });
 
     // act
-    let refreshTokenInStore = await inMemoryAccessTokenRepository.getByRefreshToken("8a0d01db-4da7-4250-8f18-f6c096b1912e")
+    let refreshTokenInStore = await inMemoryAccessTokenRepository.getByRefreshToken(
+      "8a0d01db-4da7-4250-8f18-f6c096b1912e",
+    );
     const accessTokenExpiryBefore = refreshTokenInStore.accessTokenExpiresAt.valueOf();
     const refreshTokenExpiryBefore = refreshTokenInStore.refreshTokenExpiresAt!!.valueOf();
     const revokeResponse = await grant.respondToRevokeRequest(request);
-    refreshTokenInStore = await inMemoryAccessTokenRepository.getByRefreshToken("8a0d01db-4da7-4250-8f18-f6c096b1912e")
+    refreshTokenInStore = await inMemoryAccessTokenRepository.getByRefreshToken("8a0d01db-4da7-4250-8f18-f6c096b1912e");
     const accessTokenExpiryAfter = refreshTokenInStore.accessTokenExpiresAt.valueOf();
     const refreshTokenExpiryAfter = refreshTokenInStore.refreshTokenExpiresAt!!.valueOf();
 
@@ -199,5 +201,4 @@ describe("refresh_token grant", () => {
     expect(accessTokenExpiryAfter).toBe(0);
     expect(refreshTokenExpiryAfter).toBe(0);
   });
-
 });

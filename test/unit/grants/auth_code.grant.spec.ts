@@ -245,9 +245,7 @@ describe("authorization_code grant", () => {
 
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
-      await expect(authorizationRequest).rejects.toThrowError(
-        /Check the `client_id` parameter/,
-      );
+      await expect(authorizationRequest).rejects.toThrowError(/Check the `client_id` parameter/);
     });
 
     it("throws when S256 is required and plain is used for code_challenge_method", async () => {
@@ -576,10 +574,10 @@ describe("authorization_code grant", () => {
       });
 
       // act
-      let authCodeInStore = await inMemoryAuthCodeRepository.getByIdentifier("my-super-secret-auth-code")
+      let authCodeInStore = await inMemoryAuthCodeRepository.getByIdentifier("my-super-secret-auth-code");
       const expiryBefore = authCodeInStore.expiresAt.valueOf();
       const revokeResponse = await grant.respondToRevokeRequest(request);
-      authCodeInStore = await inMemoryAuthCodeRepository.getByIdentifier("my-super-secret-auth-code")
+      authCodeInStore = await inMemoryAuthCodeRepository.getByIdentifier("my-super-secret-auth-code");
       const expiryAfter = authCodeInStore.expiresAt.valueOf();
 
       // assert

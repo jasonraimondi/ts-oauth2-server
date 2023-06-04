@@ -302,5 +302,4 @@ export abstract class AbstractGrant implements GrantInterface {
     // default: nothing to do, be quiet about it
     return;
   }
-
 }
