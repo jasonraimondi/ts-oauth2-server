@@ -1,6 +1,6 @@
 import { json, urlencoded } from "body-parser";
 import Express from "express";
-import { requestFromExpress, handleExpressError, handleExpressResponse } from "../../src/adapters/express";
+import { requestFromExpress, handleExpressError, handleExpressResponse } from "../../../../src/adapters/express";
 
 import { inMemoryAuthorizationServer } from "./oauth_authorization_server";
 

@@ -1,6 +1,6 @@
-import { AuthorizationServer } from "../../src/authorization_server";
-import { DateInterval } from "../../src/utils/date_interval";
-import { JwtService } from "../../src/utils/jwt";
+import { AuthorizationServer } from "../../../../src/authorization_server";
+import { DateInterval } from "../../../../src/utils/date_interval";
+import { JwtService } from "../../../../src/utils/jwt";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,

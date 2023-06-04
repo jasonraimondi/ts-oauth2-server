@@ -1,15 +1,15 @@
-import { OAuthAuthCode } from "../../src/entities/auth_code.entity";
-import { OAuthClient } from "../../src/entities/client.entity";
-import { OAuthScope } from "../../src/entities/scope.entity";
-import { OAuthToken } from "../../src/entities/token.entity";
-import { OAuthUser } from "../../src/entities/user.entity";
-import { GrantIdentifier } from "../../src/grants/abstract/grant.interface";
-import { OAuthTokenRepository } from "../../src/repositories/access_token.repository";
-import { OAuthAuthCodeRepository } from "../../src/repositories/auth_code.repository";
-import { OAuthClientRepository } from "../../src/repositories/client.repository";
-import { OAuthScopeRepository } from "../../src/repositories/scope.repository";
-import { OAuthUserRepository } from "../../src/repositories/user.repository";
-import { DateInterval } from "../../src/utils/date_interval";
+import { OAuthAuthCode } from "../../../../src/entities/auth_code.entity";
+import { OAuthClient } from "../../../../src/entities/client.entity";
+import { OAuthScope } from "../../../../src/entities/scope.entity";
+import { OAuthToken } from "../../../../src/entities/token.entity";
+import { OAuthUser } from "../../../../src/entities/user.entity";
+import { GrantIdentifier } from "../../../../src/grants/abstract/grant.interface";
+import { OAuthTokenRepository } from "../../../../src/repositories/access_token.repository";
+import { OAuthAuthCodeRepository } from "../../../../src/repositories/auth_code.repository";
+import { OAuthClientRepository } from "../../../../src/repositories/client.repository";
+import { OAuthScopeRepository } from "../../../../src/repositories/scope.repository";
+import { OAuthUserRepository } from "../../../../src/repositories/user.repository";
+import { DateInterval } from "../../../../src/utils/date_interval";
 import { inMemoryDatabase } from "./database";
 
 const oneHourInFuture = new DateInterval("1h").getEndDate();

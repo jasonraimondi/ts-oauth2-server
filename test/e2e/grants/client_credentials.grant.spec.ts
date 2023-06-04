@@ -1,11 +1,11 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { decode } from "jsonwebtoken";
-import { inMemoryDatabase } from "../../../examples/in_memory/database";
+import { inMemoryDatabase } from "../_helpers/in_memory/database";
 import {
   inMemoryAccessTokenRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
-} from "../../../examples/in_memory/repository";
+} from "../_helpers/in_memory/repository";
 import {
   base64encode,
   ClientCredentialsGrant,
