@@ -12,20 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.pnpm-store
-            ~/.npm
-          key: node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            node-
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.tool-versions'
       - uses: pnpm/action-setup@v2
         with:
           version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.tool-versions'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - name: vuepress-deploy
         uses: jenkey2011/vuepress-deploy@master
