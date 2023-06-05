@@ -17,19 +17,15 @@ const userRepository = inMemoryUserRepository;
 
 const jwtService = new JwtService("secret secret secret");
 
-const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
-  clientRepository,
-  tokenRepository,
-  scopeRepository,
-  userRepository,
-  jwtService,
-);
+const authorizationServer = new AuthorizationServer(clientRepository, tokenRepository, scopeRepository, jwtService);
 
-authorizationServer.enableGrantType("authorization_code", new DateInterval("1m"));
+authorizationServer.enableGrantType(
+  { grant: "authorization_code", authCodeRepository, userRepository },
+  new DateInterval("1m"),
+);
 authorizationServer.enableGrantType("client_credentials", new DateInterval("1m"));
-authorizationServer.enableGrantType("implicit", new DateInterval("1m"));
-authorizationServer.enableGrantType("password", new DateInterval("1m"));
 authorizationServer.enableGrantType("refresh_token", new DateInterval("1m"));
+authorizationServer.enableGrantType("implicit", new DateInterval("1m"));
+authorizationServer.enableGrantType({ grant: "password", userRepository }, new DateInterval("1m"));
 
 export { authorizationServer as inMemoryAuthorizationServer };

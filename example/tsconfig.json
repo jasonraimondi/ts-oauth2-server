@@ -22,7 +22,7 @@
 
     /* Module Resolution Options */
     "moduleResolution": "node",
-    "baseUrl": ".",
+    "baseUrl": "./prisma2",
     "esModuleInterop": true,
     "resolveJsonModule": true,
 

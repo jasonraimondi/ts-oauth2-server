@@ -57,7 +57,7 @@ describe("authorization_server", () => {
       userRepository: inMemoryUserRepository,
     });
     authorizationServer.enableGrantType("refresh_token");
-    refreshGrant = authorizationServer.getGrant("refresh_token");
+    refreshGrant = authorizationServer.getGrant<RefreshTokenGrant>("refresh_token");
 
     user = { id: "abc123" };
     scope1 = { name: "scope-1" };

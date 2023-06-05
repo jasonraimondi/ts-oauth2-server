@@ -17,21 +17,20 @@ import { ScopeRepository } from "./repositories/scope_repository";
 
 async function bootstrap() {
   const prisma = new PrismaClient();
+
+  const authCodeRepository = new AuthCodeRepository(prisma.oAuthAuthCode);
+  const userRepository = new UserRepository(prisma.user);
+
   const authorizationServer = new AuthorizationServer(
-    new AuthCodeRepository(prisma.oAuthAuthCode),
     new ClientRepository(prisma.oAuthClient),
     new TokenRepository(prisma.oAuthToken),
     new ScopeRepository(prisma.oAuthScope),
-    new UserRepository(prisma.user),
     new JwtService(process.env.OAUTH_CODES_SECRET!),
   );
-  authorizationServer.enableGrantTypes(
-    ["authorization_code", new DateInterval("15m")],
-    ["client_credentials", new DateInterval("1d")],
-    "refresh_token",
-    "password",
-    "implicit",
-  );
+  authorizationServer.enableGrantTypes(["client_credentials", new DateInterval("1d")], "refresh_token", [
+    { grant: "authorization_code", authCodeRepository, userRepository },
+    new DateInterval("15m"),
+  ]);
 
   const fastify = Fastify({ logger: true });
 

@@ -186,11 +186,8 @@ export class AuthorizationServer {
     return response;
   }
 
-  /**
-   * I am only using this in testing... should it be here?
-   * @param grantType
-   */
-  getGrant(grantType: GrantIdentifier): GrantInterface | undefined {
-    return this.enabledGrantTypes[grantType];
+  // I am only using this in testing... should it be here?
+  getGrant<T extends GrantInterface>(grantType: GrantIdentifier): T {
+    return this.enabledGrantTypes[grantType] as T;
   }
 }

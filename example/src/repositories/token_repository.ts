@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { DateInterval, generateRandomToken, OAuthTokenRepository } from "@jmondi/oauth2-server";
+import { DateInterval, generateRandomToken, OAuthClient, OAuthTokenRepository } from "../../../src";
 
 import { Client } from "../entities/client";
 import { Scope } from "../entities/scope";
@@ -55,7 +55,7 @@ export class TokenRepository implements OAuthTokenRepository {
     return Date.now() > (token.refreshTokenExpiresAt?.getTime() ?? 0);
   }
 
-  async issueRefreshToken(token: Token, _: Client): Promise<Token> {
+  async issueRefreshToken(token: Token, _: OAuthClient): Promise<Token> {
     token.refreshToken = generateRandomToken();
     token.refreshTokenExpiresAt = new DateInterval("2h").getEndDate();
     await this.repo.update({

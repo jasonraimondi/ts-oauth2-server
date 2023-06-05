@@ -2,16 +2,14 @@ name: build docs
 
 on:
   push:
-    branches: [ main, vitepress ]
+    branches: [ main ]
 
 env:
   PNPM_VERSION: 8.4.x
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
