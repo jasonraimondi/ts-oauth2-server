@@ -4,9 +4,17 @@
   "author": "Jason Raimondi <jason@raimondi.us>",
   "license": "MIT",
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+      "index": "./src/index.ts",
+      "express": "./src/adapters/express.ts",
+      "fastify": "./src/adapters/fastify.ts"
+  },
   "publishConfig": {
-    "exports": "./dist/index.js",
+    "exports": {
+      "index": "./dist/index.js",
+      "express": "./dist/adapters/express.js",
+      "fastify": "./dist/adapters/fastify.js"
+    },
     "typings": "./dist/index.d.ts"
   },
   "files": [
