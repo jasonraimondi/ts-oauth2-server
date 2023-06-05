@@ -3,12 +3,13 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { json, urlencoded } from "body-parser";
 import Express from "express";
-import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";
 import {
-  requestFromExpress,
+  AuthorizationServer,
+  DateInterval,
+  JwtService,
   handleExpressError,
   handleExpressResponse,
-} from "@jmondi/oauth2-server/dist/adapters/express";
+} from "@jmondi/oauth2-server";
 
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
 import { ClientRepository } from "./repositories/client_repository";
@@ -40,7 +41,7 @@ async function bootstrap() {
   app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
     try {
       // Validate the HTTP request and return an AuthorizationRequest object.
-      const authRequest = await authorizationServer.validateAuthorizationRequest(requestFromExpress(req));
+      const authRequest = await authorizationServer.validateAuthorizationRequest(req);
 
       // The auth request object can be serialized and saved into a user's session.
       // You will probably want to redirect the user at this point to a login endpoint.
@@ -83,7 +84,6 @@ async function bootstrap() {
   });
 
   app.listen(3000);
-
   console.log("app is listening on localhost:3000");
 }
 
