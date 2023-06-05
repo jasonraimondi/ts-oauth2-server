@@ -3,7 +3,7 @@
 
 datasource db {
   provider = "postgres"
-  url      = "postgresql://prisma:secret@localhost:5432/prismadb?schema=public"
+  url      = "postgresql://prisma:secret@localhost:8888/prismadb?schema=public"
 }
 
 generator client {

@@ -10,10 +10,9 @@ services:
       TZ: UTC
       PGTZ: UTC
     ports:
-      - 5432:5432
+      - 8888:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
 
 volumes:
-  mysqldata:
   pgdata:

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { DateInterval, generateRandomToken, OAuthAuthCode, OAuthAuthCodeRepository } from "@jmondi/oauth2-server";
 
 import { AuthCode } from "../entities/auth_code";
@@ -7,10 +7,10 @@ import { Scope } from "../entities/scope";
 import { User } from "../entities/user";
 
 export class AuthCodeRepository implements OAuthAuthCodeRepository {
-  constructor(private readonly repo: Prisma.OAuthAuthCodeDelegate<"rejectOnNotFound">) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async getByIdentifier(authCodeCode: string): Promise<AuthCode> {
-    const entity = await this.repo.findUnique({
+    const entity = await this.prisma.oAuthAuthCode.findUnique({
       rejectOnNotFound: true,
       where: {
         code: authCodeCode,
@@ -43,11 +43,11 @@ export class AuthCodeRepository implements OAuthAuthCodeRepository {
   }
 
   async persist({ user, client, scopes, ...authCode }: AuthCode): Promise<void> {
-    await this.repo.create({ data: authCode });
+    await this.prisma.oAuthAuthCode.create({ data: authCode });
   }
 
   async revoke(authCodeCode: string): Promise<void> {
-    await this.repo.update({
+    await this.prisma.oAuthAuthCode.update({
       where: { code: authCodeCode },
       data: {
         expiresAt: new Date(0),

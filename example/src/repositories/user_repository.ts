@@ -1,11 +1,11 @@
 import { GrantIdentifier, OAuthUserRepository } from "@jmondi/oauth2-server";
-import { Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 import { Client } from "../entities/client";
 import { User } from "../entities/user";
 
 export class UserRepository implements OAuthUserRepository {
-  constructor(private readonly repo: Prisma.UserDelegate<"rejectOnNotFound">) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async getUserByCredentials(
     identifier: string,
@@ -14,7 +14,7 @@ export class UserRepository implements OAuthUserRepository {
     _client?: Client,
   ): Promise<User> {
     const user = new User(
-      await this.repo.findUnique({
+      await this.prisma.user.findUnique({
         rejectOnNotFound: true,
         where: { id: identifier },
       }),

@@ -1,14 +1,14 @@
-import { Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { GrantIdentifier, OAuthClient, OAuthClientRepository } from "@jmondi/oauth2-server";
 
 import { Client } from "../entities/client";
 
 export class ClientRepository implements OAuthClientRepository {
-  constructor(private readonly repo: Prisma.OAuthClientDelegate<"rejectOnNotFound">) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async getByIdentifier(clientId: string): Promise<Client> {
     return new Client(
-      await this.repo.findUnique({
+      await this.prisma.oAuthClient.findUnique({
         rejectOnNotFound: true,
         where: {
           id: clientId,

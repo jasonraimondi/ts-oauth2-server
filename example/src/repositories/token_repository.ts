@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { DateInterval, generateRandomToken, OAuthClient, OAuthTokenRepository } from "../../../src";
 
 import { Client } from "../entities/client";
@@ -7,10 +7,10 @@ import { Token } from "../entities/token";
 import { User } from "../entities/user";
 
 export class TokenRepository implements OAuthTokenRepository {
-  constructor(private readonly repo: Prisma.OAuthTokenDelegate<"rejectOnNotFound">) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async findById(accessToken: string): Promise<Token> {
-    const token = await this.repo.findUnique({
+    const token = await this.prisma.oAuthToken.findUnique({
       rejectOnNotFound: true,
       where: {
         accessToken,
@@ -39,7 +39,7 @@ export class TokenRepository implements OAuthTokenRepository {
   }
 
   async getByRefreshToken(refreshToken: string): Promise<Token> {
-    const token = await this.repo.findUnique({
+    const token = await this.prisma.oAuthToken.findUnique({
       rejectOnNotFound: true,
       where: { refreshToken },
       include: {
@@ -58,7 +58,7 @@ export class TokenRepository implements OAuthTokenRepository {
   async issueRefreshToken(token: Token, _: OAuthClient): Promise<Token> {
     token.refreshToken = generateRandomToken();
     token.refreshTokenExpiresAt = new DateInterval("2h").getEndDate();
-    await this.repo.update({
+    await this.prisma.oAuthToken.update({
       where: {
         accessToken: token.accessToken,
       },
@@ -71,7 +71,7 @@ export class TokenRepository implements OAuthTokenRepository {
   }
 
   async persist({ user, client, scopes, ...token }: Token): Promise<void> {
-    await this.repo.upsert({
+    await this.prisma.oAuthToken.upsert({
       where: {
         accessToken: token.accessToken,
       },
@@ -86,7 +86,7 @@ export class TokenRepository implements OAuthTokenRepository {
   }
 
   private async update({ user, client, scopes, ...token }: Token): Promise<void> {
-    await this.repo.update({
+    await this.prisma.oAuthToken.update({
       where: {
         accessToken: token.accessToken,
       },
