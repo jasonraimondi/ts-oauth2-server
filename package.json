@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-alpha.5",
+  "version": "3.0.0-alpha.6",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "license": "MIT",
@@ -15,7 +15,11 @@
       "./express": "./dist/adapters/express.js",
       "./fastify": "./dist/adapters/fastify.js"
     },
-    "typings": "./dist/index.d.ts"
+    "typings": {
+      ".": "./dist/index.d.ts",
+      "./express": "./dist/adapters/express.d.ts",
+      "./fastify": "./dist/adapters/fastify.d.ts"
+    }
   },
   "files": [
     "dist",
