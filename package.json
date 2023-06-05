@@ -1,13 +1,13 @@
 {
-  "version": "3.0.0-alpha.3",
+  "version": "3.0.0-alpha.4",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "license": "MIT",
   "type": "module",
   "exports": {
-      "index": "./src/index.ts",
-      "express": "./src/adapters/express.ts",
-      "fastify": "./src/adapters/fastify.ts"
+    "index": "./src/index.ts",
+    "express": "./src/adapters/express.ts",
+    "fastify": "./src/adapters/fastify.ts"
   },
   "publishConfig": {
     "exports": {
