@@ -14,6 +14,9 @@ importers:
         specifier: ^4.4.1
         version: 4.4.1
     devDependencies:
+      '@types/body-parser':
+        specifier: ^1.19.2
+        version: 1.19.2
       '@types/express':
         specifier: ^4.17.17
         version: 4.17.17
