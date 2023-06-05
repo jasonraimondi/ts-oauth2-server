@@ -1,9 +1,9 @@
-import { OAuthToken } from "../entities/token.entity";
-import { OAuthException } from "../exceptions/oauth.exception";
-import { RequestInterface } from "../requests/request";
-import { ResponseInterface } from "../responses/response";
-import { DateInterval } from "../utils/date_interval";
-import { AbstractGrant } from "./abstract/abstract.grant";
+import { OAuthToken } from "../entities/token.entity.js";
+import { OAuthException } from "../exceptions/oauth.exception.js";
+import { RequestInterface } from "../requests/request.js";
+import { ResponseInterface } from "../responses/response.js";
+import { DateInterval } from "../utils/date_interval.js";
+import { AbstractGrant } from "./abstract/abstract.grant.js";
 
 export class RefreshTokenGrant extends AbstractGrant {
   readonly identifier = "refresh_token";

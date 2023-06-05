@@ -1,7 +1,7 @@
-import { CodeChallengeMethod } from "../code_verifiers/verifier";
-import { OAuthClient } from "./client.entity";
-import { OAuthScope } from "./scope.entity";
-import { OAuthUser } from "./user.entity";
+import { CodeChallengeMethod } from "../code_verifiers/verifier.js";
+import { OAuthClient } from "./client.entity.js";
+import { OAuthScope } from "./scope.entity.js";
+import { OAuthUser } from "./user.entity.js";
 
 export interface OAuthAuthCode {
   code: string;

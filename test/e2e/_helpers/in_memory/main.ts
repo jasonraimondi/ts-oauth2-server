@@ -1,8 +1,8 @@
 import { json, urlencoded } from "body-parser";
 import Express from "express";
-import { requestFromExpress, handleExpressError, handleExpressResponse } from "../../../../src/adapters/express";
+import { requestFromExpress, handleExpressError, handleExpressResponse } from "../../../../src/adapters/express.js";
 
-import { inMemoryAuthorizationServer } from "./oauth_authorization_server";
+import { inMemoryAuthorizationServer } from "./oauth_authorization_server.js";
 
 const app = Express();
 

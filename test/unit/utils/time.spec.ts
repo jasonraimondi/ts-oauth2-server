@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-
-import { getSecondsUntil } from "../../../src/utils/time";
+import { getSecondsUntil } from "../../../src/index.js";
 
 describe("utils/time", () => {
   it("can calculate seconds until a future date", () => {

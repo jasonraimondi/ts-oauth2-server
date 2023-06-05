@@ -1,11 +1,11 @@
 import { describe, beforeEach, it, expect } from "vitest";
-import { inMemoryDatabase } from "../_helpers/in_memory/database";
+import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
-} from "../_helpers/in_memory/repository";
+} from "../_helpers/in_memory/repository.js";
 import {
   DateInterval,
   JwtService,
@@ -14,8 +14,8 @@ import {
   OAuthUser,
   PasswordGrant,
   REGEX_ACCESS_TOKEN,
-} from "../../../src";
-import { expectTokenResponse } from "./client_credentials.grant.spec";
+} from "../../../src/index.js";
+import { expectTokenResponse } from "./client_credentials.grant.spec.js";
 
 describe("password grant", () => {
   let user: OAuthUser;

@@ -1,14 +1,14 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { decode } from "jsonwebtoken";
 
-import { inMemoryDatabase } from "./_helpers/in_memory/database";
+import { inMemoryDatabase } from "./_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
-} from "./_helpers/in_memory/repository";
+} from "./_helpers/in_memory/repository.js";
 import {
   AuthorizationServer,
   OAuthClient,
@@ -22,8 +22,8 @@ import {
   base64encode,
   DateInterval,
   JwtService,
-} from "../../src";
-import { expectTokenResponse } from "./grants/client_credentials.grant.spec";
+} from "../../src/index.js";
+import { expectTokenResponse } from "./grants/client_credentials.grant.spec.js";
 
 // const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
 const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest());

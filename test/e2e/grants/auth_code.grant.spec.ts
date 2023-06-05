@@ -2,14 +2,14 @@ import { describe, beforeEach, it, expect } from "vitest";
 
 import { decode } from "jsonwebtoken";
 
-import { inMemoryDatabase } from "../_helpers/in_memory/database";
+import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
-} from "../_helpers/in_memory/repository";
+} from "../_helpers/in_memory/repository.js";
 import {
   AuthCodeGrant,
   AuthorizationRequest,
@@ -24,8 +24,8 @@ import {
   OAuthScope,
   OAuthUser,
   REGEX_ACCESS_TOKEN,
-} from "../../../src";
-import { expectTokenResponse } from "./client_credentials.grant.spec";
+} from "../../../src/index.js";
+import { expectTokenResponse } from "./client_credentials.grant.spec.js";
 
 export class CustomJwtService extends JwtService {
   extraTokenFields(params: ExtraAccessTokenFieldArgs) {

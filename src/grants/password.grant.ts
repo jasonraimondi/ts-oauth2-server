@@ -1,15 +1,15 @@
-import { OAuthClient } from "../entities/client.entity";
-import { OAuthUser } from "../entities/user.entity";
-import { OAuthException } from "../exceptions/oauth.exception";
-import { OAuthTokenRepository } from "../repositories/access_token.repository";
-import { OAuthClientRepository } from "../repositories/client.repository";
-import { OAuthScopeRepository } from "../repositories/scope.repository";
-import { OAuthUserRepository } from "../repositories/user.repository";
-import { RequestInterface } from "../requests/request";
-import { ResponseInterface } from "../responses/response";
-import { DateInterval } from "../utils/date_interval";
-import { JwtInterface } from "../utils/jwt";
-import { AbstractGrant } from "./abstract/abstract.grant";
+import { OAuthClient } from "../entities/client.entity.js";
+import { OAuthUser } from "../entities/user.entity.js";
+import { OAuthException } from "../exceptions/oauth.exception.js";
+import { OAuthTokenRepository } from "../repositories/access_token.repository.js";
+import { OAuthClientRepository } from "../repositories/client.repository.js";
+import { OAuthScopeRepository } from "../repositories/scope.repository.js";
+import { OAuthUserRepository } from "../repositories/user.repository.js";
+import { RequestInterface } from "../requests/request.js";
+import { ResponseInterface } from "../responses/response.js";
+import { DateInterval } from "../utils/date_interval.js";
+import { JwtInterface } from "../utils/jwt.js";
+import { AbstractGrant } from "./abstract/abstract.grant.js";
 
 export class PasswordGrant extends AbstractGrant {
   readonly identifier = "password";

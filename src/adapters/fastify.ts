@@ -1,8 +1,8 @@
-import type { FastifyRequest, FastifyReply } from "fastify";
-import { OAuthException } from "../exceptions/oauth.exception";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { OAuthException } from "../exceptions/oauth.exception.js";
 
-import { OAuthRequest } from "../requests/request";
-import { OAuthResponse } from "../responses/response";
+import { OAuthRequest } from "../requests/request.js";
+import { OAuthResponse } from "../responses/response.js";
 
 export function responseFromFastify(res: FastifyReply) {
   return new OAuthResponse({

@@ -1,20 +1,20 @@
-import { OAuthException } from "./exceptions/oauth.exception";
-import { GrantIdentifier, GrantInterface } from "./grants/abstract/grant.interface";
-import { AuthCodeGrant } from "./grants/auth_code.grant";
-import { ClientCredentialsGrant } from "./grants/client_credentials.grant";
-import { ImplicitGrant } from "./grants/implicit.grant";
-import { PasswordGrant } from "./grants/password.grant";
-import { RefreshTokenGrant } from "./grants/refresh_token.grant";
-import { OAuthTokenRepository } from "./repositories/access_token.repository";
-import { OAuthAuthCodeRepository } from "./repositories/auth_code.repository";
-import { OAuthClientRepository } from "./repositories/client.repository";
-import { OAuthScopeRepository } from "./repositories/scope.repository";
-import { OAuthUserRepository } from "./repositories/user.repository";
-import { AuthorizationRequest } from "./requests/authorization.request";
-import { RequestInterface } from "./requests/request";
-import { ResponseInterface } from "./responses/response";
-import { DateInterval } from "./utils/date_interval";
-import { JwtInterface, JwtService } from "./utils/jwt";
+import { OAuthException } from "./exceptions/oauth.exception.js";
+import { GrantIdentifier, GrantInterface } from "./grants/abstract/grant.interface.js";
+import { AuthCodeGrant } from "./grants/auth_code.grant.js";
+import { ClientCredentialsGrant } from "./grants/client_credentials.grant.js";
+import { ImplicitGrant } from "./grants/implicit.grant.js";
+import { PasswordGrant } from "./grants/password.grant.js";
+import { RefreshTokenGrant } from "./grants/refresh_token.grant.js";
+import { OAuthTokenRepository } from "./repositories/access_token.repository.js";
+import { OAuthAuthCodeRepository } from "./repositories/auth_code.repository.js";
+import { OAuthClientRepository } from "./repositories/client.repository.js";
+import { OAuthScopeRepository } from "./repositories/scope.repository.js";
+import { OAuthUserRepository } from "./repositories/user.repository.js";
+import { AuthorizationRequest } from "./requests/authorization.request.js";
+import { RequestInterface } from "./requests/request.js";
+import { ResponseInterface } from "./responses/response.js";
+import { DateInterval } from "./utils/date_interval.js";
+import { JwtInterface, JwtService } from "./utils/jwt.js";
 
 export interface AuthorizationServerOptions {
   // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5

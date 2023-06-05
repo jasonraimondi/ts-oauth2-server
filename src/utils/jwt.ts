@@ -1,6 +1,6 @@
 import jwt, { Secret, SignOptions, VerifyOptions } from "jsonwebtoken";
-import { OAuthClient } from "../entities/client.entity";
-import { OAuthUser } from "../entities/user.entity";
+import { OAuthClient } from "../entities/client.entity.js";
+import { OAuthUser } from "../entities/user.entity.js";
 
 export type ExtraAccessTokenFields = Record<string, string | number | boolean>;
 export type ExtraAccessTokenFieldArgs = {

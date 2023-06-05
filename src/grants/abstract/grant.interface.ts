@@ -1,8 +1,8 @@
-import { AuthorizationServerOptions } from "../../authorization_server";
-import { AuthorizationRequest } from "../../requests/authorization.request";
-import { RequestInterface } from "../../requests/request";
-import { ResponseInterface } from "../../responses/response";
-import { DateInterval } from "../../utils/date_interval";
+import { AuthorizationServerOptions } from "../../authorization_server.js";
+import { AuthorizationRequest } from "../../requests/authorization.request.js";
+import { RequestInterface } from "../../requests/request.js";
+import { ResponseInterface } from "../../responses/response.js";
+import { DateInterval } from "../../utils/date_interval.js";
 
 export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token" | "password" | "implicit";
 

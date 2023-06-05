@@ -1,9 +1,9 @@
 import { parse } from "uri-js";
 
-import { OAuthClient } from "../../entities/client.entity";
-import { OAuthException } from "../../exceptions/oauth.exception";
-import { RequestInterface } from "../../requests/request";
-import { AbstractGrant } from "./abstract.grant";
+import { OAuthClient } from "../../entities/client.entity.js";
+import { OAuthException } from "../../exceptions/oauth.exception.js";
+import { RequestInterface } from "../../requests/request.js";
+import { AbstractGrant } from "./abstract.grant.js";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(

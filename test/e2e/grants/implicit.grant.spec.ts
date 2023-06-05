@@ -1,12 +1,12 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { decode } from "jsonwebtoken";
 
-import { inMemoryDatabase } from "../_helpers/in_memory/database";
+import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
-} from "../_helpers/in_memory/repository";
+} from "../_helpers/in_memory/repository.js";
 import {
   AuthorizationRequest,
   DateInterval,
@@ -19,7 +19,7 @@ import {
   OAuthUser,
   REGEX_ACCESS_TOKEN,
   roundToSeconds,
-} from "../../../src";
+} from "../../../src/index.js";
 
 describe("implicit grant", () => {
   let user: OAuthUser;

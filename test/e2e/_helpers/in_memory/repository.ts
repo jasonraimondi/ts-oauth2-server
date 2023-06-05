@@ -1,16 +1,16 @@
-import { OAuthAuthCode } from "../../../../src/entities/auth_code.entity";
-import { OAuthClient } from "../../../../src/entities/client.entity";
-import { OAuthScope } from "../../../../src/entities/scope.entity";
-import { OAuthToken } from "../../../../src/entities/token.entity";
-import { OAuthUser } from "../../../../src/entities/user.entity";
-import { GrantIdentifier } from "../../../../src/grants/abstract/grant.interface";
-import { OAuthTokenRepository } from "../../../../src/repositories/access_token.repository";
-import { OAuthAuthCodeRepository } from "../../../../src/repositories/auth_code.repository";
-import { OAuthClientRepository } from "../../../../src/repositories/client.repository";
-import { OAuthScopeRepository } from "../../../../src/repositories/scope.repository";
-import { OAuthUserRepository } from "../../../../src/repositories/user.repository";
-import { DateInterval } from "../../../../src/utils/date_interval";
-import { inMemoryDatabase } from "./database";
+import { OAuthAuthCode } from "../../../../src/entities/auth_code.entity.js";
+import { OAuthClient } from "../../../../src/entities/client.entity.js";
+import { OAuthScope } from "../../../../src/entities/scope.entity.js";
+import { OAuthToken } from "../../../../src/entities/token.entity.js";
+import { OAuthUser } from "../../../../src/entities/user.entity.js";
+import { GrantIdentifier } from "../../../../src/grants/abstract/grant.interface.js";
+import { OAuthTokenRepository } from "../../../../src/repositories/access_token.repository.js";
+import { OAuthAuthCodeRepository } from "../../../../src/repositories/auth_code.repository.js";
+import { OAuthClientRepository } from "../../../../src/repositories/client.repository.js";
+import { OAuthScopeRepository } from "../../../../src/repositories/scope.repository.js";
+import { OAuthUserRepository } from "../../../../src/repositories/user.repository.js";
+import { DateInterval } from "../../../../src/utils/date_interval.js";
+import { inMemoryDatabase } from "./database.js";
 
 const oneHourInFuture = new DateInterval("1h").getEndDate();
 

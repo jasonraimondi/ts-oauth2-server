@@ -1,6 +1,6 @@
-import { OAuthClient } from "./client.entity";
-import { OAuthScope } from "./scope.entity";
-import { OAuthUser } from "./user.entity";
+import { OAuthClient } from "./client.entity.js";
+import { OAuthScope } from "./scope.entity.js";
+import { OAuthUser } from "./user.entity.js";
 
 export interface OAuthToken {
   accessToken: string;

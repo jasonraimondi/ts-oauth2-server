@@ -1,13 +1,13 @@
-import { AuthorizationServer } from "../../../../src/authorization_server";
-import { DateInterval } from "../../../../src/utils/date_interval";
-import { JwtService } from "../../../../src/utils/jwt";
+import { AuthorizationServer } from "../../../../src/authorization_server.js";
+import { DateInterval } from "../../../../src/utils/date_interval.js";
+import { JwtService } from "../../../../src/utils/jwt.js";
 import {
   inMemoryAccessTokenRepository,
   inMemoryAuthCodeRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
   inMemoryUserRepository,
-} from "./repository";
+} from "./repository.js";
 
 const clientRepository = inMemoryClientRepository;
 const authCodeRepository = inMemoryAuthCodeRepository;

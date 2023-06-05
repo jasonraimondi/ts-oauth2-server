@@ -1,11 +1,11 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { decode } from "jsonwebtoken";
-import { inMemoryDatabase } from "../_helpers/in_memory/database";
+import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
   inMemoryClientRepository,
   inMemoryScopeRepository,
-} from "../_helpers/in_memory/repository";
+} from "../_helpers/in_memory/repository.js";
 import {
   base64encode,
   ClientCredentialsGrant,
@@ -15,7 +15,7 @@ import {
   OAuthRequest,
   REGEX_ACCESS_TOKEN,
   ResponseInterface,
-} from "../../../src";
+} from "../../../src/index.js";
 
 export function expectTokenResponse(tokenResponse: ResponseInterface) {
   const decodedToken: any = decode(tokenResponse.body.access_token);

@@ -1,5 +1,5 @@
 import { it, expect } from "vitest";
-import { generateRandomToken } from "../../../src";
+import { generateRandomToken } from "../../../src/index.js";
 
 it("generates a token of length", () => {
   expect(generateRandomToken().length).toBe(80);

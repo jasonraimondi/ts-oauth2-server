@@ -1,7 +1,7 @@
-import { OAuthClient } from "../entities/client.entity";
-import { OAuthScope } from "../entities/scope.entity";
-import { OAuthUserIdentifier } from "../entities/user.entity";
-import { GrantIdentifier } from "../grants/abstract/grant.interface";
+import { OAuthClient } from "../entities/client.entity.js";
+import { OAuthScope } from "../entities/scope.entity.js";
+import { OAuthUserIdentifier } from "../entities/user.entity.js";
+import { GrantIdentifier } from "../grants/abstract/grant.interface.js";
 
 export interface OAuthScopeRepository {
   getAllByIdentifiers(scopeNames: string[]): Promise<OAuthScope[]>;

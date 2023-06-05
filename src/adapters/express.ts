@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
-import { OAuthException } from "../exceptions/oauth.exception";
+import { OAuthException } from "../exceptions/oauth.exception.js";
 
-import { OAuthRequest } from "../requests/request";
-import { OAuthResponse } from "../responses/response";
+import { OAuthRequest } from "../requests/request.js";
+import { OAuthResponse } from "../responses/response.js";
 
 export function responseFromExpress(res: Response): OAuthResponse {
   return new OAuthResponse(res);
