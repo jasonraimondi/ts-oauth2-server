@@ -5,15 +5,15 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    "index": "./src/index.ts",
-    "express": "./src/adapters/express.ts",
-    "fastify": "./src/adapters/fastify.ts"
+    ".": "./src/index.ts",
+    "./express": "./src/adapters/express.ts",
+    "./fastify": "./src/adapters/fastify.ts"
   },
   "publishConfig": {
     "exports": {
-      "index": "./dist/index.js",
-      "express": "./dist/adapters/express.js",
-      "fastify": "./dist/adapters/fastify.js"
+      ".": "./dist/index.js",
+      "./express": "./dist/adapters/express.js",
+      "./fastify": "./dist/adapters/fastify.js"
     },
     "typings": "./dist/index.d.ts"
   },
