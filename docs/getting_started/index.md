@@ -26,19 +26,19 @@ You can enable any grant types you would like to support.
 
 ```typescript
 const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
   clientRepository,
   accessTokenRepository,
   scopeRepository,
-  userRepository,
-  new JwtService("secret-key"),
+  "secret-key",
   {} // optional configuration
 );
 authorizationServer.enableGrantType("client_credentials");
-authorizationServer.enableGrantType("authorization_code");
 authorizationServer.enableGrantType("refresh_token");
-authorizationServer.enableGrantType("implicit"); // implicit grant is not recommended
-authorizationServer.enableGrantType("password"); // password grant is not recommended
+authorizationServer.enableGrantType({
+  grant: "authorization_code",
+  userRepository, 
+  authorizationCodeRepository,
+});
 ```
 
 See the [configuration](../configuration/index.md) documentation for a full list of config options.
@@ -114,7 +114,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 ## Revoke Tokens (RFC7009 “OAuth 2.0 Token Revocation”)
 
 ::: tip Note 
-Implementing this endpoint is optional.
+Implementing this endpoint is optional, but recommended.
 :::
 
 The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.

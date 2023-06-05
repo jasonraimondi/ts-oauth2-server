@@ -107,21 +107,8 @@ Pragma: no-cache
 
 PKCE ([RFC 7636](https://tools.ietf.org/html/rfc7636)) is an extension to the [Authorization Code flow](https://oauth.net/2/grant-types/authorization-code/) to prevent several attacks and to be able to securely perform the OAuth exchange from public clients.
 
-By default, PKCE is enabled and encouraged for all users. If you need to support a legacy client system without PKCE, you can disable PKCE with the authorization server:
-
-```
-const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
-  clientRepository,
-  accessTokenRepository,
-  scopeRepository,
-  userRepository,
-  new JwtService("secret-key"),
-  {
-    requiresPKCE: false,
-  }
-);
-```
+By default, PKCE is enabled and encouraged for all users. If you need to support a legacy client system without PKCE,
+you can disable PKCE with the authorization server using the `requiresPKCE` [configuration option](../configuration/index.md).
 
 #### Code Verifier
 

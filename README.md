@@ -136,24 +136,23 @@ You can enable any grant types you would like to support.
 
 ```typescript
 const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
   clientRepository,
   accessTokenRepository,
   scopeRepository,
-  userRepository,
   new JwtService("secret-key"),
 );
 
-// Enable as many or as few grants as you'd like. 
-// You can pass in an optional tuple of [GrantType, DateInterval]
-// to set Access Token TTL per grant type.
+// Enable as many or as few grants as you'd like.
 authorizationServer.enableGrantTypes(
-  ["client_credentials", new DateInterval("1d")],
-  ["authorization_code", new DateInterval("15m")],
+  "client_credentials",
   "refresh_token",
 );
-authorizationServer.enableGrantType("implicit"); // implicit grant is not recommended
-authorizationServer.enableGrantType("password"); // password grant is not recommended
+
+// with custom token TTL
+authorizationServer.enableGrantTypes(
+  ["client_credentials", new DateInterval("1d")],
+  ["refresh_token", new DateInterval("1d")],
+);
 ```
 
 ### Repositories
@@ -409,8 +408,6 @@ app.post("/token/revoke", async (req: Express.Request, res: Express.Response) =>
   }
 });
 ```
-
-
 
 ## Thanks
 

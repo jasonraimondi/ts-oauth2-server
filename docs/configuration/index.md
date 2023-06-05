@@ -27,11 +27,9 @@ To configure these options, pass the value in as the last argument:
 
 ```typescript
 const authorizationServer = new AuthorizationServer(
-  authCodeRepository,
   clientRepository,
   accessTokenRepository,
   scopeRepository,
-  userRepository,
   new JwtService("secret-key"),
   {
     requiresS256: true, // default is false
