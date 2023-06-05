@@ -1,9 +1,13 @@
 import "dotenv/config";
+import {
+  handleFastifyError,
+  handleFastifyReply,
+  requestFromFastify,
+} from "@jmondi/oauth2-server/dist/adapters/fastify";
 
 import { PrismaClient } from "@prisma/client";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";
-import { requestFromFastify, handleFastifyError, handleFastifyReply } from "@jmondi/oauth2-server/fastify";
 
 import { ClientRepository } from "./repositories/client_repository";
 import { AuthCodeRepository } from "./repositories/auth_code_repository";

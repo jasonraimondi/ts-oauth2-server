@@ -7,9 +7,8 @@ import {
   AuthorizationServer,
   DateInterval,
   JwtService,
-  handleExpressError,
-  handleExpressResponse,
 } from "@jmondi/oauth2-server";
+import { handleExpressError, handleExpressResponse } from "@jmondi/oauth2-server/dist/adapters/express";
 
 import { AuthCodeRepository } from "./repositories/auth_code_repository";
 import { ClientRepository } from "./repositories/client_repository";
