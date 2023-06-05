@@ -2,8 +2,8 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@jmondi/oauth2-server':
-    specifier: 3.0.0-alpha.3
-    version: 3.0.0-alpha.3
+    specifier: 3.0.0-alpha.4
+    version: 3.0.0-alpha.4
   '@prisma/client':
     specifier: ^4.15.0
     version: 4.15.0(prisma@4.15.0)
@@ -289,8 +289,8 @@ packages:
       fast-json-stringify: 5.7.0
     dev: false
 
-  /@jmondi/oauth2-server@3.0.0-alpha.3:
-    resolution: {integrity: sha512-kVifWpnOm/EMwOEYp5wo2G7RYVw/D6aZyrnpPPDFvOQA3aeH0wYsHNdeF7uGnKdD9rdsgMhzeU32kJNHyrLsIA==}
+  /@jmondi/oauth2-server@3.0.0-alpha.4:
+    resolution: {integrity: sha512-eS7NtZ5CqbBCGaPwjVDFMw4vKqa0HkQqnsunmPssjHuxCkFFTFsa3JutYO6rayDNVIbDg9dvA47t1xFBmjC/OQ==}
     engines: {node: '>=16'}
     dependencies:
       jsonwebtoken: 9.0.0
