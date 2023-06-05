@@ -62,13 +62,5 @@
     "jsonwebtoken": "^9.0.0",
     "ms": "^2.1.3",
     "uri-js": "^4.4.1"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "semi": true,
-    "singleQuote": false,
-    "tabWidth": 2,
-    "trailingComma": "all",
-    "arrowParens": "avoid"
   }
 }
