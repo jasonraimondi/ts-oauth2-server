@@ -38,7 +38,7 @@ export abstract class AbstractGrant implements GrantInterface {
     requiresPKCE: true,
     requiresS256: false,
     notBeforeLeeway: 0,
-    tokenCID: "name",
+    tokenCID: "id",
   };
 
   protected authCodeRepository?: OAuthAuthCodeRepository;

@@ -75,7 +75,6 @@ describe("client_credentials grant", () => {
     const accessTokenTTL = new DateInterval("1h");
 
     // act
-    grant.options.tokenCID = "id";
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
@@ -94,9 +93,9 @@ describe("client_credentials grant", () => {
       },
     });
     const accessTokenTTL = new DateInterval("1h");
+    grant.options.tokenCID = "name";
 
     // act
-    grant.options.tokenCID = "name";
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
@@ -118,6 +117,7 @@ describe("client_credentials grant", () => {
       },
     });
     const accessTokenTTL = new DateInterval("1h");
+    grant.options.tokenCID = "name";
 
     // act
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
