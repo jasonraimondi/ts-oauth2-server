@@ -1,13 +1,11 @@
 ---
-title: Grants
+title: Which Grant?
 ---
 
 # {{ $frontmatter.title }}
 
 Grants are different ways a [client](../glossary/index.md#client) can obtain an `access_token` that will authorize 
 it to use the [resource server](../glossary/index.md#resource-server).
-
-## Which Grant?
 
 Deciding which grant to use depends on the type of client the end user will be using.
 
@@ -53,3 +51,15 @@ Deciding which grant to use depends on the type of client the end user will be u
                                       +---------------------------+
 
 ```
+
+### Refresh Token Grant
+
+If the client already has a refresh token, it can use the Refresh Token Grant to obtain a new access token without requiring the user's interaction. This grant is useful for long-lived sessions and background processes.
+
+### Client Credentials Grant
+
+If the access token owner is a machine, such as a server or an application acting on its own behalf, rather than an individual user, the client can use the Client Credentials Grant. This grant is designed for scenarios where the client needs to access resources autonomously without the context of a specific user.
+
+### Auth Code Grant with PKCE
+
+If the access token owner is a user, the recommended grant is the Authorization Code Grant with Proof Key for Code Exchange (PKCE). This grant involves a series of steps where the client redirects the user to the authorization server, the user grants access, and the server provides an authorization code that the client exchanges for an access token. PKCE adds an extra layer of security to protect against authorization code interception attacks.

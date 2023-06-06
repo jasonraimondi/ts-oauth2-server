@@ -32,7 +32,7 @@ export default defineConfig({
       {
         text: "Grants",
         items: [
-          { text: "Grants", link: "/grants/" },
+          { text: "Which Grant?", link: "/grants/" },
           { text: "Client Credentials", link: "/grants/client_credentials" },
           { text: "Authorization Code", link: "/grants/authorization_code" },
           { text: "Refresh Token", link: "/grants/refresh_token" },
@@ -43,9 +43,14 @@ export default defineConfig({
       {
         text: "",
         items: [
-          { text: "Repository Interface", link: "/repositories/" },
+          { text: "Repository Interfaces", link: "/repositories/" },
           { text: "Entity Interfaces", link: "/entities/" },
           { text: "Adapters", link: "/adapters/" },
+        ],
+      },
+      {
+        text: "",
+        items: [
           { text: "Glossary", link: "/glossary/" },
           { text: "Sources", link: "/sources/" },
         ],
