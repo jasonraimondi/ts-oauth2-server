@@ -409,6 +409,11 @@ app.post("/token/revoke", async (req: Express.Request, res: Express.Response) =>
 });
 ```
 
+## Migration Guide
+
+- [v1 to v2](https://github.com/jasonraimondi/ts-oauth2-server/releases/tag/v2.0.0)
+- [v2 to v3](https://jasonraimondi.github.io/ts-oauth2-server/migration/v2_to_v3.html) 
+
 ## Thanks
 
 This project is inspired by the [PHP League's OAuth2 Server](https://oauth2.thephpleague.com/). Check out the [PHP
