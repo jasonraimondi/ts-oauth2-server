@@ -5,6 +5,11 @@ export default defineConfig({
   description:
     "A standards compliant implementation of an OAuth 2.0 authorization server for Node that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript. ",
   base: "/ts-oauth2-server/",
+  markdown: {
+    toc: {
+      listClass: "table-of-contents",
+    }
+  },
   head: [
     [
       "script",
@@ -16,15 +21,14 @@ export default defineConfig({
     ],
   ],
   themeConfig: {
+    siteTitle: "@jmondi/oauth2-server",
     nav: [
       { text: "Github", link: "https://github.com/jasonraimondi/ts-oauth2-server" },
       { text: "Getting Started", link: "/getting_started/" },
     ],
     sidebar: [
       {
-        text: "",
         items: [
-          { text: "TypeScript OAuth2.0 Server", link: "/" },
           { text: "Getting Started", link: "/getting_started/" },
           { text: "Configuration", link: "/configuration/" },
         ],
@@ -41,20 +45,27 @@ export default defineConfig({
         ],
       },
       {
-        text: "",
+        text: "Repository",
         items: [
           { text: "Repository Interfaces", link: "/repositories/" },
           { text: "Entity Interfaces", link: "/entities/" },
-          { text: "Adapters", link: "/adapters/" },
         ],
       },
       {
-        text: "",
+        text: "Misc",
         items: [
+          { text: "Adapters", link: "/adapters/" },
+          { text: "Migrate v2 to v3", link: "/migration/v2_to_v3" },
           { text: "Glossary", link: "/glossary/" },
-          { text: "Sources", link: "/sources/" },
         ],
       },
+      {
+        items: [{ text: "Sources", link: "/sources/" }],
+      },
     ],
+    footer: {
+      message: "Released under the MIT License.",
+      copyright: "Copyright © 2023 Jason Raimondi",
+    },
   },
 });

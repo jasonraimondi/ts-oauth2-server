@@ -1,0 +1,18 @@
+ul.table-of-contents {
+  list-style-type: none;
+  margin: 1rem 0 0 0.5rem;
+  padding: 0;
+  line-height: 1;
+}
+
+ul.table-of-contents ul {
+  margin-left: 1rem;
+}
+
+.table-of-contents li {
+  text-indent: -5px;
+}
+.table-of-contents li:before {
+  content: "- ";
+  text-indent: -5px;
+}
