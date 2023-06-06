@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { GrantIdentifier, OAuthClient, OAuthClientRepository } from "@jmondi/oauth2-server";
 
-import { Client } from "../entities/client";
+import { Client } from "../entities/client.js";
 
 export class ClientRepository implements OAuthClientRepository {
   constructor(private readonly prisma: PrismaClient) {}

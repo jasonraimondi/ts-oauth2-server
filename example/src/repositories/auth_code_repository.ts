@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { DateInterval, generateRandomToken, OAuthAuthCode, OAuthAuthCodeRepository } from "@jmondi/oauth2-server";
 
-import { AuthCode } from "../entities/auth_code";
-import { Client } from "../entities/client";
-import { Scope } from "../entities/scope";
-import { User } from "../entities/user";
+import { AuthCode } from "../entities/auth_code.js";
+import { Client } from "../entities/client.js";
+import { Scope } from "../entities/scope.js";
+import { User } from "../entities/user.js";
 
 export class AuthCodeRepository implements OAuthAuthCodeRepository {
   constructor(private readonly prisma: PrismaClient) {}

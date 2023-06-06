@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { DateInterval, generateRandomToken, OAuthClient, OAuthTokenRepository } from "../../../src";
 
-import { Client } from "../entities/client";
-import { Scope } from "../entities/scope";
-import { Token } from "../entities/token";
-import { User } from "../entities/user";
+import { Client } from "../entities/client.js";
+import { Scope } from "../entities/scope.js";
+import { Token } from "../entities/token.js";
+import { User } from "../entities/user.js";
 
 export class TokenRepository implements OAuthTokenRepository {
   constructor(private readonly prisma: PrismaClient) {}

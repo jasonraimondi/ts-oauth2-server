@@ -1,5 +1,5 @@
 import { User as UserModel } from "@prisma/client";
-import { compare, hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { OAuthUser } from "@jmondi/oauth2-server";
 
 export class User implements UserModel, OAuthUser {
@@ -14,11 +14,11 @@ export class User implements UserModel, OAuthUser {
   }
 
   async setPassword(password: string) {
-    this.passwordHash = await hash(password, 12);
+    this.passwordHash = await bcrypt.hash(password, 12);
   }
 
   async verify(password: string) {
-    if (!(await compare(password, this.passwordHash))) {
+    if (!(await bcrypt.compare(password, this.passwordHash))) {
       throw new Error("invalid password");
     }
   }

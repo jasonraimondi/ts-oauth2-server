@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
     /* Basic Options */
-    "target": "es6",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "lib": ["esnext", "esnext.asynciterable"],
     "outDir": "dist",
 
     /* Strict Type-Checking Options */
@@ -21,8 +23,6 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Module Resolution Options */
-    "moduleResolution": "node",
-    "baseUrl": "./prisma2",
     "esModuleInterop": true,
     "resolveJsonModule": true,
 
@@ -37,6 +37,6 @@
       "node_modules/@types",
     ]
   },
-  "include": ["src"],
+  "include": ["src", "prisma"],
   "exclude": ["node_modules/**"]
 }

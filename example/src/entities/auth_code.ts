@@ -6,9 +6,9 @@ import {
 } from "@prisma/client";
 import { OAuthAuthCode, CodeChallengeMethod } from "@jmondi/oauth2-server";
 
-import { Client } from "./client";
-import { Scope } from "./scope";
-import { User } from "./user";
+import { Client } from "./client.js";
+import { Scope } from "./scope.js";
+import { User } from "./user.js";
 
 type Optional = Partial<{
   user: UserModel;

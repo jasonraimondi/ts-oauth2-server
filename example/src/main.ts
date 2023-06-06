@@ -1,16 +1,17 @@
 import "dotenv/config";
 
 import { PrismaClient } from "@prisma/client";
-import { json, urlencoded } from "body-parser";
+import bodyParser from "body-parser";
 import Express from "express";
-import { AuthorizationServer, DateInterval, JwtService } from "@jmondi/oauth2-server";
-import { handleExpressError, handleExpressResponse } from "@jmondi/oauth2-server/dist/adapters/express";
+import { AuthorizationServer, DateInterval } from "@jmondi/oauth2-server";
+import { handleExpressError, handleExpressResponse } from "@jmondi/oauth2-server/express";
 
-import { AuthCodeRepository } from "./repositories/auth_code_repository";
-import { ClientRepository } from "./repositories/client_repository";
-import { ScopeRepository } from "./repositories/scope_repository";
-import { TokenRepository } from "./repositories/token_repository";
-import { UserRepository } from "./repositories/user_repository";
+import { AuthCodeRepository } from "./repositories/auth_code_repository.js";
+import { ClientRepository } from "./repositories/client_repository.js";
+import { ScopeRepository } from "./repositories/scope_repository.js";
+import { TokenRepository } from "./repositories/token_repository.js";
+import { UserRepository } from "./repositories/user_repository.js";
+import { MyCustomJwtService } from "./utils/custom_jwt_service.js";
 
 async function bootstrap() {
   const prisma = new PrismaClient();
@@ -21,17 +22,18 @@ async function bootstrap() {
     new ClientRepository(prisma),
     new TokenRepository(prisma),
     new ScopeRepository(prisma),
-    new JwtService(process.env.OAUTH_CODES_SECRET!),
+    new MyCustomJwtService(process.env.OAUTH_CODES_SECRET!),
   );
-  authorizationServer.enableGrantTypes(["client_credentials", new DateInterval("1d")], "refresh_token", [
+  authorizationServer.enableGrantTypes(
+    ["client_credentials", new DateInterval("1d")],
+    ["refresh_token", new DateInterval("30d")],
     { grant: "authorization_code", authCodeRepository, userRepository },
-    new DateInterval("15m"),
-  ]);
+  );
 
   const app = Express();
 
-  app.use(json());
-  app.use(urlencoded({ extended: false }));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: false }));
 
   app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
     try {
@@ -79,7 +81,7 @@ async function bootstrap() {
   });
 
   app.listen(3000);
-  console.log("app is listening on localhost:3000");
+  console.log("app is listening on http://localhost:3000");
 }
 
 bootstrap().catch(console.log);

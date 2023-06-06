@@ -8,7 +8,7 @@ export default defineConfig({
   markdown: {
     toc: {
       listClass: "table-of-contents",
-    }
+    },
   },
   head: [
     [

@@ -1,4 +1,6 @@
-# Prisma Express
+# Typescript OAuth2.0 Server Example
+
+@todo update this jason
 
 ```bash
 cp .env.example .env
