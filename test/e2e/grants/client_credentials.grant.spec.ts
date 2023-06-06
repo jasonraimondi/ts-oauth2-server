@@ -10,6 +10,7 @@ import {
   base64encode,
   ClientCredentialsGrant,
   DateInterval,
+  ExtraAccessTokenFieldArgs,
   JwtService,
   OAuthClient,
   OAuthRequest,
@@ -31,6 +32,14 @@ export function expectTokenResponse(tokenResponse: ResponseInterface) {
   expect(decodedToken.jti).toBeTruthy();
 
   return decodedToken;
+}
+
+class ClientCredentialsJwtService extends JwtService {
+  async extraTokenFields({ client }: ExtraAccessTokenFieldArgs) {
+    return {
+      client_id: client.id,
+    };
+  }
 }
 
 describe("client_credentials grant", () => {
@@ -55,7 +64,7 @@ describe("client_credentials grant", () => {
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
       inMemoryScopeRepository,
-      new JwtService("secret-key"),
+      new ClientCredentialsJwtService("secret-key"),
     );
 
     inMemoryDatabase.clients[client.id] = client;
@@ -102,6 +111,25 @@ describe("client_credentials grant", () => {
     const decodedToken = expectTokenResponse(tokenResponse);
     expect(decodedToken.cid).toBe(client.name);
     expect(tokenResponse.body.refresh_token).toBeUndefined();
+  });
+
+  it("includes extra fields from ClientCredentialsJwtService.extraTokenFields", async () => {
+    // arrange
+    request = new OAuthRequest({
+      body: {
+        grant_type: "client_credentials",
+        client_id: client.id,
+        client_secret: client.secret,
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
+
+    // assert
+    const decodedToken = expectTokenResponse(tokenResponse);
+    expect(decodedToken.client_id).toBe(client.id);
   });
 
   it("successfully grants using body with scopes", async () => {

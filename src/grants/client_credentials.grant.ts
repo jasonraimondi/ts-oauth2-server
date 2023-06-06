@@ -17,6 +17,8 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, validScopes);
 
-    return await this.makeBearerTokenResponse(client, accessToken, validScopes);
+    const extraJwtFields = await this.jwt.extraTokenFields?.({ user, client });
+
+    return await this.makeBearerTokenResponse(client, accessToken, validScopes, extraJwtFields);
   }
 }
