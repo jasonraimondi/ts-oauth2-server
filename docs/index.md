@@ -1,4 +1,6 @@
-# TypeScript OAuth2.0 Server
+# TypeScript OAuth2.0 Server 
+
+[🇺🇦 Support Ukraine 🇺🇦](https://war.ukraine.ua/support-ukraine/)
 
 `@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server for Node, written in TypeScript. 
 
