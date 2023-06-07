@@ -62,22 +62,20 @@ export class AuthorizationServer {
     serviceOrString: JwtInterface | string,
     options?: Partial<AuthorizationServerOptions>,
   ) {
-    this.setOptions(options);
     this.jwt = typeof serviceOrString === "string" ? new JwtService(serviceOrString) : (this.jwt = serviceOrString);
+    this.options = { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options };
+    const grantProps = [
+      this.clientRepository,
+      this.tokenRepository,
+      this.scopeRepository,
+      this.jwt,
+      this.options,
+    ] as const;
     this.availableGrants = {
-      client_credentials: new ClientCredentialsGrant(
-        this.clientRepository,
-        this.tokenRepository,
-        this.scopeRepository,
-        this.jwt,
-      ),
-      refresh_token: new RefreshTokenGrant(this.clientRepository, this.tokenRepository, this.scopeRepository, this.jwt),
-      implicit: new ImplicitGrant(this.clientRepository, this.tokenRepository, this.scopeRepository, this.jwt),
+      client_credentials: new ClientCredentialsGrant(...grantProps),
+      refresh_token: new RefreshTokenGrant(...grantProps),
+      implicit: new ImplicitGrant(...grantProps),
     };
-  }
-
-  setOptions(options: Partial<AuthorizationServerOptions> = {}) {
-    this.options = { ...this.options, ...options };
   }
 
   enableGrantTypes(...grants: EnableGrant[]) {
@@ -110,6 +108,7 @@ export class AuthorizationServer {
         this.tokenRepository,
         this.scopeRepository,
         this.jwt,
+        this.options,
       );
     } else if (toEnable.grant === "password") {
       grant = new PasswordGrant(
@@ -118,6 +117,7 @@ export class AuthorizationServer {
         this.tokenRepository,
         this.scopeRepository,
         this.jwt,
+        this.options,
       );
     }
 
@@ -130,7 +130,6 @@ export class AuthorizationServer {
       throw OAuthException.internalServerError();
     }
 
-    grant.options = this.options;
     this.enabledGrantTypes[grant.identifier] = grant;
     this.grantTypeAccessTokenTTL[grant.identifier] = accessTokenTTL;
   }

@@ -98,6 +98,10 @@ The default configuration options for `AuthorizationServer` have been modified t
 | requiresS256 | false     | true      |
 | tokenCID     | "name"    | "id"      |
 
+## AuthorizationServer.setOptions has been dropped
+
+If you happened to use this undocumented, public method, it has been dropped in v3. Options can be set on initialization of the AuthoriztionServer.
+
 ## Updated `generateRandomToken` function
 
 In version 3.x, a bug with the `generateRandomToken` function has been fixed.
