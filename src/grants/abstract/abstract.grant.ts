@@ -19,6 +19,7 @@ import { DateInterval } from "../../utils/date_interval.js";
 import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt.js";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time.js";
 import { GrantIdentifier, GrantInterface } from "./grant.interface.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../options.js";
 
 export interface ITokenData {
   iss: undefined;
@@ -34,12 +35,7 @@ export interface ITokenData {
 }
 
 export abstract class AbstractGrant implements GrantInterface {
-  public options: AuthorizationServerOptions = {
-    requiresPKCE: true,
-    requiresS256: false,
-    notBeforeLeeway: 0,
-    tokenCID: "id",
-  };
+  public options: AuthorizationServerOptions = DEFAULT_AUTHORIZATION_SERVER_OPTIONS;
 
   protected authCodeRepository?: OAuthAuthCodeRepository;
   protected userRepository?: OAuthUserRepository;

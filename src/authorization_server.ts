@@ -15,6 +15,7 @@ import { RequestInterface } from "./requests/request.js";
 import { ResponseInterface } from "./responses/response.js";
 import { DateInterval } from "./utils/date_interval.js";
 import { JwtInterface, JwtService } from "./utils/jwt.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 
 export interface AuthorizationServerOptions {
   // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5
@@ -50,12 +51,7 @@ export class AuthorizationServer {
   public readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};
   public readonly grantTypeAccessTokenTTL: { [key: string]: DateInterval } = {};
 
-  private options: AuthorizationServerOptions = {
-    requiresPKCE: true,
-    requiresS256: true,
-    notBeforeLeeway: 0,
-    tokenCID: "id",
-  };
+  private options: AuthorizationServerOptions = DEFAULT_AUTHORIZATION_SERVER_OPTIONS;
 
   private readonly jwt: JwtInterface;
 
