@@ -66,7 +66,7 @@ The `/authorize` endpoint is a front channel endpoint that issues an authorizati
 The endpoint should redirect the user to login, and then to accept the scopes requested by the application, and only when the user accepts, should it send the user back to the clients redirect uri. 
 
 ```typescript
-import { requestFromExpress } from "@jmondi/oauth2-server/dist/adapters/express";
+import { requestFromExpress } from "@jmondi/oauth2-server/express";
 
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   try {

@@ -58,7 +58,7 @@ authorization code can then be exchanged to the `AuthorizationServer` endpoint f
 import {
  handleExpressResponse,
  handleExpressError,
-} from "@jmondi/oauth2-server/dist/adapters/express";
+} from "@jmondi/oauth2-server/express";
 
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
  const request = requestFromExpress(req);
@@ -81,7 +81,7 @@ The endpoint should redirect the user to login, and then to accept the scopes re
 We are able to add in scope acceptance and 2FA into our authentication flow.
 
 ```typescript
-import { requestFromExpress } from "@jmondi/oauth2-server/dist/adapters/express";
+import { requestFromExpress } from "@jmondi/oauth2-server/express";
 
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   const request = requestFromExpress(req);
