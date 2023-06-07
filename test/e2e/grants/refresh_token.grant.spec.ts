@@ -1,4 +1,4 @@
-import { describe, beforeEach, it, expect } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
@@ -16,6 +16,17 @@ import {
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
 import { expectTokenResponse } from "./client_credentials.grant.spec.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
+
+function createGrant() {
+  return new RefreshTokenGrant(
+    inMemoryClientRepository,
+    inMemoryAccessTokenRepository,
+    inMemoryScopeRepository,
+    new JwtService("secret-key"),
+    DEFAULT_AUTHORIZATION_SERVER_OPTIONS,
+  );
+}
 
 describe("refresh_token grant", () => {
   let client: OAuthClient;
@@ -53,12 +64,7 @@ describe("refresh_token grant", () => {
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
 
-    grant = new RefreshTokenGrant(
-      inMemoryClientRepository,
-      inMemoryAccessTokenRepository,
-      inMemoryScopeRepository,
-      new JwtService("secret-key"),
-    );
+    grant = createGrant();
   });
 
   it("successful with scope", async () => {

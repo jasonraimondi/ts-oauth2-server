@@ -1,4 +1,4 @@
-import { describe, beforeEach, it, expect } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { decode } from "jsonwebtoken";
 
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
@@ -20,6 +20,17 @@ import {
   REGEX_ACCESS_TOKEN,
   roundToSeconds,
 } from "../../../src/index.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
+
+function createGrant() {
+  return new ImplicitGrant(
+    inMemoryClientRepository,
+    inMemoryAccessTokenRepository,
+    inMemoryScopeRepository,
+    new JwtService("secret-key"),
+    DEFAULT_AUTHORIZATION_SERVER_OPTIONS,
+  );
+}
 
 describe("implicit grant", () => {
   let user: OAuthUser;
@@ -49,12 +60,7 @@ describe("implicit grant", () => {
     scope1 = { name: "scope-1" };
     scope2 = { name: "scope-2" };
 
-    grant = new ImplicitGrant(
-      inMemoryClientRepository,
-      inMemoryAccessTokenRepository,
-      inMemoryScopeRepository,
-      new JwtService("secret-key"),
-    );
+    grant = createGrant();
 
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.users[user.id] = user;

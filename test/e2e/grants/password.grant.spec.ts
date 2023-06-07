@@ -1,14 +1,7 @@
-import { describe, beforeEach, it, expect } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
-  inMemoryAccessTokenRepository,
-  inMemoryClientRepository,
-  inMemoryScopeRepository,
-  inMemoryUserRepository,
-} from "../_helpers/in_memory/repository.js";
-import {
   DateInterval,
-  JwtService,
   OAuthClient,
   OAuthRequest,
   OAuthUser,
@@ -16,7 +9,25 @@ import {
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
 import { expectTokenResponse } from "./client_credentials.grant.spec.js";
+import { JwtService } from "../../../src/utils/jwt.js";
+import {
+  inMemoryAccessTokenRepository,
+  inMemoryClientRepository,
+  inMemoryScopeRepository,
+  inMemoryUserRepository,
+} from "../_helpers/in_memory/repository.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
 
+function createGrant() {
+  return new PasswordGrant(
+    inMemoryUserRepository,
+    inMemoryClientRepository,
+    inMemoryAccessTokenRepository,
+    inMemoryScopeRepository,
+    new JwtService("secret-key"),
+    DEFAULT_AUTHORIZATION_SERVER_OPTIONS,
+  );
+}
 describe("password grant", () => {
   let user: OAuthUser;
   let client: OAuthClient;
@@ -41,13 +52,7 @@ describe("password grant", () => {
       scopes: [],
     };
 
-    grant = new PasswordGrant(
-      inMemoryUserRepository,
-      inMemoryClientRepository,
-      inMemoryAccessTokenRepository,
-      inMemoryScopeRepository,
-      new JwtService("secret-key"),
-    );
+    grant = createGrant();
 
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.users[user.id] = user;

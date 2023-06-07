@@ -7,9 +7,9 @@ import { DateInterval } from "../../utils/date_interval.js";
 export type GrantIdentifier = "authorization_code" | "client_credentials" | "refresh_token" | "password" | "implicit";
 
 export interface GrantInterface {
-  options: AuthorizationServerOptions;
+  readonly options: AuthorizationServerOptions;
 
-  identifier: GrantIdentifier;
+  readonly identifier: GrantIdentifier;
 
   canRespondToAccessTokenRequest(request: RequestInterface): boolean;
 

@@ -19,6 +19,7 @@ import { DateInterval } from "../utils/date_interval.js";
 import { JwtInterface } from "../utils/jwt.js";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant.js";
 import { GrantIdentifier } from "./abstract/grant.interface.js";
+import { AuthorizationServerOptions } from "../authorization_server.js";
 
 export interface IAuthCodePayload {
   client_id: string;
@@ -52,8 +53,9 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     tokenRepository: OAuthTokenRepository,
     scopeRepository: OAuthScopeRepository,
     jwt: JwtInterface,
+    options: AuthorizationServerOptions,
   ) {
-    super(clientRepository, tokenRepository, scopeRepository, jwt);
+    super(clientRepository, tokenRepository, scopeRepository, jwt, options);
   }
 
   async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {

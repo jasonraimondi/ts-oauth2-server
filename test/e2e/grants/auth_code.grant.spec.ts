@@ -1,4 +1,4 @@
-import { describe, beforeEach, it, expect } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { decode } from "jsonwebtoken";
 
@@ -13,6 +13,7 @@ import {
 import {
   AuthCodeGrant,
   AuthorizationRequest,
+  AuthorizationServerOptions,
   base64urlencode,
   DateInterval,
   ExtraAccessTokenFieldArgs,
@@ -26,6 +27,7 @@ import {
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
 import { expectTokenResponse } from "./client_credentials.grant.spec.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
 
 export class CustomJwtService extends JwtService {
   extraTokenFields(params: ExtraAccessTokenFieldArgs) {
@@ -35,6 +37,17 @@ export class CustomJwtService extends JwtService {
   }
 }
 
+function createGrant(options?: Partial<AuthorizationServerOptions>) {
+  return new AuthCodeGrant(
+    inMemoryAuthCodeRepository,
+    inMemoryUserRepository,
+    inMemoryClientRepository,
+    inMemoryAccessTokenRepository,
+    inMemoryScopeRepository,
+    new CustomJwtService("secret-key"),
+    { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
+  );
+}
 describe("authorization_code grant", () => {
   let user: OAuthUser;
   let client: OAuthClient;
@@ -61,14 +74,7 @@ describe("authorization_code grant", () => {
       scopes: [],
     };
 
-    grant = new AuthCodeGrant(
-      inMemoryAuthCodeRepository,
-      inMemoryUserRepository,
-      inMemoryClientRepository,
-      inMemoryAccessTokenRepository,
-      inMemoryScopeRepository,
-      new CustomJwtService("secret-key"),
-    );
+    grant = createGrant();
 
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.users[user.id] = user;
@@ -135,7 +141,6 @@ describe("authorization_code grant", () => {
     it("is successful with plain pkce", async () => {
       client.redirectUris = ["http://example.com"];
       inMemoryDatabase.clients[client.id] = client;
-      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
       request = new OAuthRequest({
         query: {
           response_type: "code",
@@ -143,8 +148,8 @@ describe("authorization_code grant", () => {
           redirect_uri: "http://example.com",
           scope: "scope-1",
           state: "state-is-a-secret",
-          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
-          code_challenge_method: "plain",
+          code_challenge: codeChallenge, // code verifier plain
+          code_challenge_method: "S256",
         },
       });
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
@@ -154,15 +159,14 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.client.name).toBe(client.name);
       expect(authorizationRequest.redirectUri).toBe("http://example.com");
       expect(authorizationRequest.state).toBe("state-is-a-secret");
-      expect(authorizationRequest.codeChallenge).toBe(base64urlencode(plainCodeChallenge));
-      expect(authorizationRequest.codeChallengeMethod).toBe("plain");
+      expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
+      expect(authorizationRequest.codeChallengeMethod).toBe("S256");
       expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
     });
 
     it("is successful with request redirect uri with querystring", async () => {
       client.redirectUris = ["http://example.com"];
       inMemoryDatabase.clients[client.id] = client;
-      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
       request = new OAuthRequest({
         query: {
           response_type: "code",
@@ -170,8 +174,8 @@ describe("authorization_code grant", () => {
           redirect_uri: "http://example.com?this_should_work=true&also-this=yeah",
           scope: "scope-1",
           state: "state-is-a-secret",
-          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
-          code_challenge_method: "plain",
+          code_challenge: codeChallenge, // code verifier plain
+          code_challenge_method: "S256",
         },
       });
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
@@ -181,8 +185,8 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.client.name).toBe(client.name);
       expect(authorizationRequest.redirectUri).toBe("http://example.com?this_should_work=true&also-this=yeah");
       expect(authorizationRequest.state).toBe("state-is-a-secret");
-      expect(authorizationRequest.codeChallenge).toBe(base64urlencode(plainCodeChallenge));
-      expect(authorizationRequest.codeChallengeMethod).toBe("plain");
+      expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
+      expect(authorizationRequest.codeChallengeMethod).toBe("S256");
       expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
     });
 
@@ -196,7 +200,7 @@ describe("authorization_code grant", () => {
           state: "state-is-a-secret",
         },
       });
-      grant.options.requiresPKCE = false;
+      grant = createGrant({ requiresPKCE: false });
 
       // act
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
@@ -211,13 +215,13 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful with undefined redirect_uri", async () => {
-      const plainCodeChallenge = "qqVDyvlSezXc64NY5Rx3BbLaT7c2xEBgoJP9domepFZLEjo9ln8EAaSdfewSNY5Rx3BbL";
       request = new OAuthRequest({
         query: {
           redirect_uri: undefined,
           response_type: "code",
           client_id: client.id,
-          code_challenge: base64urlencode(plainCodeChallenge), // code verifier plain
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
         },
       });
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
@@ -455,7 +459,7 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful without pkce", async () => {
-      grant.options.requiresPKCE = false;
+      grant = createGrant({ requiresPKCE: false });
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;

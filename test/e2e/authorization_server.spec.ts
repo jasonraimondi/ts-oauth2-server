@@ -1,4 +1,4 @@
-import { describe, beforeEach, it, expect } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { decode } from "jsonwebtoken";
 
 import { inMemoryDatabase } from "./_helpers/in_memory/database.js";
@@ -10,18 +10,18 @@ import {
   inMemoryUserRepository,
 } from "./_helpers/in_memory/repository.js";
 import {
+  AuthorizationRequest,
   AuthorizationServer,
+  base64encode,
+  DateInterval,
+  IAuthCodePayload,
+  JwtService,
   OAuthClient,
+  OAuthRequest,
   OAuthScope,
   OAuthToken,
   OAuthUser,
-  IAuthCodePayload,
   RefreshTokenGrant,
-  AuthorizationRequest,
-  OAuthRequest,
-  base64encode,
-  DateInterval,
-  JwtService,
 } from "../../src/index.js";
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec.js";
 
@@ -188,7 +188,15 @@ describe("authorization_server", () => {
     });
 
     it("auth server that does not requirePKCE succeeds for request without code_challenge", async () => {
-      authorizationServer.setOptions({ requiresPKCE: false });
+      authorizationServer = new AuthorizationServer(
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        new JwtService("secret-key"),
+        {
+          requiresPKCE: false,
+        },
+      );
       authorizationServer.enableGrantType({
         grant: "authorization_code",
         authCodeRepository: inMemoryAuthCodeRepository,

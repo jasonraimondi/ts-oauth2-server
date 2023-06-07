@@ -10,6 +10,7 @@ import { ResponseInterface } from "../responses/response.js";
 import { DateInterval } from "../utils/date_interval.js";
 import { JwtInterface } from "../utils/jwt.js";
 import { AbstractGrant } from "./abstract/abstract.grant.js";
+import { AuthorizationServerOptions } from "../authorization_server.js";
 
 export class PasswordGrant extends AbstractGrant {
   readonly identifier = "password";
@@ -20,8 +21,9 @@ export class PasswordGrant extends AbstractGrant {
     tokenRepository: OAuthTokenRepository,
     scopeRepository: OAuthScopeRepository,
     jwt: JwtInterface,
+    options: AuthorizationServerOptions,
   ) {
-    super(clientRepository, tokenRepository, scopeRepository, jwt);
+    super(clientRepository, tokenRepository, scopeRepository, jwt, options);
   }
 
   async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {

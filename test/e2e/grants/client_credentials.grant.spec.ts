@@ -1,12 +1,8 @@
-import { describe, beforeEach, it, expect } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { decode } from "jsonwebtoken";
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
-  inMemoryAccessTokenRepository,
-  inMemoryClientRepository,
-  inMemoryScopeRepository,
-} from "../_helpers/in_memory/repository.js";
-import {
+  AuthorizationServerOptions,
   base64encode,
   ClientCredentialsGrant,
   DateInterval,
@@ -17,6 +13,12 @@ import {
   REGEX_ACCESS_TOKEN,
   ResponseInterface,
 } from "../../../src/index.js";
+import {
+  inMemoryAccessTokenRepository,
+  inMemoryClientRepository,
+  inMemoryScopeRepository,
+} from "../_helpers/in_memory/repository.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
 
 export function expectTokenResponse(tokenResponse: ResponseInterface) {
   const decodedToken: any = decode(tokenResponse.body.access_token);
@@ -42,6 +44,16 @@ class ClientCredentialsJwtService extends JwtService {
   }
 }
 
+function createGrant(options?: Partial<AuthorizationServerOptions>) {
+  return new ClientCredentialsGrant(
+    inMemoryClientRepository,
+    inMemoryAccessTokenRepository,
+    inMemoryScopeRepository,
+    new ClientCredentialsJwtService("secret-key"),
+    { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
+  );
+}
+
 describe("client_credentials grant", () => {
   let client: OAuthClient;
   let grant: ClientCredentialsGrant;
@@ -60,12 +72,7 @@ describe("client_credentials grant", () => {
       scopes: [],
     };
 
-    grant = new ClientCredentialsGrant(
-      inMemoryClientRepository,
-      inMemoryAccessTokenRepository,
-      inMemoryScopeRepository,
-      new ClientCredentialsJwtService("secret-key"),
-    );
+    grant = createGrant();
 
     inMemoryDatabase.clients[client.id] = client;
   });
@@ -144,8 +151,10 @@ describe("client_credentials grant", () => {
         scope: "scope-1 scope-2",
       },
     });
+    grant = createGrant({
+      tokenCID: "name",
+    });
     const accessTokenTTL = new DateInterval("1h");
-    grant.options.tokenCID = "name";
 
     // act
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);

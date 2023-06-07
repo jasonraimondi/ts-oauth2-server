@@ -19,7 +19,6 @@ import { DateInterval } from "../../utils/date_interval.js";
 import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt.js";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time.js";
 import { GrantIdentifier, GrantInterface } from "./grant.interface.js";
-import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../options.js";
 
 export interface ITokenData {
   iss: undefined;
@@ -35,8 +34,6 @@ export interface ITokenData {
 }
 
 export abstract class AbstractGrant implements GrantInterface {
-  public options: AuthorizationServerOptions = DEFAULT_AUTHORIZATION_SERVER_OPTIONS;
-
   protected authCodeRepository?: OAuthAuthCodeRepository;
   protected userRepository?: OAuthUserRepository;
   protected readonly scopeDelimiterString = " ";
@@ -55,6 +52,7 @@ export abstract class AbstractGrant implements GrantInterface {
     protected readonly tokenRepository: OAuthTokenRepository,
     protected readonly scopeRepository: OAuthScopeRepository,
     protected readonly jwt: JwtInterface,
+    public readonly options: AuthorizationServerOptions,
   ) {}
 
   async makeBearerTokenResponse(
