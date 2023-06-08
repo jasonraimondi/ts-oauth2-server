@@ -17,6 +17,9 @@ import { DateInterval } from "./utils/date_interval.js";
 import { JwtInterface, JwtService } from "./utils/jwt.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 
+/**
+ * @see https://jasonraimondi.github.io/ts-oauth2-server/configuration/
+ */
 export interface AuthorizationServerOptions {
   // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5
   notBeforeLeeway: number;
@@ -41,6 +44,9 @@ export type EnableableGrants =
 export type EnableGrant = EnableableGrants | [EnableableGrants, DateInterval];
 
 export class AuthorizationServer {
+  public readonly enabledGrantTypes: Record<string, GrantInterface> = {};
+  public readonly grantTypeAccessTokenTTL: Record<string, DateInterval> = {};
+
   private readonly availableGrants: {
     authorization_code?: AuthCodeGrant;
     password?: PasswordGrant;
@@ -48,11 +54,7 @@ export class AuthorizationServer {
     client_credentials: ClientCredentialsGrant;
     refresh_token: RefreshTokenGrant;
   };
-  public readonly enabledGrantTypes: { [key: string]: GrantInterface } = {};
-  public readonly grantTypeAccessTokenTTL: { [key: string]: DateInterval } = {};
-
-  private options: AuthorizationServerOptions = DEFAULT_AUTHORIZATION_SERVER_OPTIONS;
-
+  private readonly options: AuthorizationServerOptions = DEFAULT_AUTHORIZATION_SERVER_OPTIONS;
   private readonly jwt: JwtInterface;
 
   constructor(
