@@ -47,7 +47,6 @@ pnpm add @jmondi/oauth2-server
 |---------|----------------|------------------|
 | 3.x     | :tada:         | :tada:           |
 | 2.x     |                | :tada:           |
-| 1.x     |                |                  |
 
 ### Endpoints 
 
