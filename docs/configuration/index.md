@@ -13,15 +13,16 @@ type AuthorizationServerOptions = {
   requiresPKCE: true;
   requiresS256: false;
   notBeforeLeeway: 0;
-  tokenCID: "id"|"name"; // in 3.x default is "id", in 2.x the default is "name"
+  tokenCID: "id" | "name";
 }
 ```
 
-* `requiresPKCE` - Enabled by default, PKCE is enabled and encouraged for all users. If you need to support a legacy client system without PKCE, you can disable PKCE with the authorization server.
-* `requiresS256` - Disabled by default. If you want to require all clients to use S256, you can enable that here.
-* `notBeforeLeeway` - Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.  Its value MUST be a number containing a NumericDate value.
-* `tokenCID` - Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`. In 3.x the default is 
-  **"id"**, in v2.x the default was **"name"**. [(additional context)](https://github.com/jasonraimondi/ts-oauth2-server/blob/e7a31b207701f90552abc82d82c72b143bc15130/src/grants/abstract/abstract.grant.ts#L123)
+| Option            | Number         | Default | Details                                                                                                                                                                        |
+|-------------------|----------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `requiresPKCE`    | boolean        | true    | PKCE is enabled by default and recommended for all users. To support a legacy client without PKCE, disable this option. [[Learn more]][requires-pkce]                          |
+| `requiresS256`    | boolean        | true    | Disabled by default. If you want to require all clients to use S256, you can enable that here. [[Learn more]][requires-s256]                                                   |
+| `notBeforeLeeway` | number         | 0       | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.  Its value MUST be a number containing a NumericDate value.     |
+| `tokenCID`        | "id" or "name" | "id"    | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`.<br /><br />In 3.x the default is **"id"**, in v2.x the default was **"name"**. [[Learn more]][token-cid] |
 
 To configure these options, pass the value in as the last argument:
 
@@ -32,7 +33,11 @@ const authorizationServer = new AuthorizationServer(
   scopeRepository,
   new JwtService("secret-key"),
   {
-    requiresS256: true, // default is false
+    requiresS256: true,
   }
 );
 ```
+
+[requires-pkce]: https://datatracker.ietf.org/doc/html/rfc7636
+[requires-s256]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+[token-cid]: https://github.com/jasonraimondi/ts-oauth2-server/blob/e7a31b207701f90552abc82d82c72b143bc15130/src/grants/abstract/abstract.grant.ts#L123

@@ -2,6 +2,8 @@
 
 ## Auth Code Repository
 
+OAuthAuthCodeRepository interface is utilized for managing OAuth authorization codes. It contains methods for retrieving an authorization code entity by its identifier, issuing a new authorization code, persisting an authorization code in the storage, checking if an authorization code has been revoked, and revoking an authorization code.
+
 ```typescript
 interface OAuthAuthCodeRepository {
 
@@ -30,6 +32,8 @@ interface OAuthAuthCodeRepository {
 
 ## Client Repository
 
+OAuthClientRepository interface is used for managing OAuth clients. It includes methods for fetching a client entity from storage by the client ID and for validating the client using the grant type and client secret.
+
 ```typescript
 interface OAuthClientRepository {
   // Fetch client entity from storage by client_id
@@ -45,6 +49,8 @@ interface OAuthClientRepository {
 ```
 
 ## Scope Repository
+
+The OAuthScopeRepository interface handles scope management. It defines methods for finding all scopes by their names and for finalizing the scopes. In the finalization, additional scopes can be added or removed after they've been validated against the client scopes.
 
 ```typescript
 interface OAuthScopeRepository {
@@ -65,6 +71,8 @@ interface OAuthScopeRepository {
 ```
 
 ## Token Repository
+
+OAuthTokenRepository interface manages OAuth tokens. It contains methods for issuing a new token, persisting a token in the storage, issuing a refresh token, revoking tokens, and fetching a refresh token entity by the refresh token.
 
 ```typescript
 interface OAuthTokenRepository {
@@ -107,6 +115,8 @@ interface OAuthTokenRepository {
 ```
 
 ## User Repository
+
+The OAuthUserRepository interface handles user management. It defines methods for fetching a user entity from storage by their credentials and optional grant type and client. This may involve validating the user's credentials.
 
 ```typescript
 interface OAuthUserRepository {

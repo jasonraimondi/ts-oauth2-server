@@ -43,6 +43,12 @@ Save some eye strain, **use the [documentation site](https://jasonraimondi.githu
 pnpm add @jmondi/oauth2-server
 ```
 
+| Version | Latest Version | Security Updates |
+|---------|----------------|------------------|
+| 3.x     | :tada:         | :tada:           |
+| 2.x     |                | :tada:           |
+| 1.x     |                |                  |
+
 ### Endpoints 
 
 The server uses two endpoints, `GET /authorize` and `POST /token`. 
@@ -391,7 +397,7 @@ Please look at these great resources:
 - VIDEO: [What's Going On with the Implicit Flow?](https://www.youtube.com/watch?v=CHzERullHe8) by Aaron Parecki
 - [Is the OAuth 2.0 Implicit Flow Dead?](https://developer.okta.com/blog/2019/05/01/is-the-oauth-implicit-flow-dead) by Aaron Parecki (developer.okta.com)
 
-## Revoke Tokens (RFC7009 “OAuth 2.0 Token Revocation”)
+## Revoke Token
 
 Note: Implementing this endpoint is optional.
 

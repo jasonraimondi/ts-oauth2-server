@@ -111,10 +111,10 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 });
 ```
 
-## Revoke Tokens (RFC7009 “OAuth 2.0 Token Revocation”)
+## Revoke Token
 
 ::: tip Note 
-Implementing this endpoint is optional, but recommended.
+Implementing this endpoint is optional, but recommended. RFC7009 “OAuth 2.0 Token Revocation”
 :::
 
 The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.

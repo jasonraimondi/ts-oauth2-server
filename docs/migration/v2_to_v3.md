@@ -1,37 +1,35 @@
 # Migrating from v2 to v3
 
-_Estimated Upgrade Time: already ESM? 5 minutes; not ESM? it depends_
+Upgrade Time Estimate: ESM? 5 minutes; non-ESM? Varies
 
 [[toc]]
 
 ## This package is now pure ESM
 
-This package has been updated to a pure ESM (ECMAScript Modules) package. For more information on the implications of this change, refer to [Sindre Sorhus's writeup](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
+The package is now entirely ESM (ECMAScript Modules). More details about this change can be found in [Sindre Sorhus's writeup](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
 
+## `AuthorizationServer` Updates {#authorization-server}
 
-## AuthorizationServer {#authorization-server}
+In v2.x, `AuthorizationServer` constructor required all repositories. In v3.x, it has been simplified.
 
-In the previous version (v2.x), the `AuthorizationServer` constructor required all repositories. In version 3.x, the 
-constructor has been updated to simplify the defaults.
-
-Before
+**Before (v2.x):**
 
 ```typescript
 const authorizationServer = new AuthorizationServer(
-  authCodeRepository,    // not included in v3.x
+  authCodeRepository,
   clientRepository,
   accessTokenRepository,
   scopeRepository,
-  userRepository,        // not included in v3.x
+  userRepository,
   jwtService,
   {
-    requiresS256: false, // Default value in v2.x
-    tokenCID: "name",    // Default value in v2.x
+    requiresS256: false, 
+    tokenCID: "name",
   }
 );
 ```
 
-After
+**After (v3.x):**
 
 ```typescript
 const authorizationServer = new AuthorizationServer(
@@ -40,27 +38,27 @@ const authorizationServer = new AuthorizationServer(
   scopeRepository,
   new JwtService("secret-key"),
   {
-    requiresS256: true,  // Default value in v3.x
-    tokenCID: "id",      // Default value in v3.x
+    requiresS256: true,  
+    tokenCID: "id",
   }
 );
 ```
 
 ## Enabling Grants
 
-In version 3, the enableGrantType has been changed for the **"authorization_code"** and **"password"** grants.
+In v3, `enableGrantType` has been updated for the **"authorization_code"** and **"password"** grants.
 
 ### Authorization Code Grant
 
-To enable the AuthorizationCodeGrant, you now need to provide a [AuthorizationCodeRepository](../repositories/index.md#authorization-code-repository) and a [UserRepository](../repositories/index.md#user-repository).
+`AuthorizationCodeGrant` now requires a [AuthorizationCodeRepository](../repositories/index.md#authorization-code-repository) and a [UserRepository](../repositories/index.md#user-repository).
 
-**Before**
+**Before (v2.x):**
 
 ```typescript
 authorizationServer.enableGrantType("authorization_code");
 ```
 
-**After**
+**After (v3.x):**
 
 ```typescript
 authorizationServer.enableGrantType({
@@ -72,15 +70,15 @@ authorizationServer.enableGrantType({
 
 ### Password Grant
 
-To enable the PasswordGrant, you now need to provide a [UserRepository](../repositories/index.md#user-repository).
+`PasswordGrant` now requires a [UserRepository](../repositories/index.md#user-repository).
 
-**Before**
+**Before (v2.x):**
 
 ```typescript
 authorizationServer.enableGrantType("password");
 ```
 
-**After**
+**After (v3.x):**
 
 ```typescript
 authorizationServer.enableGrantType({
@@ -89,19 +87,19 @@ authorizationServer.enableGrantType({
 });
 ```
 
-## AuthorizationServerOptions default configuration that has been updated
+## `AuthorizationServerOptions` Default Configuration Updates
 
-The default configuration options for `AuthorizationServer` have been modified to align more strictly with the OAuth 2.0 specification:
+The default options for `AuthorizationServer` have been modified to better align with the OAuth 2.0 specification:
 
-| Option       | Old Value | New Value |
-|--------------| --------- | --------- |
-| requiresS256 | false     | true      |
-| tokenCID     | "name"    | "id"      |
+| Option       | v2.x Value | v3.x Value |
+|--------------|------------|------------|
+| requiresS256 | false      | true       |
+| tokenCID     | "name"     | "id"       |
 
-## AuthorizationServer.setOptions has been dropped
+## Removed `setOptions` Method
 
-If you happened to use this undocumented, public method, it has been dropped in v3. Options can be set on initialization of the AuthoriztionServer.
+The undocumented, public method `setOptions` has been removed in v3. Options can be set during `AuthorizationServer` initialization.
 
-## Updated `generateRandomToken` function
+## `generateRandomToken` Function Fix
 
-In version 3.x, a bug with the `generateRandomToken` function has been fixed.
+A bug in the `generateRandomToken` function has been fixed in v3.x.
