@@ -1,6 +1,6 @@
 # Migrating from v2 to v3
 
-Upgrade Time Estimate: ESM? 5 minutes; non-ESM? Varies
+Upgrade Time Estimate: ESM? 10 minutes; no-ESM? Varies
 
 [[toc]]
 
