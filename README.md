@@ -43,10 +43,13 @@ Save some eye strain, **use the [documentation site](https://jasonraimondi.githu
 pnpm add @jmondi/oauth2-server
 ```
 
-| Version | Latest Version | Security Updates |
-|---------|----------------|------------------|
-| 3.x     | :tada:         | :tada:           |
-| 2.x     |                | :tada:           |
+| Version         | Latest Version | Security Updates |
+|-----------------|----------------|------------------|
+| [3.x][version3] | :tada:         | :tada:           |
+| [2.x][version2] |                | :tada:           |
+
+[version3]: https://github.com/jasonraimondi/ts-oauth2-server/tree/main
+[version2]: https://github.com/jasonraimondi/ts-oauth2-server/tree/2.x
 
 ### Endpoints 
 
