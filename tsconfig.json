@@ -4,7 +4,7 @@
     "module": "node16",
     "moduleResolution": "node16",
     "lib": ["esnext", "esnext.asynciterable"],
-    "outDir": "dist",
+    "outDir": "dist/esm",
     "declaration": true,
 
     "strict": true,
@@ -31,5 +31,7 @@
     "forceConsistentCasingInFileNames": true,
     "removeComments": true,
     "sourceMap": true
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["example", "coverage", "dist", "node_modules"]
 }
