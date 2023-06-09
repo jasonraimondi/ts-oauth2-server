@@ -1,0 +1,31 @@
+name: Publish
+
+on:
+  release:
+    types: [prereleased, published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: "8.x"
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.tool-versions'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+          registry-url: "https://registry.npmjs.org"
+      - run: pnpm i --frozen-lockfile --production false
+      - name: Publish Prelease
+        if: 'github.event.prerelease'
+        run: pnpm publish --verbose --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+      - name: Publish Release
+        if: '!github.event.prerelease'
+        run: pnpm publish --verbose --access=public --tag next
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
