@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.0.1-alpha.0",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "license": "MIT",
@@ -11,14 +11,23 @@
   },
   "publishConfig": {
     "exports": {
-      ".": "./dist/index.js",
-      "./express": "./dist/adapters/express.js",
-      "./fastify": "./dist/adapters/fastify.js"
+      ".": {
+        "require": "./dist/cjs/index.js",
+        "import": "./dist/esm/index.js"
+      },
+      "./express": {
+        "require": "./dist/cjs/adapters/express.js",
+        "import": "./dist/esm/adapters/express.js"
+      },
+      "./fastify": {
+        "require": "./dist/cjs/adapters/fastify.js",
+        "import": "./dist/esm/adapters/fastify.js"
+      }
     },
     "typesVersions": {
       "*": {
         "*": [
-          "./dist/index.d.ts",
+          "./dist/esm/index.d.ts",
           "./dist/*"
         ]
       }
@@ -34,7 +43,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "prebuild": "run-s clean",
-    "build": "tsc -p tsconfig.build.json",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --target es2019 --moduleResolution node --outDir dist/cjs",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "build": "run-s clean build:*",
     "start": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -58,6 +69,7 @@
     "fastify": "^4.17.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
+    "rimraf": "^5.0.1",
     "supertest": "^6.3.3",
     "tslib": "^2.5.2",
     "typescript": "^5.1.3",
