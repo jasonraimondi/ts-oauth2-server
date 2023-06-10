@@ -19,13 +19,12 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
           registry-url: "https://registry.npmjs.org"
       - run: pnpm i --frozen-lockfile --production false
-      - name: Publish Prelease
-        if: 'github.event.prerelease'
-        run: pnpm publish --verbose --access=public --no-git-checks --tag next
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
-      - name: Publish Release
-        if: '!github.event.prerelease'
-        run: pnpm publish --verbose --access=public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+      - name: Check Release type and Publish
+        run: |
+          if ${{ github.event.release.prerelease }}; then
+            echo "Publishing pre-release..."
+            pnpm publish --verbose --access=public --no-git-checks --tag next
+          else
+            echo "Publishing release..."
+            pnpm publish --verbose --access=public --no-git-checks
+          fi
