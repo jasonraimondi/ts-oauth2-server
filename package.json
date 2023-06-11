@@ -1,51 +1,13 @@
 {
-  "version": "3.0.1-alpha.6",
+  "version": "3.0.1-alpha.7",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "license": "MIT",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts",
-    "./express": "./src/adapters/express.ts",
-    "./fastify": "./src/adapters/fastify.ts"
-  },
-  "publishConfig": {
-    "exports": {
-      ".": {
-        "require": "./dist/cjs/index.js",
-        "import": "./dist/esm/index.js"
-      },
-      "./express": {
-        "require": "./dist/cjs/adapters/express.js",
-        "import": "./dist/esm/adapters/express.js"
-      },
-      "./fastify": {
-        "require": "./dist/cjs/adapters/fastify.js",
-        "import": "./dist/esm/adapters/fastify.js"
-      }
-    },
-    "typesVersions": {
-      "*": {
-        "*": [
-          "./dist/esm/index.d.ts",
-          "./dist/*"
-        ]
-      }
-    }
-  },
-  "files": [
-    "dist",
-    "src"
-  ],
-  "engines": {
-    "node": ">=16"
-  },
   "scripts": {
     "clean": "rimraf dist",
     "prebuild": "run-s clean",
-    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --target es2019 --moduleResolution node --outDir dist/cjs",
-    "build:esm": "tsc -p tsconfig.build.json",
-    "build": "run-s clean build:*",
+    "build": "tsup",
     "start": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -55,6 +17,47 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./express": "./src/adapters/express.ts",
+    "./fastify": "./src/adapters/fastify.ts"
+  },
+  "tsup": {
+    "entry": {
+      "index": "./src/index.ts",
+      "express": "./src/adapters/express.ts",
+      "fastify": "./src/adapters/fastify.ts"
+    },
+    "format": ["cjs", "esm"],
+    "target": "node16",
+    "clean": true,
+    "dts": true,
+    "splitting": false,
+    "sourcemap": true
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs",
+        "types": "./dist/index.d.ts"
+      },
+      "./express": {
+        "import": "./dist/express.js",
+        "require": "./dist/express.cjs",
+        "types": "./dist/express.d.ts"
+      },
+      "./fastify": {
+        "import": "./dist/fastify.js",
+        "require": "./dist/fastify.cjs",
+        "types": "./dist/fastify.d.ts"
+      }
+    }
+  },
+  "files": ["dist", "src"],
+  "engines": {
+    "node": ">=16"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.2",
@@ -72,6 +75,7 @@
     "rimraf": "^5.0.1",
     "supertest": "^6.3.3",
     "tslib": "^2.5.2",
+    "tsup": "^6.7.0",
     "typescript": "^5.1.3",
     "vite": "^4.3.9",
     "vitepress": "1.0.0-beta.1",
