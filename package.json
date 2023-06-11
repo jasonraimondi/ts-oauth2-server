@@ -1,6 +1,6 @@
 {
   "name": "@jmondi/oauth2-server",
-  "version": "3.0.1-alpha.9",
+  "version": "3.0.1",
   "packageManager": "pnpm@8.4.0",
   "type": "module",
   "author": "Jason Raimondi <jason@raimondi.us>",
