@@ -1,5 +1,5 @@
 {
-  "version": "3.0.1-alpha.7",
+  "version": "3.0.1-alpha.8",
   "name": "@jmondi/oauth2-server",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "license": "MIT",
@@ -7,7 +7,8 @@
   "scripts": {
     "clean": "rimraf dist",
     "prebuild": "run-s clean",
-    "build": "tsup",
+    "bundle": "tsup",
+    "build": "run-s clean bundle",
     "start": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -52,6 +53,14 @@
         "import": "./dist/fastify.js",
         "require": "./dist/fastify.cjs",
         "types": "./dist/fastify.d.ts"
+      }
+    },
+    "typesVersions": {
+      "*": {
+        "*": [
+          "./dist/*",
+          "./dist/index.d.ts"
+        ]
       }
     }
   },
