@@ -31,6 +31,11 @@ Adapters are included for the following frameworks:
 - [Express](https://jasonraimondi.github.io/ts-oauth2-server/adapters/#express)
 - [Fastify](https://jasonraimondi.github.io/ts-oauth2-server/adapters/#fastify)
 
+Example implementations:
+
+- [Simple](./example)
+- [Advanced](https://github.com/jasonraimondi/ts-oauth2-server-example)
+
 The included adapters are just helper functions, really any framework should be supported. Take a look at the adapter implementations for [express](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/src/adapters/express.ts) and [fastify](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/src/adapters/fastify.ts) to learn how you can implement one for your favorite tool!
 
 ## Getting Started
@@ -343,7 +348,8 @@ Clients that do not have the ability to perform a SHA256 hash are permitted to u
 const code_challenge = code_verifier;
 ```
 
-### Refresh Token
+### Refresh Token Grant 
+
 Access tokens eventually expire. The refresh token grant enables the client to obtain a new access_token from an existing refresh_token.
 
 #### Flow

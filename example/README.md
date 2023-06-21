@@ -1,6 +1,6 @@
 # Typescript OAuth2.0 Server Example
 
-@todo update this jason
+## Getting Started
 
 ```bash
 cp .env.example .env
@@ -11,3 +11,7 @@ cp .env.example .env
 # https://github.com/auth0/node-jsonwebtoken#usage
 OAUTH_CODES_SECRET=changeme
 ```
+
+## Want a better example?
+
+See the [ts-oauth2-server-example](https://github.com/jasonraimondi/ts-oauth2-server-example) repository for a more full example.

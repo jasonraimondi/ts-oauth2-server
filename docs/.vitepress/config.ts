@@ -60,6 +60,13 @@ export default defineConfig({
         ],
       },
       {
+        text: "Examples",
+        items: [
+          { text: "Simple", link: "https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example" },
+          { text: "Advanced", link: "https://github.com/jasonraimondi/ts-oauth2-server-example" },
+        ],
+      },
+      {
         items: [{ text: "Sources", link: "/sources/" }],
       },
     ],
