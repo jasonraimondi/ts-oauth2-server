@@ -64,7 +64,7 @@
     "node": ">=16"
   },
   "devDependencies": {
-    "@types/body-parser": "^1.19.2",
+    "@types/body-parser": "^1.19.5",
     "@types/express": "^4.17.17",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/ms": "^0.7.31",
