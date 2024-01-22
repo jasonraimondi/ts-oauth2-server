@@ -5,6 +5,7 @@ export default defineConfig({
     coverage: {
       provider: "istanbul",
       reporter: ["text", "lcovonly"],
+      exclude: [".github/**", ".idea/**", "docs/**",  "example/**"],
     },
     setupFiles: ["test/setup.ts"],
     exclude: ["node_modules/**", "example/**"],
