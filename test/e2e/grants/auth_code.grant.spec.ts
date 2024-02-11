@@ -164,30 +164,47 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
     });
 
-    it("is successful with request redirect uri with querystring", async () => {
-      client.redirectUris = ["http://example.com"];
-      inMemoryDatabase.clients[client.id] = client;
-      request = new OAuthRequest({
-        query: {
-          response_type: "code",
-          client_id: client.id,
-          redirect_uri: "http://example.com?this_should_work=true&also-this=yeah",
-          scope: "scope-1",
-          state: "state-is-a-secret",
-          code_challenge: codeChallenge, // code verifier plain
-          code_challenge_method: "S256",
-        },
-      });
-      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+    // prettier-ignore
+    [
+      {
+        testName: "is successful with redirect uri with querystring",
+        allowed: ["http://oauth2.example.com"],
+        received: "http://oauth2.example.com?this_should_work=true&also-this=yeah",
+      },
+      {
+        testName: "is successful with redirect uri with port",
+        allowed: ["http://oauth2.example.com/callback"],
+        received: "http://oauth2.example.com:3000/callback",
+      },
+      {
+        testName: "is successful with application style redirect uri",
+        allowed: ["com.exampleapp.oauth2://callback"],
+        received: "com.exampleapp.oauth2://callback",
+      },
+      {
+        testName: "is successful with application style redirect uri with port",
+        allowed: ["com.exampleapp.oauth2://callback"],
+        received: "com.exampleapp.oauth2://callback:3000",
+      },
+    ].map(({ testName, allowed, received }) => {
+      it(testName, async () => {
+        client.redirectUris = allowed;
+        inMemoryDatabase.clients[client.id] = client;
+        request = new OAuthRequest({
+          query: {
+            response_type: "code",
+            client_id: client.id,
+            redirect_uri: received,
+            scope: "scope-1",
+            state: "state-is-a-secret",
+            code_challenge: codeChallenge, // code verifier plain
+            code_challenge_method: "S256",
+          },
+        });
+        const authorizationRequest = await grant.validateAuthorizationRequest(request);
 
-      expect(authorizationRequest.isAuthorizationApproved).toBe(false);
-      expect(authorizationRequest.client.id).toBe(client.id);
-      expect(authorizationRequest.client.name).toBe(client.name);
-      expect(authorizationRequest.redirectUri).toBe("http://example.com?this_should_work=true&also-this=yeah");
-      expect(authorizationRequest.state).toBe("state-is-a-secret");
-      expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
-      expect(authorizationRequest.codeChallengeMethod).toBe("S256");
-      expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
+        expect(authorizationRequest.redirectUri).toBe(received);
+      });
     });
 
     it("is successful without using PKCE flow", async () => {

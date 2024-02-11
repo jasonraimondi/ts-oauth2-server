@@ -4,6 +4,7 @@ import { OAuthClient } from "../../entities/client.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { RequestInterface } from "../../requests/request.js";
 import { AbstractGrant } from "./abstract.grant.js";
+import { urlsAreSameIgnoringPort } from "../../utils/urls.js";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(
@@ -56,7 +57,7 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
     }
 
     const redirectUriWithoutQuery = redirectUri.split("?")[0];
-    if (!client.redirectUris.includes(redirectUriWithoutQuery)) {
+    if (!client.redirectUris.some(uri => urlsAreSameIgnoringPort(redirectUriWithoutQuery, uri))) {
       throw OAuthException.invalidClient("Invalid redirect_uri");
     }
 
