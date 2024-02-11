@@ -56,8 +56,7 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
       );
     }
 
-    const redirectUriWithoutQuery = redirectUri.split("?")[0];
-    if (!client.redirectUris.some(uri => urlsAreSameIgnoringPort(redirectUriWithoutQuery, uri))) {
+    if (!client.redirectUris.some(uri => urlsAreSameIgnoringPort(redirectUri, uri))) {
       throw OAuthException.invalidClient("Invalid redirect_uri");
     }
 
