@@ -197,7 +197,7 @@ describe("authorization_code grant", () => {
             redirect_uri: received,
             scope: "scope-1",
             state: "state-is-a-secret",
-            code_challenge: codeChallenge, // code verifier plain
+            code_challenge: codeChallenge,
             code_challenge_method: "S256",
           },
         });
