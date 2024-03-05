@@ -10,6 +10,7 @@ export * from "./grants/client_credentials.grant.js";
 export * from "./grants/implicit.grant.js";
 export * from "./grants/password.grant.js";
 export * from "./grants/refresh_token.grant.js";
+export * from "./grants/token_exchange.grant.js";
 export * from "./grants/abstract/abstract.grant.js";
 export * from "./grants/abstract/abstract_authorized.grant.js";
 export * from "./grants/abstract/grant.interface.js";

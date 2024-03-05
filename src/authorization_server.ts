@@ -16,6 +16,7 @@ import { ResponseInterface } from "./responses/response.js";
 import { DateInterval } from "./utils/date_interval.js";
 import { JwtInterface, JwtService } from "./utils/jwt.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
+import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
 
 /**
  * @see https://jasonraimondi.github.io/ts-oauth2-server/configuration/
@@ -40,6 +41,10 @@ export type EnableableGrants =
   | {
       grant: "password";
       userRepository: OAuthUserRepository;
+    }
+  | {
+      grant: "urn:ietf:params:oauth:grant-type:token-exchange";
+      processTokenExchange: ProcessTokenExchangeFn;
     };
 export type EnableGrant = EnableableGrants | [EnableableGrants, DateInterval];
 
@@ -115,6 +120,15 @@ export class AuthorizationServer {
     } else if (toEnable.grant === "password") {
       grant = new PasswordGrant(
         toEnable.userRepository,
+        this.clientRepository,
+        this.tokenRepository,
+        this.scopeRepository,
+        this.jwt,
+        this.options,
+      );
+    } else if (toEnable.grant === "urn:ietf:params:oauth:grant-type:token-exchange") {
+      grant = new TokenExchangeGrant(
+        toEnable.processTokenExchange,
         this.clientRepository,
         this.tokenRepository,
         this.scopeRepository,

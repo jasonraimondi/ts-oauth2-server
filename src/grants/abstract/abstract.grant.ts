@@ -43,6 +43,7 @@ export abstract class AbstractGrant implements GrantInterface {
     "refresh_token",
     "password",
     "implicit",
+    "urn:ietf:params:oauth:grant-type:token-exchange",
   ];
 
   abstract readonly identifier: GrantIdentifier;
