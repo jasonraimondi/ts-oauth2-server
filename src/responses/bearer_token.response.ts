@@ -5,7 +5,10 @@ import { OAuthResponse, Options } from "./response.js";
 export class BearerTokenResponse extends OAuthResponse {
   readonly status = HttpStatus.OK;
 
-  constructor(public readonly accessToken: OAuthToken, options?: Options) {
+  constructor(
+    public readonly accessToken: OAuthToken,
+    options?: Options,
+  ) {
     super(options);
 
     this.set("pragma", "no-cache");
