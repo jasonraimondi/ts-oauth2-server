@@ -43,11 +43,11 @@ export class TokenExchangeGrant extends AbstractGrant {
 
     const subjectToken = this.getRequestParameter("subject_token", req);
 
-    const subjectTokenType = this.getRequestParameter("subject_token_type", req);
-
     if (typeof subjectToken !== "string") {
       throw OAuthException.badRequest("subject_token is required");
     }
+
+    const subjectTokenType = this.getRequestParameter("subject_token_type", req);
 
     if (!this.isSubjectTokenType(subjectTokenType)) {
       // https://datatracker.ietf.org/doc/html/rfc8693#section-3
