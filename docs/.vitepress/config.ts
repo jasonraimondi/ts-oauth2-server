@@ -42,6 +42,7 @@ export default defineConfig({
           { text: "Refresh Token", link: "/grants/refresh_token" },
           { text: "Password", link: "/grants/password" },
           { text: "Implicit", link: "/grants/implicit" },
+          { text: "Token Exchange (RFC 8693)", link: "/grants/token_exchange" },
         ],
       },
       {
