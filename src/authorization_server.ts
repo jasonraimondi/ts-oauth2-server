@@ -85,7 +85,7 @@ export class AuthorizationServer {
     };
   }
 
-  enableGrantTypes(...grants: EnableGrant[]) {
+  enableGrantTypes(...grants: EnableGrant[]): void {
     for (const grant of grants) {
       if (Array.isArray(grant)) {
         const [grantType, accessTokenTTL] = grant;

@@ -25,7 +25,7 @@ export class DateInterval {
     return Math.ceil(this.ms / 1000);
   }
 
-  static getDateEnd(ms: string) {
+  static getDateEnd(ms: string): Date {
     return new DateInterval(ms).getEndDate();
   }
 }
