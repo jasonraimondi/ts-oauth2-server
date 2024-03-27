@@ -33,5 +33,5 @@
     "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["example", "coverage", "dist", "node_modules"]
+  "exclude": ["example", "coverage", "dist", "node_modules", "version-check.ts"]
 }
