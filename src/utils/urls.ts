@@ -1,4 +1,4 @@
-export function urlsAreSameIgnoringPort(url1: string, url2: string) {
+export function urlsAreSameIgnoringPort(url1: string, url2: string): boolean {
   try {
     const parsedUrl1 = new URL(url1);
     const parsedUrl2 = new URL(url2);

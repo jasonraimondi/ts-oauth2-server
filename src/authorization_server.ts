@@ -48,6 +48,12 @@ export type EnableableGrants =
     };
 export type EnableGrant = EnableableGrants | [EnableableGrants, DateInterval];
 
+/**
+ * The main entry point for the OAuth2 server.
+ * This class is responsible for enabling grant types, and responding to requests.
+ * It is also responsible for validating requests and completing the authorization process.
+ * @see https://jasonraimondi.github.io/ts-oauth2-server/authorization-server/
+ */
 export class AuthorizationServer {
   public readonly enabledGrantTypes: Record<string, GrantInterface> = {};
   public readonly grantTypeAccessTokenTTL: Record<string, DateInterval> = {};
@@ -85,7 +91,7 @@ export class AuthorizationServer {
     };
   }
 
-  enableGrantTypes(...grants: EnableGrant[]) {
+  enableGrantTypes(...grants: EnableGrant[]): void {
     for (const grant of grants) {
       if (Array.isArray(grant)) {
         const [grantType, accessTokenTTL] = grant;
