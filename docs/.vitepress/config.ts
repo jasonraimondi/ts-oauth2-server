@@ -22,6 +22,9 @@ export default defineConfig({
   ],
   themeConfig: {
     siteTitle: "@jmondi/oauth2-server",
+    search: {
+      provider: 'local'
+    },
     nav: [
       { text: "Github", link: "https://github.com/jasonraimondi/ts-oauth2-server" },
       { text: "Getting Started", link: "/getting_started/" },
