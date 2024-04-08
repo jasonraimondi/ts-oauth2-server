@@ -50,7 +50,7 @@ type CodeChallengeMethod = "S256" | "plain";
 ## Token Entity
 
 The access and refresh token that can be used to authenticate into the resource server.
-The `originatingAuthCodeId` will be present only for tokens originating from the authorization code grant; see the `revokeDescendantsOf()` method on the [Token Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#token-repository) for its significance.
+The `originatingAuthCodeId` will be present only for tokens originating from the authorization code grant; see the `revokeDescendantsOf()` method on the [Token Repository](https://tsoauth2server.com/repositories/#token-repository) for its significance.
 
 ```typescript
 interface OAuthToken {

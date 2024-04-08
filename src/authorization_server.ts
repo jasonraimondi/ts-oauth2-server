@@ -19,7 +19,7 @@ import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
 
 /**
- * @see https://jasonraimondi.github.io/ts-oauth2-server/configuration/
+ * @see https://tsoauth2server.com/configuration/
  */
 export interface AuthorizationServerOptions {
   // @see https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5

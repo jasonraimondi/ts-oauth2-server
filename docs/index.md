@@ -8,11 +8,11 @@ Requires `node >= 16`
 
 Out of the box it supports the following grants:
 
-- [Authorization code grant](https://jasonraimondi.github.io/ts-oauth2-server/grants/authorization_code.html)
-- [Client credentials grant](https://jasonraimondi.github.io/ts-oauth2-server/grants/client_credentials.html)
-- [Refresh grant](https://jasonraimondi.github.io/ts-oauth2-server/grants/refresh_token.html)
-- [Implicit grant](https://jasonraimondi.github.io/ts-oauth2-server/grants/implicit.html) // not recommended 
-- [Resource owner password credentials grant](https://jasonraimondi.github.io/ts-oauth2-server/grants/password.html) // not recommended
+- [Authorization code grant](https://tsoauth2server.com/grants/authorization_code.html)
+- [Client credentials grant](https://tsoauth2server.com/grants/client_credentials.html)
+- [Refresh grant](https://tsoauth2server.com/grants/refresh_token.html)
+- [Implicit grant](https://tsoauth2server.com/grants/implicit.html) // not recommended 
+- [Resource owner password credentials grant](https://tsoauth2server.com/grants/password.html) // not recommended
 
 The following RFCs are implemented:
 

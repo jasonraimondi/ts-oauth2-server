@@ -27,8 +27,8 @@ Out of the box it supports the following grants:
 
 Adapters are included for the following frameworks:
 
-- [Express](https://jasonraimondi.github.io/ts-oauth2-server/adapters/#express)
-- [Fastify](https://jasonraimondi.github.io/ts-oauth2-server/adapters/#fastify)
+- [Express](https://tsoauth2server.com/adapters/#express)
+- [Fastify](https://tsoauth2server.com/adapters/#fastify)
 
 Example implementations:
 
@@ -39,7 +39,7 @@ The included adapters are just helper functions, really any framework should be 
 
 ## Getting Started
 
-Save some eye strain, **use the [documentation site](https://jasonraimondi.github.io/ts-oauth2-server/)**
+Save some eye strain, **use the [documentation site](https://tsoauth2server.com/)**
 
 ### Install
 
@@ -171,33 +171,33 @@ authorizationServer.enableGrantTypes(
 
 There are a few repositories you are going to need to implement in order to create an `AuthorizationServer`.
 
-[Auth Code Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#auth-code-repository)
+[Auth Code Repository](https://tsoauth2server.com/repositories/#auth-code-repository)
 
-[Client Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#client-repository)
+[Client Repository](https://tsoauth2server.com/repositories/#client-repository)
 
-[Scope Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#scope-repository) 
+[Scope Repository](https://tsoauth2server.com/repositories/#scope-repository) 
 
-[Token Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#token-repository)
+[Token Repository](https://tsoauth2server.com/repositories/#token-repository)
 
-[User Repository](https://jasonraimondi.github.io/ts-oauth2-server/repositories/#user-repository)
+[User Repository](https://tsoauth2server.com/repositories/#user-repository)
 
 ### Entities
 
 And a few entities.
 
-[Auth Code Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#auth-code-entity)
+[Auth Code Entity](https://tsoauth2server.com/entities/#auth-code-entity)
 
-[Client Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#client-entity)
+[Client Entity](https://tsoauth2server.com/entities/#client-entity)
 
-[Scope Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#scope-entity)
+[Scope Entity](https://tsoauth2server.com/entities/#scope-entity)
 
-[Token Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#token-entity)
+[Token Entity](https://tsoauth2server.com/entities/#token-entity)
 
-[User Entity](https://jasonraimondi.github.io/ts-oauth2-server/entities/#user-entity)
+[User Entity](https://tsoauth2server.com/entities/#user-entity)
 
 ## Grants
 
-Grants are different ways a [client](https://jasonraimondi.github.io/ts-oauth2-server/glossary/README.md#client) can obtain an `access_token` that will authorize it to use the [resource server](https://jasonraimondi.github.io/ts-oauth2-server/glossary/README.md#resource-server).
+Grants are different ways a [client](https://tsoauth2server.com/glossary/README.md#client) can obtain an `access_token` that will authorize it to use the [resource server](https://tsoauth2server.com/glossary/README.md#resource-server).
 
 ### Which Grant?
 
@@ -248,7 +248,7 @@ Deciding which grant to use depends on the type of client the end user will be u
 
 ### Client Credentials Grant
 
-[Full Docs](https://jasonraimondi.github.io/ts-oauth2-server/grants/client_credentials.html)
+[Full Docs](https://tsoauth2server.com/grants/client_credentials.html)
 
 When applications request an access token to access their own resources, not on behalf of a user.
 
@@ -425,7 +425,7 @@ app.post("/token/revoke", async (req: Express.Request, res: Express.Response) =>
 ## Migration Guide
 
 - [v1 to v2](https://github.com/jasonraimondi/ts-oauth2-server/releases/tag/v2.0.0)
-- [v2 to v3](https://jasonraimondi.github.io/ts-oauth2-server/migration/v2_to_v3.html) 
+- [v2 to v3](https://tsoauth2server.com/migration/v2_to_v3.html) 
 
 ## Thanks
 
