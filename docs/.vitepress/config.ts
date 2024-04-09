@@ -20,10 +20,14 @@ export default defineConfig({
       },
     ],
   ],
+  lastUpdated: true,
+  sitemap: {
+    hostname: "https://tsoauth2server.com",
+  },
   themeConfig: {
     siteTitle: "@jmondi/oauth2-server",
     search: {
-      provider: 'local'
+      provider: "local",
     },
     nav: [
       { text: "Github", link: "https://github.com/jasonraimondi/ts-oauth2-server" },

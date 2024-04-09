@@ -23,11 +23,22 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - name: vuepress-deploy
-        uses: jenkey2011/vuepress-deploy@master
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          TARGET_REPO: jasonraimondi/ts-oauth2-server
-          TARGET_BRANCH: gh-pages
-          BUILD_SCRIPT: npm install -g pnpm && pnpm install --frozen-lockfile && pnpm docs:build
-          BUILD_DIR: docs/.vitepress/dist/
+      - run: pnpm docs:build
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'docs/.vitepress/dist/'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v2
