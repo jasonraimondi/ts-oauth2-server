@@ -14,7 +14,7 @@ jobs:
           version: "8.x"
       - uses: actions/setup-node@v3
         with:
-          node-version-file: '.tool-versions'
+          node-version-file: '.node-version'
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           registry-url: "https://registry.npmjs.org"
