@@ -4,7 +4,7 @@
 
 `@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server for Node, written in TypeScript. 
 
-Requires `node >= 16`
+Requires `node >= 18`
 
 Out of the box it supports the following grants:
 
@@ -16,8 +16,9 @@ Out of the box it supports the following grants:
 
 The following RFCs are implemented:
 
-- [RFC6749 “OAuth 2.0”](https://tools.ietf.org/html/rfc6749)
-- [RFC6750 “The OAuth 2.0 Authorization Framework: Bearer Token Usage”](https://tools.ietf.org/html/rfc6750)
-- [RFC7009 “OAuth 2.0 Token Revocation”](https://tools.ietf.org/html/rfc7009)
-- [RFC7519 “JSON Web Token (JWT)”](https://tools.ietf.org/html/rfc7519)
-- [RFC7636 “Proof Key for Code Exchange by OAuth Public Clients”](https://tools.ietf.org/html/rfc7636)
+- [RFC6749 "OAuth 2.0"](https://tools.ietf.org/html/rfc6749)
+- [RFC6750 "The OAuth 2.0 Authorization Framework: Bearer Token Usage"](https://tools.ietf.org/html/rfc6750)
+- [RFC7009 "OAuth 2.0 Token Revocation"](https://tools.ietf.org/html/rfc7009)
+- [RFC7519 "JSON Web Token (JWT)"](https://tools.ietf.org/html/rfc7519)
+- [RFC7636 "Proof Key for Code Exchange by OAuth Public Clients"](https://tools.ietf.org/html/rfc7636)
+- [RFC8693 "OAuth 2.0 Token Exchange"](https://datatracker.ietf.org/doc/html/rfc8693)
