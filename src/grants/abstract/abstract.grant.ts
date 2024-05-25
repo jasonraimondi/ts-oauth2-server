@@ -295,4 +295,23 @@ export abstract class AbstractGrant implements GrantInterface {
     // default: nothing to do, be quiet about it
     return;
   }
+
+  protected async extraJwtFields(
+    req: RequestInterface,
+    client: OAuthClient,
+    user?: OAuthUser,
+  ): Promise<ExtraAccessTokenFields> {
+    const extraJwtFields = await this.jwt.extraTokenFields?.({ user, client });
+    const aud =
+      this.getQueryStringParameter("audience", req) ??
+      this.getRequestParameter("audience", req) ??
+      this.getQueryStringParameter("aud", req) ??
+      this.getRequestParameter("aud", req);
+
+    return {
+      ...(aud && { aud }),
+      ...(this.options.issuer && { iss: this.options.issuer }),
+      ...(extraJwtFields && extraJwtFields),
+    };
+  }
 }

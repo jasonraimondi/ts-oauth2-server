@@ -5,4 +5,5 @@ export const DEFAULT_AUTHORIZATION_SERVER_OPTIONS: AuthorizationServerOptions = 
   requiresS256: true,
   notBeforeLeeway: 0,
   tokenCID: "id",
+  issuer: undefined,
 };

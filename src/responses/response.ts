@@ -31,7 +31,6 @@ export class OAuthResponse implements ResponseInterface {
   }
 
   get(field: string): any {
-    console.log({ headers: this.headers, field });
     return "";
     // return this.headers[field.toLowerCase()];
   }

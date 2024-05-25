@@ -74,7 +74,7 @@ describe("authorization_code grant", () => {
       scopes: [],
     };
 
-    grant = createGrant();
+    grant = createGrant({ issuer: "TestIssuer" });
 
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.users[user.id] = user;
@@ -476,7 +476,7 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful without pkce", async () => {
-      grant = createGrant({ requiresPKCE: false });
+      grant = createGrant({ requiresPKCE: false, issuer: "TestIssuer" });
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
@@ -499,6 +499,7 @@ describe("authorization_code grant", () => {
       expectTokenResponse(accessTokenResponse);
       const decodedToken: any = decode(accessTokenResponse.body.access_token);
       expect(decodedToken?.email).toBe("jason@example.com");
+      expect(decodedToken?.iss).toBe("TestIssuer");
       expect(accessTokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
     });
 

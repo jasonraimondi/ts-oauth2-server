@@ -28,6 +28,7 @@ export interface AuthorizationServerOptions {
   requiresPKCE: boolean;
   requiresS256: boolean;
   tokenCID: "id" | "name";
+  issuer?: string;
 }
 
 export type EnableableGrants =

@@ -47,7 +47,6 @@ export class AuthCode implements AuthCodeModel, OAuthAuthCode {
   }
 
   get isExpired(): boolean {
-    console.log(new Date(), this.expiresAt);
     return new Date() > this.expiresAt;
   }
 }
