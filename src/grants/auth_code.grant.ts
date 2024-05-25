@@ -133,7 +133,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     await this.authCodeRepository.revoke(validatedPayload.auth_code_id);
 
-    const extraJwtFields = user ? await this.jwt.extraTokenFields?.({ user, client }) : undefined;
+    const extraJwtFields = await this.extraJwtFields(req, client, user);
 
     return await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
   }
