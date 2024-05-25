@@ -63,8 +63,9 @@ export default defineConfig({
         text: "Misc",
         items: [
           { text: "Adapters", link: "/adapters/" },
-          { text: "Migrate v2 to v3", link: "/migration/v2_to_v3" },
+          { text: "Custom Grant", link: "/grants/custom_grant" },
           { text: "Glossary", link: "/glossary/" },
+          { text: "Migrate v2 to v3", link: "/migration/v2_to_v3" },
         ],
       },
       {

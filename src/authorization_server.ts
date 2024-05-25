@@ -17,6 +17,7 @@ import { DateInterval } from "./utils/date_interval.js";
 import { JwtInterface, JwtService } from "./utils/jwt.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
+import { AbstractGrant } from "./grants/abstract/abstract.grant.js";
 
 /**
  * @see https://tsoauth2server.com/configuration/
@@ -45,6 +46,9 @@ export type EnableableGrants =
   | {
       grant: "urn:ietf:params:oauth:grant-type:token-exchange";
       processTokenExchange: ProcessTokenExchangeFn;
+    }
+  | {
+      grant: AbstractGrant;
     };
 export type EnableGrant = EnableableGrants | [EnableableGrants, DateInterval];
 
@@ -135,6 +139,8 @@ export class AuthorizationServer {
         this.jwt,
         this.options,
       );
+    } else if (toEnable.grant instanceof AbstractGrant && toEnable.grant.identifier.startsWith("custom:")) {
+      grant = toEnable.grant;
     }
 
     if (!grant) {
