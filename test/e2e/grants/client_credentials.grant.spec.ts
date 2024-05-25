@@ -141,7 +141,7 @@ describe("client_credentials grant", () => {
     const decodedToken = expectTokenResponse(tokenResponse);
     expect(decodedToken.client_id).toBe(client.id);
     expect(decodedToken.iss).toBe("TestIssuer");
-    expect(decodedToken.aud).toBe("test-audience");
+    expect(decodedToken.aud).toStrictEqual("test-audience");
   });
 
   it("successfully grants using body with scopes", async () => {
@@ -154,7 +154,7 @@ describe("client_credentials grant", () => {
         client_id: client.id,
         client_secret: client.secret,
         scope: "scope-1 scope-2",
-        audience: "test-audience",
+        audience: ["test-audience", "test-audience-2"],
       },
     });
     grant = createGrant({
@@ -169,7 +169,7 @@ describe("client_credentials grant", () => {
     const decodedToken = expectTokenResponse(tokenResponse);
     // defaults to name
     expect(decodedToken.cid).toBe(client.name);
-    expect(decodedToken.aud).toBe("test-audience");
+    expect(decodedToken.aud).toStrictEqual(["test-audience", "test-audience-2"]);
     expect(tokenResponse.body.refresh_token).toBeUndefined();
     expect(tokenResponse.body.scope).toBe("scope-1 scope-2");
   });

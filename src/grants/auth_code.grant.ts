@@ -30,6 +30,7 @@ export interface IAuthCodePayload {
   redirect_uri?: string | null;
   code_challenge?: string | null;
   code_challenge_method?: CodeChallengeMethod | null;
+  audience?: string[] | string | null;
 }
 
 export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
@@ -163,7 +164,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const stateParameter = this.getQueryStringParameter("state", request);
 
-    const authorizationRequest = new AuthorizationRequest(this.identifier, client, redirectUri);
+    const audience: string[] | string | null | undefined =
+      this.getQueryStringParameter("audience", request) ?? this.getQueryStringParameter("aud", request);
+
+    const authorizationRequest = new AuthorizationRequest(this.identifier, client, redirectUri, undefined, audience);
 
     authorizationRequest.state = stateParameter;
 
@@ -230,6 +234,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       expire_time: this.authCodeTTL.getEndTimeSeconds(),
       code_challenge: authorizationRequest.codeChallenge,
       code_challenge_method: authorizationRequest.codeChallengeMethod,
+      audience: authorizationRequest.audience,
     };
 
     const jsonPayload = JSON.stringify(payload);

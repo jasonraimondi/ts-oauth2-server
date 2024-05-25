@@ -124,6 +124,7 @@ describe("authorization_code grant", () => {
           state: "state-is-a-secret",
           code_challenge: codeChallenge,
           code_challenge_method: "S256",
+          audience: ["IAmTheMovie", "CommitToThisMemory"],
         },
       });
       const authorizationRequest = await grant.validateAuthorizationRequest(request);
@@ -136,6 +137,7 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.codeChallenge).toBe(codeChallenge);
       expect(authorizationRequest.codeChallengeMethod).toBe("S256");
       expect(authorizationRequest.scopes).toStrictEqual([]);
+      expect(authorizationRequest.audience).toStrictEqual(["IAmTheMovie", "CommitToThisMemory"]);
     });
 
     it("is successful with plain pkce", async () => {
@@ -164,7 +166,6 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.scopes).toStrictEqual([{ name: "scope-1" }]);
     });
 
-    // prettier-ignore
     [
       {
         testName: "is successful with redirect uri with querystring",
@@ -365,6 +366,7 @@ describe("authorization_code grant", () => {
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.state = "abc123";
       authorizationRequest.user = user;
+      authorizationRequest.audience = ["MyDinosaurLife"];
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
       const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
       const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.get("code")));
@@ -372,6 +374,7 @@ describe("authorization_code grant", () => {
       expect(response.headers.location.includes("http://example.com?code=")).toBeTruthy();
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://example.com");
+      expect(decodedCode.audience).toStrictEqual(["MyDinosaurLife"]);
     });
 
     it("is successful with client with query", async () => {
@@ -388,6 +391,7 @@ describe("authorization_code grant", () => {
       authorizationRequest.codeChallenge = codeChallenge;
       authorizationRequest.state = "abc123";
       authorizationRequest.user = user;
+      authorizationRequest.audience = "EvenIfItKillsMe";
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
       const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
       const decodedCode: IAuthCodePayload = <IAuthCodePayload>decode(String(authorizeResponseQuery.get("code")));
@@ -395,6 +399,7 @@ describe("authorization_code grant", () => {
       expect(response.headers.location).toMatch(/http\:\/\/example\.com\?this_should_work=true\&code\=/);
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://example.com?this_should_work=true");
+      expect(decodedCode.audience).toBe("EvenIfItKillsMe");
     });
 
     // it("uses clients redirect url if request ", async () => {});
@@ -491,15 +496,17 @@ describe("authorization_code grant", () => {
           code: authorizationCode,
           redirect_uri: authorizationRequest.redirectUri,
           client_id: client.id,
+          audience: "MotionCitySoundtrack",
         },
       });
       const accessTokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       // assert
       expectTokenResponse(accessTokenResponse);
-      const decodedToken: any = decode(accessTokenResponse.body.access_token);
-      expect(decodedToken?.email).toBe("jason@example.com");
-      expect(decodedToken?.iss).toBe("TestIssuer");
+      const decodedToken = decode(accessTokenResponse.body.access_token) as any;
+      expect(decodedToken.email).toBe("jason@example.com");
+      expect(decodedToken.iss).toBe("TestIssuer");
+      expect(decodedToken.aud).toBe("MotionCitySoundtrack");
       expect(accessTokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
     });
 
