@@ -14,15 +14,17 @@ type AuthorizationServerOptions = {
   requiresS256: false;
   notBeforeLeeway: 0;
   tokenCID: "id" | "name";
+  issuer: undefined;
 }
 ```
 
-| Option            | Number         | Default | Details                                                                                                                                                                        |
-|-------------------|----------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `requiresPKCE`    | boolean        | true    | PKCE is enabled by default and recommended for all users. To support a legacy client without PKCE, disable this option. [[Learn more]][requires-pkce]                          |
-| `requiresS256`    | boolean        | true    | Disabled by default. If you want to require all clients to use S256, you can enable that here. [[Learn more]][requires-s256]                                                   |
-| `notBeforeLeeway` | number         | 0       | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.  Its value MUST be a number containing a NumericDate value.     |
-| `tokenCID`        | "id" or "name" | "id"    | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`.<br /><br />In 3.x the default is **"id"**, in v2.x the default was **"name"**. [[Learn more]][token-cid] |
+| Option            | Type                | Default   | Details                                                                                                                                                                             |
+|-------------------|---------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `requiresPKCE`    | boolean             | true      | PKCE is enabled by default and recommended for all users. To support a legacy client without PKCE, disable this option. [[Learn more]][requires-pkce]                               |
+| `requiresS256`    | boolean             | true      | Disabled by default. If you want to require all clients to use S256, you can enable that here. [[Learn more]][requires-s256]                                                        |
+| `notBeforeLeeway` | number              | 0         | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. Its value MUST be a number containing a NumericDate value.           |
+| `tokenCID`        | "id" or "name"      | "id"      | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`.<br /><br />In 3.x the default is **"id"**, in v2.x the default was **"name"**. [[Learn more]][token-cid] |
+| `issuer`          | string \| undefined | undefined | Sets the JWT `accessToken.iss` to this value.                                                                                                                                       |
 
 To configure these options, pass the value in as the last argument:
 
@@ -33,7 +35,7 @@ const authorizationServer = new AuthorizationServer(
   scopeRepository,
   new JwtService("secret-key"),
   {
-    requiresS256: true,
+    issuer: "auth.example.com",
   }
 );
 ```
