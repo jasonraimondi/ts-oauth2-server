@@ -18,15 +18,32 @@ import {
   JwtService,
   OAuthClient,
   OAuthRequest,
+  OAuthResponse,
   OAuthScope,
   OAuthToken,
   OAuthUser,
   RefreshTokenGrant,
+  RequestInterface,
+  ResponseInterface,
 } from "../../src/index.js";
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec.js";
+import { CustomGrant } from "../../src/grants/abstract/custom.grant.js";
+import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../src/options.js";
 
 // const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
 const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest());
+
+export class MyCustomGrant extends CustomGrant {
+  readonly identifier = "custom:my_custom_grant";
+
+  async respondToAccessTokenRequest(_req: RequestInterface, _accessTokenTTL: DateInterval): Promise<ResponseInterface> {
+    return new OAuthResponse({
+      body: {
+        did_it_work: "yes",
+      },
+    });
+  }
+}
 
 describe("authorization_server", () => {
   let authorizationServer: AuthorizationServer;
@@ -57,6 +74,14 @@ describe("authorization_server", () => {
       userRepository: inMemoryUserRepository,
     });
     authorizationServer.enableGrantType("refresh_token");
+    const customGrant = new MyCustomGrant(
+      inMemoryClientRepository,
+      inMemoryAccessTokenRepository,
+      inMemoryScopeRepository,
+      new JwtService("secret-key"),
+      DEFAULT_AUTHORIZATION_SERVER_OPTIONS,
+    );
+    authorizationServer.enableGrantType({ grant: customGrant });
     refreshGrant = authorizationServer.getGrant<RefreshTokenGrant>("refresh_token");
 
     user = { id: "abc123" };
@@ -75,7 +100,7 @@ describe("authorization_server", () => {
     inMemoryDatabase.users[user.id] = user;
   });
 
-  it("can enable client_credentials grant", async () => {
+  it("can respond to client_credentials grant", async () => {
     // arrange
     inMemoryDatabase.clients[client.id] = client;
 
@@ -94,6 +119,19 @@ describe("authorization_server", () => {
 
     // assert
     expectTokenResponse(tokenResponse);
+  });
+
+  it("can respond to custom_grant", async () => {
+    inMemoryDatabase.clients[client.id] = client;
+
+    const request = new OAuthRequest({
+      body: {
+        grant_type: "custom:my_custom_grant",
+      },
+    });
+    const tokenResponse = await authorizationServer.respondToAccessTokenRequest(request);
+
+    expect(tokenResponse.body.did_it_work).toBe("yes");
   });
 
   it("validateAuthorizationRequest", async () => {
@@ -130,7 +168,7 @@ describe("authorization_server", () => {
     expect(authorizationRequest.scopes).toStrictEqual([scope1, scope2]);
   });
 
-  it("is successful", async () => {
+  it("completeAuthorizationRequest", async () => {
     client = {
       id: "authcodeclient",
       name: "test auth code client",

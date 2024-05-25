@@ -26,9 +26,8 @@ export class OAuthResponse implements ResponseInterface {
   headers: Headers = {};
 
   constructor(responseOptions: Options = { headers: {} }) {
-    this.headers = {
-      ...responseOptions.headers,
-    };
+    this.headers = responseOptions.headers ?? {};
+    this.body = responseOptions.body ?? {};
   }
 
   get(field: string): any {

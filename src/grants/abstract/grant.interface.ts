@@ -10,7 +10,8 @@ export type GrantIdentifier =
   | "refresh_token"
   | "password"
   | "implicit"
-  | "urn:ietf:params:oauth:grant-type:token-exchange";
+  | "urn:ietf:params:oauth:grant-type:token-exchange"
+  | `custom:${string}`;
 
 export interface GrantInterface {
   readonly options: AuthorizationServerOptions;
