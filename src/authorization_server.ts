@@ -139,7 +139,7 @@ export class AuthorizationServer {
         this.jwt,
         this.options,
       );
-    } else if (toEnable.grant instanceof AbstractGrant && toEnable.grant.identifier.startsWith("custom:")) {
+    } else if (toEnable.grant instanceof AbstractGrant) {
       grant = toEnable.grant;
     }
 
