@@ -18,6 +18,7 @@ export class AuthorizationRequest {
     public readonly client: OAuthClient,
     redirectUri?: string,
     public user?: OAuthUser,
+    public audience?: string[] | string | null,
   ) {
     this.scopes = [];
     this.isAuthorizationApproved = false;

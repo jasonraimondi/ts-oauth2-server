@@ -302,7 +302,7 @@ export abstract class AbstractGrant implements GrantInterface {
     user?: OAuthUser,
   ): Promise<ExtraAccessTokenFields> {
     const extraJwtFields = await this.jwt.extraTokenFields?.({ user, client });
-    const aud =
+    const aud: string[] | string | undefined =
       this.getQueryStringParameter("audience", req) ??
       this.getRequestParameter("audience", req) ??
       this.getQueryStringParameter("aud", req) ??
