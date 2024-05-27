@@ -2,13 +2,18 @@
 
 ## Optional Claims
 
-### **iss** [(rfc)](https://tools.ietf.org/html/rfc7519#section-4.1.1) 
+### Issuer (**iss** [rfc](https://tools.ietf.org/html/rfc7519#section-4.1.1)) 
 
 You can customize the `iss` property by setting the `issuer` property in [the AuthorizationServer configuration](/configuration/).
 
-### **aud** [(rfc)](https://tools.ietf.org/html/rfc7519#section-4.1.3) 
+### Audience (**aud** [rfc](https://tools.ietf.org/html/rfc7519#section-4.1.3)) 
 
-You can customize the `aud` field by passing the additional query param `&audience=` or `&aud=`, or body param `audience` or `aud` to the `/token` endpoint.
+You can customize the `aud` field by passing `aud`.
+
+| Endpoint     | Query               | Body                |
+|--------------|---------------------|---------------------|
+| `/token`     | `aud` \| `audience` | `aud` \| `audience` |
+| `/authorize` | `aud` \| `audience` |                     |
 
 ## Implementing `extraTokenFields`
 
