@@ -31,8 +31,7 @@ export class OAuthResponse implements ResponseInterface {
   }
 
   get(field: string): any {
-    return "";
-    // return this.headers[field.toLowerCase()];
+    return this.headers[field.toLowerCase()];
   }
 
   set(fieldOrHeaders: string, value: any): void {
