@@ -47,7 +47,7 @@ export class OAuthException extends Error {
    * Client authentication failed, such as if the request contains an invalid client ID or
    * secret. Send an HTTP 401 response in this case.
    */
-  static invalidClient(errorDescription?: string) {
+  static invalidClient(errorDescription?: string): OAuthException {
     return new OAuthException(
       "Client authentication failed",
       ErrorType.InvalidClient,
@@ -62,7 +62,7 @@ export class OAuthException extends Error {
    * expired. This is also the error you would return if the redirect URL given in the
    * authorization grant does not match the URL provided in this access token request.
    */
-  static invalidGrant(errorDescription?: string) {
+  static invalidGrant(errorDescription?: string): OAuthException {
     let message = "The provided authorization grant (e.g., authorization_code, client_credentials) or refresh token ";
     message += "is invalid, expired, revoked, or does not match the redirection URI used in the authorization ";
     message += "request, or was issued to another client";
@@ -73,7 +73,7 @@ export class OAuthException extends Error {
    * For access token requests that include a scope (password or client_credentials grants),
    * this error indicates an invalid scope value in the request.
    */
-  static invalidScope(scope?: string, redirectUri?: string) {
+  static invalidScope(scope?: string, redirectUri?: string): OAuthException {
     const message = "The requested scope is invalid, unknown, or malformed";
     let hint = "Specify a scope in the request or set a default scope";
     if (scope) {
@@ -87,7 +87,7 @@ export class OAuthException extends Error {
    * restrict which applications can use the Implicit grant, you would return this error
    * for the other apps.
    */
-  static unauthorizedClient() {
+  static unauthorizedClient(): OAuthException {
     return new OAuthException(`unauthorized client`, ErrorType.UnauthorizedClient);
   }
 
@@ -96,15 +96,15 @@ export class OAuthException extends Error {
    * this code. Note that unknown grant types also use this specific error code
    * rather than using the invalid_request above.
    */
-  static unsupportedGrantType() {
+  static unsupportedGrantType(): OAuthException {
     return new OAuthException("unsupported grant_type", ErrorType.UnsupportedGrantType);
   }
 
-  static badRequest(message: string) {
+  static badRequest(message: string): OAuthException {
     return new OAuthException(message, ErrorType.InvalidRequest, undefined, undefined, HttpStatus.BAD_REQUEST);
   }
 
-  static accessDenied(errorDescription?: string) {
+  static accessDenied(errorDescription?: string): OAuthException {
     return new OAuthException(
       "The resource owner or authorization server denied the request",
       ErrorType.AccessDenied,
@@ -114,7 +114,7 @@ export class OAuthException extends Error {
     );
   }
 
-  static internalServerError(errorDescription?: string) {
+  static internalServerError(errorDescription?: string): OAuthException {
     return new OAuthException(
       "Internal server error",
       ErrorType.InternalServerError,

@@ -61,7 +61,7 @@ export abstract class AbstractGrant implements GrantInterface {
     accessToken: OAuthToken,
     scopes: OAuthScope[] = [],
     extraJwtFields: ExtraAccessTokenFields = {},
-  ) {
+  ): Promise<BearerTokenResponse> {
     const scope = scopes.map(scope => scope.name).join(this.scopeDelimiterString);
 
     const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes, extraJwtFields);
@@ -85,7 +85,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return bearerTokenResponse;
   }
 
-  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthToken, scopes: OAuthScope[]) {
+  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthToken, scopes: OAuthScope[]): Promise<string> {
     const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime() ?? refreshToken.accessTokenExpiresAt.getTime();
     return this.encrypt({
       client_id: client.id,
@@ -102,7 +102,7 @@ export abstract class AbstractGrant implements GrantInterface {
     accessToken: OAuthToken,
     scopes: OAuthScope[],
     extraJwtFields: ExtraAccessTokenFields,
-  ) {
+  ): Promise<string> {
     const now = Date.now();
     return this.encrypt(<ITokenData>{
       // optional claims which the `jwtService.extraTokenFields()` method may overwrite
@@ -163,7 +163,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return [clientId, clientSecret];
   }
 
-  protected getBasicAuthCredentials(request: RequestInterface) {
+  protected getBasicAuthCredentials(request: RequestInterface): [undefined, undefined] | [string, string] {
     if (!request.headers?.hasOwnProperty("authorization")) {
       return [undefined, undefined];
     }
@@ -180,7 +180,13 @@ export abstract class AbstractGrant implements GrantInterface {
       return [undefined, undefined];
     }
 
-    return decoded.split(":");
+    const [type = undefined, token = undefined] = decoded.split(":");
+
+    if (type && token) {
+      return [type, token];
+    }
+
+    return [undefined, undefined];
   }
 
   protected async validateScopes(
@@ -240,11 +246,11 @@ export abstract class AbstractGrant implements GrantInterface {
     return result;
   }
 
-  protected getRequestParameter(param: string, request: RequestInterface, defaultValue?: any) {
+  protected getRequestParameter(param: string, request: RequestInterface, defaultValue?: any): any {
     return request.body?.[param] ?? defaultValue;
   }
 
-  protected getQueryStringParameter(param: string, request: RequestInterface, defaultValue?: any) {
+  protected getQueryStringParameter(param: string, request: RequestInterface, defaultValue?: any): any {
     return request.query?.[param] ?? defaultValue;
   }
 
@@ -252,7 +258,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return this.jwt.sign(unencryptedData);
   }
 
-  protected async decrypt(encryptedData: string) {
+  protected async decrypt(encryptedData: string): Promise<Record<string, unknown>> {
     return await this.jwt.verify(encryptedData);
   }
 

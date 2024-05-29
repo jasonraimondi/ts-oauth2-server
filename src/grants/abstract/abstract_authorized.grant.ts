@@ -16,7 +16,7 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
       | Iterable<[string, string]>
       | ReadonlyArray<[string, string]>,
     queryDelimiter = "?",
-  ) {
+  ): string {
     params = new URLSearchParams(params);
     const split = uri.includes(queryDelimiter) ? "&" : queryDelimiter;
     return uri + split + params.toString();
