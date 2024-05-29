@@ -1,8 +1,9 @@
 # TypeScript OAuth2.0 Server
 
+[![JSR](https://jsr.io/badges/@jmondi/oauth2-server)](https://jsr.io/@jmondi/oauth2-server)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/jasonraimondi/ts-oauth2-server?style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server/releases/latest)
 [![GitHub Workflow Status]( https://img.shields.io/github/actions/workflow/status/jasonraimondi/ts-oauth2-server/build-and-test.yml?branch=main&style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server)
 [![Test Coverage](https://img.shields.io/codeclimate/coverage/jasonraimondi/typescript-oauth2-server?style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
-[![GitHub package.json version](https://img.shields.io/github/package-json/v/jasonraimondi/ts-oauth2-server?style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server/releases/latest)
 [![NPM Downloads](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
 
 `@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server for Node, written in TypeScript. 
@@ -44,6 +45,14 @@ Save some eye strain, **use the [documentation site](https://tsoauth2server.com/
 ```bash
 pnpm add @jmondi/oauth2-server
 ```
+
+We're now on [JSR: The JavaScript Registry](https://jsr.io/@jmondi/oauth2-server)
+
+```bash
+npx jsr add @jmondi/oauth2-server
+```
+
+### Security
 
 | Version         | Latest Version | Security Updates |
 |-----------------|----------------|------------------|
