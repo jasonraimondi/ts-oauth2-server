@@ -75,7 +75,7 @@
     "fastify": "^4.26.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.2.5",
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.7",
     "supertest": "^6.3.4",
     "tslib": "^2.6.2",
     "tsup": "^8.0.2",
