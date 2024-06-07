@@ -20,7 +20,7 @@ export function requestFromVanilla(req: Request): OAuthRequest {
   });
 
   let body: Record<string, unknown> = {};
-  if (req.body != null && (req.method === "POST" || req.method === "PUT" || req.method === "PATCH")) {
+  if (req.body != null) {
     body = JSON.parse(req.body.toString());
   }
 
