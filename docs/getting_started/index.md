@@ -71,7 +71,7 @@ import { requestFromExpress } from "@jmondi/oauth2-server/express";
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   try {
     // Validate the HTTP request and return an AuthorizationRequest.
-    const authRequest = await authorizationServer.validateAuthorizationRequest(request, requestFromExpress(req));
+    const authRequest = await authorizationServer.validateAuthorizationRequest(request);
 
     // You will probably redirect the user to a login endpoint. 
     if (!req.user) {
