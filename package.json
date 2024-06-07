@@ -1,6 +1,6 @@
 {
   "name": "@jmondi/oauth2-server",
-  "version": "3.4.0-next.0",
+  "version": "3.4.0-next.1",
   "type": "module",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "funding": "https://github.com/sponsors/jasonraimondi",
@@ -98,6 +98,7 @@
   "tsup": {
     "entry": {
       "index": "./src/index.ts",
+      "vanilla": "./src/adapters/vanilla.ts",
       "express": "./src/adapters/express.ts",
       "fastify": "./src/adapters/fastify.ts"
     },
