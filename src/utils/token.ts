@@ -1,5 +1,5 @@
-import crypto from "node:crypto";
+import { randomBytes } from "node:crypto";
 
 export function generateRandomToken(len = 80): string {
-  return crypto.randomBytes(len / 2).toString("hex");
+  return randomBytes(len / 2).toString("hex");
 }
