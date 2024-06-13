@@ -1,5 +1,6 @@
 import { OAuthRequest } from "../requests/request.js";
 import { OAuthResponse } from "../responses/response.js";
+import { ErrorType, OAuthException } from "../exceptions/oauth.exception.js";
 
 export function responseFromVanilla(res: Response): OAuthResponse {
   const headers: Record<string, unknown> = {};
@@ -33,5 +34,24 @@ export function requestFromVanilla(req: Request): OAuthRequest {
     query: query,
     body: body,
     headers: headers,
+  });
+}
+
+export function responseToVanilla(oauthResponse: OAuthResponse): Response {
+  if (oauthResponse.status === 302) {
+    if (!oauthResponse.headers.location) {
+      throw new OAuthException(`missing redirect location`, ErrorType.InvalidRequest);
+    }
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: oauthResponse.headers.location,
+      },
+    });
+  }
+
+  return new Response(JSON.stringify(oauthResponse.body), {
+    status: oauthResponse.status,
+    headers: oauthResponse.headers,
   });
 }
