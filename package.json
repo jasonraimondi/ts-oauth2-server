@@ -15,10 +15,7 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "format": "prettier --write \"**/*.ts\"",
-    "prepublishOnly": "run-s build test",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "prepublishOnly": "run-s build test"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -81,7 +78,6 @@
     "tsup": "^8.0.2",
     "typescript": "^5.3.3",
     "vite": "^5.1.1",
-    "vitepress": "1.0.0-rc.42",
     "vitest": "^1.2.2"
   },
   "dependencies": {

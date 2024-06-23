@@ -1,0 +1,38 @@
+---
+sidebar_position: 1
+---
+
+# Getting Started
+
+## Summary
+
+1. Implement the [entities](#) required by the Authorization Server.
+1. Decide what grants you are going to Implement the [repositories](#) required by the Authorization Server.
+1.
+
+## The Authorization Server
+
+The AuthorizationServer depends on [the repositories](#repositories). By default, no grants are enabled; each grant is opt-in and must be enabled when creating the AuthorizationServer.
+
+You can enable any grant types you would like to support.
+
+```typescript
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  "secret-key",
+  {}, // optional configuration
+);
+authorizationServer.enableGrantType("client_credentials");
+authorizationServer.enableGrantType("refresh_token");
+authorizationServer.enableGrantType({
+  grant: "authorization_code",
+  userRepository,
+  authorizationCodeRepository,
+});
+```
+
+AFTER IMPLEMENTING ENTITIES THEN YOU NEED TO IMPLEMENT ROUTES
+
+See the [configuration](../configuration/index.md) documentation for a full list of config options.
