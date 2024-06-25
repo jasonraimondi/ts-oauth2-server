@@ -2,37 +2,151 @@
 sidebar_position: 1
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import CodeBlock from "@theme/CodeBlock";
+
 # Getting Started
 
-## Summary
+[![JSR](https://jsr.io/badges/@jmondi/oauth2-server)](https://jsr.io/@jmondi/oauth2-server)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/jasonraimondi/ts-oauth2-server?style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server/releases/latest)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/jasonraimondi/ts-oauth2-server/build-and-test.yml?branch=main&style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server)
+[![Test Coverage](https://img.shields.io/codeclimate/coverage/jasonraimondi/typescript-oauth2-server?style=flat-square)](https://codeclimate.com/github/jasonraimondi/typescript-oauth2-server/test_coverage)
+[![NPM Downloads](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
 
-1. Implement the [entities](#) required by the Authorization Server.
-1. Decide what grants you are going to Implement the [repositories](#) required by the Authorization Server.
-1.
+## Introduction
 
-## The Authorization Server
+A standards compliant implementation of an OAuth 2.0 authorization server for Nodejs that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript.
 
-The AuthorizationServer depends on [the repositories](#repositories). By default, no grants are enabled; each grant is opt-in and must be enabled when creating the AuthorizationServer.
+## Quick Start
 
-You can enable any grant types you would like to support.
+This section provides a high-level overview of setting up the OAuth2 server.
 
-```typescript
+1. Install the package
+1. Implement [Entities](./entities)
+1. Implement [Repositories](./repositories)
+1. Set up the [AuthorizationServer](#the-authorization-server) with desired grant types
+1. Implement the [Endpoints](./endpoints)
+
+## Installation
+
+Choose your preferred package manager to install @jmondi/oauth2-server:
+
+<Tabs>
+  <TabItem value="pnpm" label="pnpm">
+    <CodeBlock lang="bash">pnpm add @jmondi/oauth2-server</CodeBlock>
+  </TabItem>
+  <TabItem value="npm" label="npm">
+    <CodeBlock lang="bash">npm install --save @jmondi/oauth2-server</CodeBlock>
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
+    <CodeBlock lang="bash">yarn add @jmondi/oauth2-server</CodeBlock>
+  </TabItem>
+  <TabItem value="jsr" label="jsr">
+    <CodeBlock lang="bash">npx jsr add @jmondi/oauth2-server</CodeBlock>
+  </TabItem>
+  <TabItem value="deno" label="deno">
+    <CodeBlock lang="bash">deno add @jmondi/oauth2-server</CodeBlock>
+  </TabItem>
+  <TabItem value="bun" label="bun">
+    <CodeBlock lang="bash">bunx jsr add @jmondi/oauth2-server</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Basic Setup
+
+### The Authorization Server
+
+The AuthorizationServer is the core component of the OAuth2 implementation. It requires repositories for managing clients, access tokens, and scopes. Grant types are opt-in and must be explicitly enabled.
+
+```ts
 const authorizationServer = new AuthorizationServer(
   clientRepository,
   accessTokenRepository,
   scopeRepository,
   "secret-key",
-  {}, // optional configuration
 );
 authorizationServer.enableGrantType("client_credentials");
-authorizationServer.enableGrantType("refresh_token");
-authorizationServer.enableGrantType({
-  grant: "authorization_code",
-  userRepository,
-  authorizationCodeRepository,
+```
+
+For a complete list of configuration options, refer to the [configuration documentation](../configuration/index.md).
+
+## Endpoints
+
+### Token Endpoint
+
+The `/token` endpoint is a back-channel endpoint that issues access tokens.
+
+```ts
+app.post("/token", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+  }
 });
 ```
 
-AFTER IMPLEMENTING ENTITIES THEN YOU NEED TO IMPLEMENT ROUTES
+### Authorize Endpoint
 
-See the [configuration](../configuration/index.md) documentation for a full list of config options.
+The `/authorize` endpoint is a front-channel endpoint that issues authorization codes, which can be exchanged for access tokens.
+
+```ts
+import { requestFromExpress } from "@jmondi/oauth2-server/express";
+
+app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
+  try {
+    // Step 1: Validate the authorization request
+    const authRequest = await authorizationServer.validateAuthorizationRequest(
+      request,
+      requestFromExpress(req),
+    );
+
+    // Step 2: Ensure user is authenticated
+    if (!req.user) {
+      return res.redirect("/login"); // Redirect to login if user is not authenticated
+    }
+
+    // Step 3: Set the authenticated user on the AuthorizationRequest
+    authRequest.user = req.user;
+
+    // Step 4: Check if the user has approved the authorization
+    authRequest.isAuthorizationApproved = getIsAuthorizationApprovedFromSession();
+
+    // Step 5: If not approved, redirect to approval screen
+    if (!authRequest.isAuthorizationApproved) {
+      return res.redirect("/scopes"); // Redirect to scope approval screen
+    }
+
+    // Step 6: Complete the authorization request
+    const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+  }
+});
+```
+
+### Revoke Token Endpoint
+
+The `/token/revoke` endpoint revokes an existing token.
+
+```ts
+app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.revoke(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+  }
+});
+```
+
+## Security Best Practices
+
+1. Use HTTPS for all OAuth2 endpoints
+2. Implement rate limiting to prevent brute force attacks
+3. Use strong, unique client secrets for each client
+4. Implement proper token storage and transmission practices
+5. Regularly rotate secrets and tokens

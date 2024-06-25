@@ -4,15 +4,17 @@ sidebar_position: 2
 
 # Entity Interfaces
 
-You will need to implement the following entities to create an AuthorizationServer.
-
 ## Client Entity
 
-This entity represents the client that wants to access the resource server. The client will retrieve an access token from our authorization server and use it to access the resource server.
+The Client Entity represents an application that requests access to protected resources on behalf of the resource owner (user).
 
-- URI must be an absolute URI
-- The endpoint may include application/x-www-form-urlencoded formatted query component which must be retained when adding additional query params
-- the endpoint URI must not include a fragment component
+:::info redirect_uris:
+
+- URIs must be absolute.
+- URIs may include query parameters in application/x-www-form-urlencoded format
+- URIs must not include fragment components.
+
+:::
 
 ```typescript
 interface OAuthClient {
@@ -27,7 +29,7 @@ interface OAuthClient {
 
 ## Auth Code Entity
 
-The auth code is used to retrieve an access token from the authorization server.
+The Auth Code Entity represents a short-lived authorization code used in the Authorization Code grant type. It's an intermediary step between user authorization and token issuance.
 
 ```ts
 interface OAuthAuthCode {
@@ -40,16 +42,13 @@ interface OAuthAuthCode {
   client: OAuthClient;
   scopes: OAuthScope[];
 }
-```
 
-```ts
 type CodeChallengeMethod = "S256" | "plain";
 ```
 
 ## Token Entity
 
-The access and refresh token that can be used to authenticate into the resource server.
-The `originatingAuthCodeId` will be present only for tokens originating from the authorization code grant; see the `revokeDescendantsOf()` method on the [Token Repository](https://tsoauth2server.com/repositories/#token-repository) for its significance.
+The Token Entity represents access and refresh tokens issued to clients.
 
 ```typescript
 interface OAuthToken {
@@ -66,7 +65,7 @@ interface OAuthToken {
 
 ## User Entity
 
-The resource owner
+The User Entity represents the resource owner - typically the end-user who authorizes an application to access their account.
 
 ```typescript
 interface OAuthUser {
@@ -77,9 +76,9 @@ interface OAuthUser {
 
 ## Scope Entity
 
-Scopes are a way to limit an app’s access to a user’s data.
+Scopes are used to define and limit the extent of access granted to a client application. They provide granular control over the permissions given to third-party applications.
 
-https://www.oauth.com/oauth2-servers/scope/
+For more information on OAuth 2.0 scopes, visit: https://www.oauth.com/oauth2-servers/scope/
 
 ```typescript
 interface OAuthScope {

@@ -1,6 +1,6 @@
 # Fastify
 
-[https://www.fastify.io/](https://www.fastify.io/)
+[Fastify](https://www.fastify.io/)
 
 ```typescript
 import {

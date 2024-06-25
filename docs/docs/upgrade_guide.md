@@ -1,14 +1,18 @@
-# Migrating from v2 to v3
+---
+sidebar_position: 5
+---
 
-Upgrade Time Estimate: 10 minutes
+# Upgrade Guide
+
+## Migrating from v2 to v3
 
 [[toc]]
 
-## This package is now pure ESM
+### This package is now pure ESM
 
 The package is now entirely ESM (ECMAScript Modules). More details about this change can be found in [Sindre Sorhus's writeup](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
 
-## `AuthorizationServer` Updates {#authorization-server}
+### `AuthorizationServer` Updates {#authorization-server}
 
 In v2.x, `AuthorizationServer` constructor required all repositories. In v3.x, it has been simplified.
 
@@ -44,11 +48,11 @@ const authorizationServer = new AuthorizationServer(
 );
 ```
 
-## Enabling Grants
+### Enabling Grants
 
 In v3, `enableGrantType` has been updated for the **"authorization_code"** and **"password"** grants.
 
-### Authorization Code Grant
+#### Authorization Code Grant
 
 `AuthorizationCodeGrant` now requires a [AuthorizationCodeRepository](../../repositories/index.md#authorization-code-repository) and a [UserRepository](../../repositories/index.md#user-repository).
 
@@ -68,7 +72,7 @@ authorizationServer.enableGrantType({
 });
 ```
 
-### Password Grant
+#### Password Grant
 
 `PasswordGrant` now requires a [UserRepository](../../repositories/index.md#user-repository).
 
@@ -87,7 +91,7 @@ authorizationServer.enableGrantType({
 });
 ```
 
-## `AuthorizationServerOptions` Default Configuration Updates
+### `AuthorizationServerOptions` Default Configuration Updates
 
 The default options for `AuthorizationServer` have been modified to better align with the OAuth 2.0 specification:
 
@@ -96,10 +100,10 @@ The default options for `AuthorizationServer` have been modified to better align
 | requiresS256 | false      | true       |
 | tokenCID     | "name"     | "id"       |
 
-## Removed `setOptions` Method
+### Removed `setOptions` Method
 
 The undocumented, public method `setOptions` has been removed in v3. Options can be set during `AuthorizationServer` initialization.
 
-## `generateRandomToken` Function Fix
+### `generateRandomToken` Function Fix
 
 A bug in the `generateRandomToken` function has been fixed in v3.x.

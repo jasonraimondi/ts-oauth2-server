@@ -4,7 +4,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 import tailwindPlugin from "./tailwind-config.cjs";
 
 const config: Config = {
-  title: "ts-oauth2-server",
+  title: "@jmondi/oauth2-server",
   plugins: [tailwindPlugin],
   tagline:
     "A standards compliant implementation of an OAuth 2.0 authorization server for Nodejs that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript. ",

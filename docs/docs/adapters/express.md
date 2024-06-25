@@ -1,6 +1,6 @@
 # Express
 
-[https://expressjs.com/](https://expressjs.com/)
+[Express](https://expressjs.com/)
 
 ```typescript
 import {

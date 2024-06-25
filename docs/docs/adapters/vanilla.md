@@ -1,4 +1,14 @@
+---
+sidebar_position: 1
+---
+
 # Vanilla
+
+:::info
+
+Available in >3.4.0
+
+:::
 
 ```typescript
 import {

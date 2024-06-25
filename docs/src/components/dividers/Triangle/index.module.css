@@ -1,0 +1,17 @@
+.triangle {
+  position: relative;
+  background: var(--ifm-color-primary);
+}
+
+.triangle::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 40px 40px 0 40px;
+  border-color: var(--ifm-color-primary) transparent transparent transparent;
+  left: var(--before-left, 0);
+  transform: translateX(-50%) translateY(100%);
+}

@@ -14,7 +14,7 @@ const FeatureList: FeatureItem[] = [
     description: (
       <>
         <CodeBlock language="ts" title="entities/client_entity.ts">
-        {`
+          {`
 import { OAuthClient, OAuthAuthCode, OAuthUser, OAuthScope, GrantIdentifier, ScopeEntity, CodeChallengeMethod } from '@jmondi/oauth2-server';
 
 class ClientEntity implements OAuthClient {
@@ -28,9 +28,9 @@ class ClientEntity implements OAuthClient {
   updatedAt: Date | null;
 }
        `.trim()}
-      </CodeBlock>
+        </CodeBlock>
         <CodeBlock language="ts" title="entities/client_entity.ts">
-        {`
+          {`
 import { OAuthClient, OAuthAuthCode, OAuthUser, OAuthScope, GrantIdentifier, ScopeEntity, CodeChallengeMethod } from '@jmondi/oauth2-server';
 
 class ClientEntity implements OAuthClient {
@@ -44,7 +44,7 @@ class ClientEntity implements OAuthClient {
   updatedAt: Date | null;
 }
        `.trim()}
-      </CodeBlock>
+        </CodeBlock>
       </>
     ),
   },
@@ -95,7 +95,7 @@ export class ClientRepository implements OAuthClientRepository {
   // },
 ];
 
-function Feature({title, description}: FeatureItem) {
+function Feature({ title, description }: FeatureItem) {
   return (
     <div className="">
       <Heading as="h3">{title}</Heading>
@@ -106,12 +106,17 @@ function Feature({title, description}: FeatureItem) {
 
 export default function HomepageFeatures(): JSX.Element {
   return (
-    <section className={styles.features}>
-      <div className="grid md:grid-cols-2 gap-6 px-4 md:px-6">
-        {FeatureList.map((props, idx) => (
-          <Feature key={idx} {...props} />
-        ))}
+    <>
+      <section className={styles.features}>
+        <div className="grid md:grid-cols-2 gap-6 px-4 md:px-6">
+          {FeatureList.map((props, idx) => (
+            <Feature key={idx} {...props} />
+          ))}
+        </div>
+      </section>
+      <div>
+        <p>I am jason</p>
       </div>
-    </section>
+    </>
   );
 }
