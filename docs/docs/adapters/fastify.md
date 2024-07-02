@@ -1,6 +1,6 @@
 # Fastify
 
-[Fastify](https://www.fastify.io/)
+Adapts the [Fastify.Request](https://fastify.dev/docs/latest/Reference/Request/) and [Fastify.Reply](https://fastify.dev/docs/latest/Reference/Reply/) for use with `@jmondi/oauth2-server`.
 
 ```typescript
 import {

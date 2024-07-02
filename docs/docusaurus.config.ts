@@ -34,6 +34,7 @@ const config: Config = {
           editUrl: "https://github.com/jasonraimondi/ts-oauth2-server/tree/main/",
         },
         theme: {
+
           customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
@@ -57,7 +58,7 @@ const config: Config = {
           position: "right",
         },
         {
-          href: "/docs/configuration/",
+          href: "/docs/authorization_server/configuration/",
           label: "Config",
           position: "right",
         },

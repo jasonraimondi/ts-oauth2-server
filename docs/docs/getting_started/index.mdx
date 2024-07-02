@@ -2,6 +2,7 @@
 sidebar_position: 1
 ---
 
+import Installation from "../../src/pages/_index_install.mdx"
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeBlock from "@theme/CodeBlock";
@@ -32,26 +33,7 @@ This section provides a high-level overview of setting up the OAuth2 server.
 
 Choose your preferred package manager to install @jmondi/oauth2-server:
 
-<Tabs>
-  <TabItem value="pnpm" label="pnpm">
-    <CodeBlock lang="bash">pnpm add @jmondi/oauth2-server</CodeBlock>
-  </TabItem>
-  <TabItem value="npm" label="npm">
-    <CodeBlock lang="bash">npm install --save @jmondi/oauth2-server</CodeBlock>
-  </TabItem>
-  <TabItem value="yarn" label="yarn">
-    <CodeBlock lang="bash">yarn add @jmondi/oauth2-server</CodeBlock>
-  </TabItem>
-  <TabItem value="jsr" label="jsr">
-    <CodeBlock lang="bash">npx jsr add @jmondi/oauth2-server</CodeBlock>
-  </TabItem>
-  <TabItem value="deno" label="deno">
-    <CodeBlock lang="bash">deno add @jmondi/oauth2-server</CodeBlock>
-  </TabItem>
-  <TabItem value="bun" label="bun">
-    <CodeBlock lang="bash">bunx jsr add @jmondi/oauth2-server</CodeBlock>
-  </TabItem>
-</Tabs>
+<Installation />
 
 ## Basic Setup
 
@@ -67,6 +49,7 @@ const authorizationServer = new AuthorizationServer(
   "secret-key",
 );
 authorizationServer.enableGrantType("client_credentials");
+// other grant types you want to enable
 ```
 
 For a complete list of configuration options, refer to the [configuration documentation](../configuration/index.md).

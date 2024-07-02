@@ -5,8 +5,8 @@ sidebar_position: 3
 
 # Which Grant?
 
-Grants are different ways a [client](../misc/glossary/index.md#client) can obtain an `access_token` that will authorize
-it to use the [resource server](../misc/glossary/index.md#resource-server).
+Grants are different ways a [client](../glossary.md#client) can obtain an `access_token` that will authorize
+it to use the [resource server](../glossary.md#resource-server).
 
 Deciding which grant to use depends on the type of client the end user will be using.
 
@@ -14,45 +14,41 @@ Deciding which grant to use depends on the type of client the end user will be u
 +-------+
 | Start |
 +-------+
-    |
     V
-+------------------------+
-| Have a refresh token?  |
-+------------------------+
     |
-    +-----No-------------------+
-    |                          |
-    V                          V
-+---------------------+    +------------------------+
-|     Who is the      |    |  Refresh Token Grant   |
-| access token owner? |    | (Use refresh token to  |
-+---------------------+    |  get new access token) |
-    |                      +------------------------+
     |
-    +-----A Machine-----+
-    |                   |
-    V                   V
-+----------------------+    +---------------------------+
-| What type of client? |    | Client Credentials Grant  |
-+----------------------+    | (For machine-to-machine   |
-    |                       |     communication)        |
-    |                       +---------------------------+
++------------------------+              +-----------------------+
+| Have a refresh token?  |>----Yes----->|  Refresh Token Grant  |
++------------------------+              +-----------------------+
+    V
     |
-    +-----Server App--------+
-    |                       |
-    +-----Browser-based-----+    +---------------------------+
-    |       App             +--->| Authorization Code Grant  |
-    |                       |    |         with PKCE         |
-    +-----Native Mobile-----+    | (More secure, supports    |
-            App                  |  public clients)          |
-                                 +---------------------------+
-
-Notes:
-1. Always use HTTPS for all OAuth 2.0 interactions
-2. For public clients (browser-based and mobile apps), always use PKCE
-3. Securely store tokens and other sensitive information
-4. Implement proper token validation and revocation
-5. Consider using OpenID Connect for authentication on top of OAuth 2.0
+    No
+    |
++---------------------+                
+|     Who is the      |                  +--------------------------+
+| Access token owner? |>---A Machine---->| Client Credentials Grant |
++---------------------+                  +--------------------------+
+    V
+    |
+    |
+   A User
+    |
+    |
++----------------------+                
+| What type of client? |   
++----------------------+     
+    |
+    |                                 +---------------------------+
+    |>-----------Server App---------->| Auth Code Grant with PKCE |
+    |                                 +---------------------------+
+    |
+    |                                 +---------------------------+
+    |>-------Browser Based App------->| Auth Code Grant with PKCE |
+    |                                 +---------------------------+
+    |
+    |                                 +---------------------------+
+    |>-------Native Mobile App------->| Auth Code Grant with PKCE |
+                                      +---------------------------+
 ```
 
 ### Refresh Token Grant

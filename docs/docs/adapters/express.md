@@ -2,6 +2,8 @@
 
 [Express](https://expressjs.com/)
 
+Adapts the [Express.Request](https://expressjs.com/en/api.html#req) and [Express.Response](https://expressjs.com/en/api.html#res) for use with `@jmondi/oauth2-server`.
+
 ```typescript
 import {
   requestFromExpress,

@@ -10,6 +10,8 @@ Available in >3.4.0
 
 :::
 
+Adapts the Fetch [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) for use with `@jmondi/oauth2-server`.
+
 ```typescript
 import {
   requestFromVanilla,
