@@ -1,19 +1,27 @@
-import CodeBlock from '@theme/CodeBlock';
+import CodeBlock from "@theme/CodeBlock";
 
 <CodeBlock language="typescript">{`
 // entities/client_entity.ts
 
-import { OAuthClient, OAuthAuthCode, OAuthUser, OAuthScope, GrantIdentifier, ScopeEntity, CodeChallengeMethod } from '@jmondi/oauth2-server';
+import {
+  OAuthClient,
+  OAuthAuthCode,
+  OAuthUser,
+  OAuthScope,
+  GrantIdentifier,
+  ScopeEntity,
+  CodeChallengeMethod,
+} from "@jmondi/oauth2-server";
 
 class ClientEntity implements OAuthClient {
-  readonly id: string;
-  name: string;
-  secret: string | null;
-  redirectUris: string[];
-  allowedGrants: GrantIdentifier[];
-  scopes: ScopeEntity[];
-  createdAt: Date;
-  updatedAt: Date | null;
+readonly id: string;
+name: string;
+secret: string | null;
+redirectUris: string[];
+allowedGrants: GrantIdentifier[];
+scopes: ScopeEntity[];
+createdAt: Date;
+updatedAt: Date | null;
 }
 `.trim()}</CodeBlock>
 

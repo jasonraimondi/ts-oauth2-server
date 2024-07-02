@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
-    "format": "prettier --write \"**/*.ts\"",
+    "format": "prettier --write \"**/*.{ts,js,tsx,md,mdx}\"",
     "prepublishOnly": "run-s build test"
   },
   "exports": {

@@ -34,7 +34,6 @@ const config: Config = {
           editUrl: "https://github.com/jasonraimondi/ts-oauth2-server/tree/main/",
         },
         theme: {
-
           customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
