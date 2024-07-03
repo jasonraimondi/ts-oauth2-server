@@ -8,6 +8,7 @@ import ExampleEntities from "./_example_entities.mdx";
 import ExampleRepositories from "./_example_repositories.mdx";
 import ExampleAuthorizationServer from "./_example_authorization_server.mdx";
 import WhichGrant from "./_which_grant.mdx";
+import Callouts from "./_callouts.mdx";
 import MarkdownWrapper from "@site/src/components/MarkdownWrapper";
 import { LinkIcon } from "lucide-react";
 import { Contributors } from "@site/src/components/Contributors";
@@ -42,7 +43,8 @@ export function NPMLogo() {
       className="fill-current"
       viewBox="0 0 18 7"
     >
-      <path d="M0,0h18v6H9v1H5V6H0V0z M1,5h2V2h1v3h1V1H1V5z M6,1v5h2V5h2V1H6z M8,2h1v2H8V2z M11,1v4h2V2h1v3h1V2h1v3h1V1H11z" />
+      <path
+        d="M0,0h18v6H9v1H5V6H0V0z M1,5h2V2h1v3h1V1H1V5z M6,1v5h2V5h2V1H6z M8,2h1v2H8V2z M11,1v4h2V2h1v3h1V2h1v3h1V1H11z" />
       <polygon fill="transparent" points="1,5 3,5 3,2 4,2 4,5 5,5 5,1 1,1 " />
       <path fill="transparent" d="M6,1v5h2V5h2V1H6z M9,4H8V2h1V4z" />
       <polygon
@@ -111,6 +113,35 @@ export default function Home() {
         </div>
       </header>
 
+      <div className="pt-14 w-full max-w-4xl mx-auto prose prose-lg grid grid-cols-2 gap-4">
+        <div>
+          <h3>Supported Grants</h3>
+          <ul className="list-inside">
+            <li><a href="/docs/grants/authorization_code">Authorization code grant</a></li>
+            <li><a href="/docs/grants/client_credentials">Client credentials grant</a></li>
+            <li><a href="/docs/grants/refresh_token">Refresh grant</a></li>
+            <li><a href="/docs/grants/implicit">Implicit grant</a> // not recommended</li>
+            <li><a href="/docs/grants/password">Resource owner password credentials grant</a> // not recommended</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Implemented RFCs</h3>
+          <ul className="list-inside">
+            <li><a href="https://tools.ietf.org/html/rfc6749">RFC6749 "OAuth 2.0"</a></li>
+            <li><a href="https://tools.ietf.org/html/rfc6750">RFC6750 "The OAuth 2.0 Authorization Framework: Bearer
+              Token
+              Usage"</a></li>
+            <li><a href="https://tools.ietf.org/html/rfc7009">RFC7009 "OAuth 2.0 Token Revocation"</a></li>
+            <li><a href="https://tools.ietf.org/html/rfc7519">RFC7519 "JSON Web Token (JWT)"</a></li>
+            <li><a href="https://tools.ietf.org/html/rfc7636">RFC7636 "Proof Key for Code Exchange by OAuth Public
+              Clients"</a>
+            </li>
+            <li><a href="https://datatracker.ietf.org/doc/html/rfc8693">RFC8693 "OAuth 2.0 Token Exchange"</a></li>
+          </ul>
+        </div>
+      </div>
+
+
       <div className="pt-14">
         <div className="flex justify-center gap-14">
           <a
@@ -144,7 +175,9 @@ export default function Home() {
         </div>
 
         <div className="py-14">
-          <h3 className="text-center text-2xl font-semibold">Entities and Repositories <a href="docs/getting_started/entities"><LinkIcon className="w-4" /></a><a href="docs/getting_started/repositories"><LinkIcon className="w-4" /></a></h3>
+          <h3 className="text-center text-2xl font-semibold">Entities and Repositories <a
+            href="docs/getting_started/entities"><LinkIcon className="w-4" /></a><a
+            href="docs/getting_started/repositories"><LinkIcon className="w-4" /></a></h3>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div>
               <ExampleEntities />
@@ -154,13 +187,15 @@ export default function Home() {
             </div>
           </div>
           <div>
-            <h3 className="text-center text-2xl font-semibold">The Authorization Server <a href="/docs/authorization_server"><LinkIcon className="w-4" /></a></h3>
+            <h3 className="text-center text-2xl font-semibold">The Authorization Server <a
+              href="/docs/authorization_server"><LinkIcon className="w-4" /></a></h3>
             <ExampleAuthorizationServer />
           </div>
         </div>
 
         <div className="py-14">
-          <h3 className="text-center text-2xl font-semibold">Which Grant? <a href="/docs/grants"><LinkIcon className="w-4" /></a></h3>
+          <h3 className="text-center text-2xl font-semibold">Which Grant? <a href="/docs/grants"><LinkIcon
+            className="w-4" /></a></h3>
           <WhichGrant />
         </div>
 

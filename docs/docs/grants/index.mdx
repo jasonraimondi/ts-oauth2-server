@@ -5,18 +5,7 @@ sidebar_position: 3
 
 import WhichGrant from "../../src/pages/_which_grant.mdx";
 
-# Which Grant?
-
-Grants are different ways a [client](../glossary.md#client) can obtain an `access_token` that will authorize
-it to use the [resource server](../glossary.md#resource-server).
-
-Deciding which grant to use depends on the type of client the end user will be using.
-
-<WhichGrant />
-
-### Refresh Token Grant
-
-If the client already has a refresh token, it can use the Refresh Token Grant to obtain a new access token without requiring the user's interaction. This grant is useful for long-lived sessions and background processes.
+# Grants
 
 ### Client Credentials Grant
 
@@ -25,3 +14,16 @@ If the access token owner is a machine, such as a server or an application actin
 ### Auth Code Grant with PKCE
 
 If the access token owner is a user, the recommended grant is the Authorization Code Grant with Proof Key for Code Exchange (PKCE). This grant involves a series of steps where the client redirects the user to the authorization server, the user grants access, and the server provides an authorization code that the client exchanges for an access token. PKCE adds an extra layer of security to protect against authorization code interception attacks.
+
+### Refresh Token Grant
+
+If the client already has a refresh token, it can use the Refresh Token Grant to obtain a new access token without requiring the user's interaction. This grant is useful for long-lived sessions and background processes.
+
+## Which Grant?
+
+Grants are different ways a [client](../glossary.md#client) can obtain an `access_token` that will authorize
+it to use the [resource server](../glossary.md#resource-server).
+
+Deciding which grant to use depends on the type of client the end user will be using.
+
+<WhichGrant />
