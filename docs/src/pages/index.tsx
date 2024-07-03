@@ -7,7 +7,11 @@ import HowToInstall from "./_index_install.mdx";
 import ExampleEntities from "./_example_entities.mdx";
 import ExampleRepositories from "./_example_repositories.mdx";
 import ExampleAuthorizationServer from "./_example_authorization_server.mdx";
+import WhichGrant from "./_which_grant.mdx";
 import MarkdownWrapper from "@site/src/components/MarkdownWrapper";
+import { LinkIcon } from "lucide-react";
+import { Contributors } from "@site/src/components/Contributors";
+import { Sponsors } from "@site/src/components/Sponsors";
 
 export function GithubLogo() {
   return (
@@ -35,16 +39,14 @@ export function NPMLogo() {
       xmlns="http://www.w3.org/2000/svg"
       width="100%"
       height="100%"
+      className="fill-current"
       viewBox="0 0 18 7"
     >
-      <path
-        fill="#CB3837"
-        d="M0,0h18v6H9v1H5V6H0V0z M1,5h2V2h1v3h1V1H1V5z M6,1v5h2V5h2V1H6z M8,2h1v2H8V2z M11,1v4h2V2h1v3h1V2h1v3h1V1H11z"
-      />
-      <polygon fill="#FFFFFF" points="1,5 3,5 3,2 4,2 4,5 5,5 5,1 1,1 " />
-      <path fill="#FFFFFF" d="M6,1v5h2V5h2V1H6z M9,4H8V2h1V4z" />
+      <path d="M0,0h18v6H9v1H5V6H0V0z M1,5h2V2h1v3h1V1H1V5z M6,1v5h2V5h2V1H6z M8,2h1v2H8V2z M11,1v4h2V2h1v3h1V2h1v3h1V1H11z" />
+      <polygon fill="transparent" points="1,5 3,5 3,2 4,2 4,5 5,5 5,1 1,1 " />
+      <path fill="transparent" d="M6,1v5h2V5h2V1H6z M9,4H8V2h1V4z" />
       <polygon
-        fill="#FFFFFF"
+        fill="transparent"
         points="11,1 11,5 13,5 13,2 14,2 14,5 15,5 15,2 16,2 16,5 17,5 17,1 "
       />
     </svg>
@@ -56,17 +58,27 @@ export function JSRLogo() {
     <svg
       width="100%"
       height="100%"
-      viewBox="0 0 13 7"
-      version="1.1"
+      viewBox="0 0 121 65"
+      className="fill-current"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M0,2h2v-2h7v1h4v4h-2v2h-7v-1h-4" fill="#083344" />
-      <g fill="#f7df1e">
-        <path d="M1,3h1v1h1v-3h1v4h-3" />
-        <path d="M5,1h3v1h-2v1h2v3h-3v-1h2v-1h-2" />
-        <path d="M9,2h3v2h-1v-1h-1v3h-1" />
-      </g>
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M18.6154 18.5714H0V55.7143H37.2308V65H102.385V46.4286H121V9.28571H83.7692V0H18.6154V18.5714ZM18.6154 27.8571H9.30769V46.4286H37.2308V9.28571H27.9231V37.1429H18.6154V27.8571ZM46.5385 9.28571H74.4615V18.5714H55.8462V27.8571H74.4615V55.7143H46.5385V46.4286H65.1538V37.1429H46.5385V9.28571ZM111.692 18.5714H83.7692V55.7143H93.0769V27.8571H102.385V37.1429H111.692V18.5714Z"
+      />
     </svg>
+  );
+}
+
+function HeroButton({ href, children }) {
+  return (
+    <a
+      href={href}
+      className="px-4 py-1 text-black hover:text-black bg-white hover:bg-gray-200 border border-gray-800 rounded hover:no-underline"
+    >
+      {children}
+    </a>
   );
 }
 
@@ -77,7 +89,7 @@ export default function Home() {
       title={`@jmondi/oauth2-server`}
       description="Description will go into a meta tag in <head />"
     >
-      <header className="bg-[--ifm-color-primary] text-white">
+      <header className="text-white bg-gradient-to-br from-[--ifm-color-primary] to-[--ifm-color-primary-darkest]">
         <div className="container py-14 md:py-24">
           <div className="flex items-center justify-center gap-6">
             <div className="flex">
@@ -91,31 +103,48 @@ export default function Home() {
             </Heading>
           </div>
 
-          <p className="hero__subtitle">{siteConfig.tagline}</p>
+          <p className="hero__subtitle pt-8 md:px-14">{siteConfig.tagline}</p>
+
+          <div className="flex justify-center gap-4">
+            <HeroButton href="/docs/getting_started">Get Started</HeroButton>
+          </div>
         </div>
       </header>
 
-      <div className="flex justify-center gap-8 pt-14">
-        <a
-          href="https://github.com/jasonraimondi/ts-oauth2-server"
-          className="w-12 text-black hover:text-black"
-        >
-          <GithubLogo />
-        </a>
-        <a href="https://www.npmjs.com/package/@jmondi/oauth2-server" className="w-12">
-          <NPMLogo />
-        </a>
-        <a href="https://jsr.io/@jmondi/oauth2-server" className="w-12">
-          <JSRLogo />
-        </a>
+      <div className="pt-14">
+        <div className="flex justify-center gap-14">
+          <a
+            href="https://github.com/jasonraimondi/ts-oauth2-server"
+            className="w-20 text-[--ifm-heading-color] hover:text-[--ifm-heading-color]"
+            title="Find us on https://github.com"
+          >
+            <GithubLogo />
+          </a>
+          <a
+            href="https://www.npmjs.com/package/@jmondi/oauth2-server"
+            className="w-28 text-[--ifm-heading-color] hover:text-[--ifm-heading-color]"
+            title="Find us on https://npmjs.com"
+          >
+            <NPMLogo />
+          </a>
+          <a
+            href="https://jsr.io/@jmondi/oauth2-server"
+            className="w-24 text-[--ifm-heading-color] hover:text-[--ifm-heading-color]"
+            title="Find us on https://jsr.io"
+          >
+            <JSRLogo />
+          </a>
+        </div>
       </div>
 
       <MarkdownWrapper>
-        <div>
+        <div className="pt-14">
+          <h3 className="text-center text-4xl font-semibold">Install</h3>
           <HowToInstall />
         </div>
+
         <div className="py-14">
-          <h3 className="text-center text-4xl font-semibold">Quick Example</h3>
+          <h3 className="text-center text-2xl font-semibold">Entities and Repositories <a href="docs/getting_started/entities"><LinkIcon className="w-4" /></a><a href="docs/getting_started/repositories"><LinkIcon className="w-4" /></a></h3>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div>
               <ExampleEntities />
@@ -125,8 +154,24 @@ export default function Home() {
             </div>
           </div>
           <div>
-            <h3 className="text-center text-2xl font-semibold">Authorization Server</h3>
+            <h3 className="text-center text-2xl font-semibold">The Authorization Server <a href="/docs/authorization_server"><LinkIcon className="w-4" /></a></h3>
             <ExampleAuthorizationServer />
+          </div>
+        </div>
+
+        <div className="py-14">
+          <h3 className="text-center text-2xl font-semibold">Which Grant? <a href="/docs/grants"><LinkIcon className="w-4" /></a></h3>
+          <WhichGrant />
+        </div>
+
+        <div className="py-14 flex flex-col justify-center align-middle text-center">
+          <h3 className="text-2xl font-semibold">Contributors</h3>
+          <div className="flex justify-center">
+            <Contributors owner="jasonraimondi" repo="ts-oauth2-server" />
+          </div>
+          <h3 className="text-2xl font-semibold">Sponsors</h3>
+          <div className="flex justify-center">
+            <Sponsors username="jasonraimondi" />
           </div>
         </div>
       </MarkdownWrapper>

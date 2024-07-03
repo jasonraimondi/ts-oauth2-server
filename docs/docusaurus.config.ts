@@ -7,7 +7,7 @@ const config: Config = {
   title: "@jmondi/oauth2-server",
   plugins: [tailwindPlugin],
   tagline:
-    "A standards compliant implementation of an OAuth 2.0 authorization server for Nodejs that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript. ",
+    "Standards-Compliant OAuth 2.0 Server in TypeScript, Utilizing JWT and Proof Key for Code Exchange (PKCE)",
   favicon: "img/favicon.ico",
   url: "https://tsoauth2server.com",
   baseUrl: "/",
@@ -42,7 +42,17 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: "img/docusaurus-social-card.jpg",
+    image: "img/oauth2-server-social-card.jpg",
+    headTags: [
+      {
+        tagName: "script",
+        attributes: {
+          "data-domain": "tsoauth2server.com",
+          src: "https://plausible.io/js/script.js",
+          defer: "true",
+        },
+      },
+    ],
     navbar: {
       title: "ts-oauth2-server",
       logo: {
@@ -79,8 +89,8 @@ const config: Config = {
       ],
     },
     footer: {
-      style: "light",
-      copyright: `Copyright © ${new Date().getFullYear()} Jason Raimondi. Built with Docusaurus.`,
+      style: "dark",
+      copyright: `© ${new Date().getFullYear()} Jason Raimondi`,
     },
     prism: {
       theme: prismThemes.github,

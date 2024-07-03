@@ -3,6 +3,8 @@ title: Grants
 sidebar_position: 3
 ---
 
+import WhichGrant from "../../src/pages/_which_grant.mdx";
+
 # Which Grant?
 
 Grants are different ways a [client](../glossary.md#client) can obtain an `access_token` that will authorize
@@ -10,46 +12,7 @@ it to use the [resource server](../glossary.md#resource-server).
 
 Deciding which grant to use depends on the type of client the end user will be using.
 
-```
-+-------+
-| Start |
-+-------+
-    V
-    |
-    |
-+------------------------+              +-----------------------+
-| Have a refresh token?  |>----Yes----->|  Refresh Token Grant  |
-+------------------------+              +-----------------------+
-    V
-    |
-    No
-    |
-+---------------------+                
-|     Who is the      |                  +--------------------------+
-| Access token owner? |>---A Machine---->| Client Credentials Grant |
-+---------------------+                  +--------------------------+
-    V
-    |
-    |
-   A User
-    |
-    |
-+----------------------+                
-| What type of client? |   
-+----------------------+     
-    |
-    |                                 +---------------------------+
-    |>-----------Server App---------->| Auth Code Grant with PKCE |
-    |                                 +---------------------------+
-    |
-    |                                 +---------------------------+
-    |>-------Browser Based App------->| Auth Code Grant with PKCE |
-    |                                 +---------------------------+
-    |
-    |                                 +---------------------------+
-    |>-------Native Mobile App------->| Auth Code Grant with PKCE |
-                                      +---------------------------+
-```
+<WhichGrant />
 
 ### Refresh Token Grant
 

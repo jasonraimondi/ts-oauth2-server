@@ -2,6 +2,20 @@ import CodeBlock from "@theme/CodeBlock";
 
 <CodeBlock language="typescript">
   {`
-const foo = "bar";
+// services/authorization_server.ts
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  "secret-key",
+);
+
+authorizationServer.enableGrantType("client_credentials");
+authorizationServer.enableGrantType({
+  grant: "authorization_code",
+  userRepository,
+  authorizationCodeRepository,
+});
+// other grant types you want to enable
 `.trim()}
 </CodeBlock>
