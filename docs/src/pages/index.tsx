@@ -87,7 +87,7 @@ export default function Home() {
   return (
     <Layout
       title={`@jmondi/oauth2-server`}
-      description="Description will go into a meta tag in <head />"
+      description={siteConfig.tagline}
     >
       <header className="text-white bg-gradient-to-br from-[--ifm-color-primary] to-[--ifm-color-primary-darkest]">
         <div className="container py-14 md:py-24">
