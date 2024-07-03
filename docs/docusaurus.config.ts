@@ -17,6 +17,7 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  scripts: [{ src: "https://plausible.io/js/script.js", defer: true, "data-domain": "tsoauth2server.com" }],
   presets: [
     [
       "classic",
@@ -43,16 +44,6 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: "img/oauth2-server-social-card.jpg",
-    headTags: [
-      {
-        tagName: "script",
-        attributes: {
-          "data-domain": "tsoauth2server.com",
-          src: "https://plausible.io/js/script.js",
-          defer: "true",
-        },
-      },
-    ],
     navbar: {
       title: "ts-oauth2-server",
       logo: {
