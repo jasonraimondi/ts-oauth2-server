@@ -17,7 +17,9 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
-  scripts: [{ src: "https://plausible.io/js/script.js", defer: true, "data-domain": "tsoauth2server.com" }],
+  scripts: [
+    { src: "https://plausible.io/js/script.js", defer: true, "data-domain": "tsoauth2server.com" }
+  ],
   presets: [
     [
       "classic",
@@ -86,6 +88,11 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+    },
+    algolia: {
+      appId: 'JP2YS2S0EQ',
+      apiKey: 'bf2bc45ac2821dba462ee887527c1816',
+      indexName: 'tsoauth2server',
     },
   } satisfies Preset.ThemeConfig,
 };
