@@ -2,32 +2,32 @@ import CodeBlock from "@theme/CodeBlock";
 
 <CodeBlock language="typescript">{`
 // repositories/client_repository.ts
-
 import { PrismaClient } from "@prisma/client";
 import { GrantIdentifier, OAuthClient, OAuthClientRepository } from "@jmondi/oauth2-server";
 
 import { Client } from "../entities/client.js";
 
 export class ClientRepository implements OAuthClientRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient) {
+  }
 
-async getByIdentifier(clientId: string): Promise<Client> {
-return await this.prisma.oAuthClient.findUniqueOrThrow({
-where: {
-id: clientId,
-},
-include: {
-scopes: true,
-},
-});
-}
+  async getByIdentifier(clientId: string): Promise<Client> {
+    return await this.prisma.oAuthClient.findUniqueOrThrow({
+      where: {
+        id: clientId,
+      },
+      include: {
+        scopes: true,
+      },
+    });
+  }
 
-async isClientValid(
-grantType: GrantIdentifier,
-client: OAuthClient,
-clientSecret?: string,
-): Promise<boolean> {
+  async isClientValid(
+    grantType: GrantIdentifier,
+    client: OAuthClient,
+    clientSecret?: string,
+  ): Promise<boolean> {
 // implement me (see examples)
-}
+  }
 }
 `.trim()}</CodeBlock>
