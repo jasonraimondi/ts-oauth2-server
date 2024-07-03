@@ -8,7 +8,6 @@ import ExampleEntities from "./_example_entities.mdx";
 import ExampleRepositories from "./_example_repositories.mdx";
 import ExampleAuthorizationServer from "./_example_authorization_server.mdx";
 import WhichGrant from "./_which_grant.mdx";
-import Callouts from "./_callouts.mdx";
 import MarkdownWrapper from "@site/src/components/MarkdownWrapper";
 import { LinkIcon } from "lucide-react";
 import { Contributors } from "@site/src/components/Contributors";
