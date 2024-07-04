@@ -4,6 +4,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./express": "./src/adapters/express.ts",
-    "./fastify": "./src/adapters/fastify.ts"
+    "./fastify": "./src/adapters/fastify.ts",
+    "./vanilla": "./src/adapters/vanilla.ts"
   }
 }
