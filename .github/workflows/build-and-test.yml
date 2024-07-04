@@ -29,9 +29,9 @@ jobs:
         node-version: [ 18.x, 20.x ]
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
-          version: "9.x"
+          version: 9
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
@@ -62,9 +62,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
-          version: "9.x"
+          version: 9
       - uses: actions/setup-node@v2
         with:
           node-version: 20.x
