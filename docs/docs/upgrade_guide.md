@@ -16,7 +16,7 @@ In v2.x, `AuthorizationServer` constructor required all repositories. In v3.x, i
 
 **Before (v2.x):**
 
-```typescript
+```ts
 const authorizationServer = new AuthorizationServer(
   authCodeRepository,
   clientRepository,
@@ -33,7 +33,7 @@ const authorizationServer = new AuthorizationServer(
 
 **After (v3.x):**
 
-```typescript
+```ts
 const authorizationServer = new AuthorizationServer(
   clientRepository,
   accessTokenRepository,
@@ -52,17 +52,17 @@ In v3, `enableGrantType` has been updated for the **"authorization_code"** and *
 
 #### Authorization Code Grant
 
-`AuthorizationCodeGrant` now requires a [AuthorizationCodeRepository](./getting_started/repositories.md#authorization-code-repository) and a [UserRepository](./getting_started/repositories.md#user-repository).
+`AuthorizationCodeGrant` now requires a [AuthorizationCodeRepository](./getting_started/repositories.mdx#authorization-code-repository) and a [UserRepository](./getting_started/repositories.mdx#user-repository).
 
 **Before (v2.x):**
 
-```typescript
+```ts
 authorizationServer.enableGrantType("authorization_code");
 ```
 
 **After (v3.x):**
 
-```typescript
+```ts
 authorizationServer.enableGrantType({
   grant: "authorization_code",
   userRepository,
@@ -72,17 +72,17 @@ authorizationServer.enableGrantType({
 
 #### Password Grant
 
-`PasswordGrant` now requires a [UserRepository](./getting_started/repositories.md#user-repository).
+`PasswordGrant` now requires a [UserRepository](./getting_started/repositories.mdx#user-repository).
 
 **Before (v2.x):**
 
-```typescript
+```ts
 authorizationServer.enableGrantType("password");
 ```
 
 **After (v3.x):**
 
-```typescript
+```ts
 authorizationServer.enableGrantType({
   grant: "password",
   userRepository,

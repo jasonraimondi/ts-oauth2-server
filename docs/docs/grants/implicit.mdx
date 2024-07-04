@@ -1,14 +1,20 @@
 ---
-sidebar_position: 5
+sidebar_position: 8
 ---
 
-# Implicit Grant
+# Implicit Grant ⚠️ ⚠️
 
 :::warning Not Recommended
-Using the Implicit Grant is no longer best practice
+
+This server supports the Implicit Grant, but its use is strongly discouraged due to security concerns. The OAuth 2.0 Security Best Current Practice (RFC 8252) recommends against using the Implicit Grant flow.
+
+For native and single-page applications, the recommended approach is to use the Authorization Code Grant with PKCE (Proof Key for Code Exchange) extension. This method provides better security without requiring a client secret.
+
+If you're developing a web application with a backend, consider using the standard Authorization Code Grant with a client secret stored securely on your server.
+
 :::
 
-This grant is supported, but not documented. Best practice recommends using the Authorization Code Grant without a client secret for native and browser-based apps.
+
 
 Please look at these great resources:
 

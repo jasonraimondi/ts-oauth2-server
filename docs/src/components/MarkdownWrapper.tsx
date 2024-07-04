@@ -1,15 +1,15 @@
-import React from "react";
+import { ReactNode } from "react";
 
 interface MDXWrapperProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const MDXWrapper: React.FC<MDXWrapperProps> = ({ children }) => {
+function MDXWrapper({ children }) {
   return (
-    <div className="flex justify-center py-8">
+    <div className="flex justify-center">
       <div className="w-full max-w-4xl prose prose-lg">{children}</div>
     </div>
   );
-};
+}
 
 export default MDXWrapper;

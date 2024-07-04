@@ -10,7 +10,7 @@ The `AuthorizationServer` is a core component of the OAuth 2.0 framework, respon
 
 To create an instance of the `AuthorizationServer`, use the following constructor:
 
-```typescript
+```ts
 const authorizationServer = new AuthorizationServer(
   clientRepository,
   accessTokenRepository,
@@ -32,7 +32,7 @@ Parameters:
 
 By default, no grant types are enabled when creating an `AuthorizationServer`. Each grant type must be explicitly enabled using the `enableGrantType` method. This approach allows for fine-grained control over which OAuth 2.0 flows your server supports.
 
-```typescript
+```ts
 authorizationServer.enableGrantType("client_credentials");
 authorizationServer.enableGrantType("refresh_token");
 authorizationServer.enableGrantType({
@@ -49,7 +49,7 @@ Note that the Authorization Code grant requires additional repositories: `userRe
 
 You can enable multiple grant types on the same server:
 
-```typescript
+```ts
 const authorizationServer = new AuthorizationServer(
   clientRepository,
   accessTokenRepository,

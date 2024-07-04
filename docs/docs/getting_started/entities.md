@@ -16,7 +16,7 @@ The Client Entity represents an application that requests access to protected re
 
 :::
 
-```typescript
+```ts
 interface OAuthClient {
   id: string;
   name: string;
@@ -50,7 +50,7 @@ type CodeChallengeMethod = "S256" | "plain";
 
 The Token Entity represents access and refresh tokens issued to clients.
 
-```typescript
+```ts
 interface OAuthToken {
   accessToken: string;
   accessTokenExpiresAt: Date;
@@ -67,7 +67,7 @@ interface OAuthToken {
 
 The User Entity represents the resource owner - typically the end-user who authorizes an application to access their account.
 
-```typescript
+```ts
 interface OAuthUser {
   id: string;
   [key: string]: any;
@@ -80,7 +80,7 @@ Scopes are used to define and limit the extent of access granted to a client app
 
 For more information on OAuth 2.0 scopes, visit: https://www.oauth.com/oauth2-servers/scope/
 
-```typescript
+```ts
 interface OAuthScope {
   name: string;
   [key: string]: any;

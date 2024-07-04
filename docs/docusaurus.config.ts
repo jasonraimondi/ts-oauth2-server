@@ -8,7 +8,7 @@ const config: Config = {
   plugins: [tailwindPlugin],
   tagline:
     "Standards-Compliant OAuth 2.0 Server in TypeScript, Utilizing JWT and Proof Key for Code Exchange (PKCE)",
-  favicon: "img/favicon.ico",
+  favicon: "favicon.ico",
   url: "https://tsoauth2server.com",
   baseUrl: "/",
   onBrokenLinks: "throw",
@@ -18,7 +18,7 @@ const config: Config = {
     locales: ["en"],
   },
   scripts: [
-    { src: "https://plausible.io/js/script.js", defer: true, "data-domain": "tsoauth2server.com" }
+    { src: "https://plausible.io/js/script.js", defer: true, "data-domain": "tsoauth2server.com" },
   ],
   presets: [
     [
@@ -56,29 +56,29 @@ const config: Config = {
         {
           sidebarId: "mainSidebar",
           type: "docSidebar",
-          label: "Getting Started",
-          position: "right",
+          label: "Docs",
+          position: "left",
         },
         {
           href: "/docs/authorization_server/configuration/",
           label: "Config",
-          position: "right",
+          position: "left",
         },
         {
           href: "https://github.com/jasonraimondi/ts-oauth2-server",
           label: "GitHub",
           position: "right",
         },
-        {
-          href: "https://www.npmjs.com/package/@jmondi/oauth2-server",
-          label: "NPM",
-          position: "right",
-        },
-        {
-          href: "https://jsr.io/@jmondi/oauth2-server",
-          label: "JSR",
-          position: "right",
-        },
+        // {
+        //   href: "https://www.npmjs.com/package/@jmondi/oauth2-server",
+        //   label: "NPM",
+        //   position: "right",
+        // },
+        // {
+        //   href: "https://jsr.io/@jmondi/oauth2-server",
+        //   label: "JSR",
+        //   position: "right",
+        // },
       ],
     },
     footer: {
@@ -90,9 +90,9 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
     algolia: {
-      appId: 'JP2YS2S0EQ',
-      apiKey: 'bf2bc45ac2821dba462ee887527c1816',
-      indexName: 'tsoauth2server',
+      appId: "JP2YS2S0EQ",
+      apiKey: "bf2bc45ac2821dba462ee887527c1816",
+      indexName: "tsoauth2server",
     },
   } satisfies Preset.ThemeConfig,
 };

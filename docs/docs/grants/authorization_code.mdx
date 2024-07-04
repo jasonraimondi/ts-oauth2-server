@@ -6,6 +6,18 @@ sidebar_position: 2
 
 A temporary code that the client will exchange for an access token. The user authorizes the application, they are redirected back to the application with a temporary code in the URL. The application exchanges that code for the access token.
 
+:::note Enable this grant
+
+```ts
+authorizationServer.enableGrantType({
+  grant: "authorization_code",
+  userRepository,
+  authorizationCodeRepository,
+});
+```
+
+:::
+
 ### Flow
 
 #### Part One
@@ -19,7 +31,7 @@ The client redirects the user to the `/authorize` with the following query param
 - **code_challenge** must match the The code challenge as generated below,
 - **code_challenge_method** – Either `plain` or `S256`, depending on whether the challenge is the plain verifier string or the SHA256 hash of the string. If this parameter is omitted, the server will assume plain.
 
-:::tip
+:::info
 The client secret **should never** be used during the Part One of the authorization_code flow.
 :::
 
@@ -130,7 +142,7 @@ Before initializing [Part One](#part-one) of the authorization code flow, the cl
 
 We can do this in Node using the native crypto package and a `base64urlencode` function:
 
-```typescript
+```ts
 import crypto from "node:crypto";
 
 const code_verifier = crypto.randomBytes(43).toString("hex");
@@ -144,19 +156,19 @@ Now we need to create a `code_challenge` from our `code_verifier`.
 
 For devices that can perform a SHA256 hash, the code challenge is a BASE64-URL-encoded string of the SHA256 hash of the code verifier.
 
-```typescript
+```ts
 const code_challenge = base64urlencode(crypto.createHash("sha256").update(code_verifier).digest());
 ```
 
 Clients that do not have the ability to perform a SHA256 hash are permitted to use the plain `code_verifier` string as the `code_challenge`.
 
-```typescript
+```ts
 const code_challenge = code_verifier;
 ```
 
 <details>
   <summary>Need a base64urlencode function?</summary>
-  ```typescript
+  ```ts
   function base64urlencode(str: string) {
     return Buffer.from(str)
       .toString("base64")

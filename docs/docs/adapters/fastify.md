@@ -1,31 +1,48 @@
 # Fastify
 
-Adapts the [Fastify.Request](https://fastify.dev/docs/latest/Reference/Request/) and [Fastify.Reply](https://fastify.dev/docs/latest/Reference/Reply/) for use with `@jmondi/oauth2-server`.
+:::info
 
-```typescript
-import {
-  requestFromFastify,
-  handleFastifyReply,
-  handleFastifyError,
-} from "@jmondi/oauth2-server/fastify";
+Available in >2.0.0
+
+:::
+
+
+This adapter provides utility functions to convert between Fastify [Request](https://fastify.dev/docs/latest/Reference/Request/) and [Reply](https://fastify.dev/docs/latest/Reference/Reply/) objects and the `OAuthRequest`/`OAuthResponse` objects used by this package.
+
+## Functions
+
+```ts
+requestFromFastify(req: FastifyRequest): OAuthRequest
 ```
 
-The following functions are imported directly from the adapter instead of the root package.
-
-```typescript
-requestFromFastify(req: FastifyRequest): OAuthRequest;
+```ts
+handleFastifyReply(fastifyReply: FastifyReply, oauthResponse: OAuthResponse): void
 ```
 
-Helper function to return an OAuthRequest from an `FastifyRequest`.
-
-```typescript
-handleFastifyReply(fastifyReply: FasitfyReply, oauthResponse: OAuthResponse): void;
+```ts
+handleFastifyError(reply: FastifyReply, e: unknown | OAuthException): void
 ```
 
-Helper function that handles the express response after authorization.
+## Example
 
-```typescript
-handleFastifyError(reply: FasitfyReply, e: unknown | OAuthException): void;
+```ts
+import { requestFromFastify, handleFastifyReply, handleFastifyError } from "@jmondi/oauth2-server/fastify";
+import fastify from 'fastify'
+
+const app = fastify()
+
+// ...
+
+app.post('/oauth2/token', async (request: fastify.Request, reply: fastify.Reply) => {
+  const authorizationServer = request.server.authorizationServer;
+  
+  try {
+    const oauthResponse = await authorizationServer
+      .respondToAccessTokenRequest(requestFromFastify(request));
+
+    handleFastifyReply(reply, oauthResponse);
+  } catch (e) {
+    handleFastifyError(reply, e);
+  }
+});
 ```
-
-Helper function that handles the express response if an error was thrown.

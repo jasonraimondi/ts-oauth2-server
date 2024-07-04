@@ -10,32 +10,43 @@ Available in >3.4.0
 
 :::
 
-Adapts the Fetch [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) for use with `@jmondi/oauth2-server`.
+This adapter provides utility functions to convert between vanilla JavaScript [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects and the `OAuthRequest`/`OAuthResponse` objects used by the this package.
 
-```typescript
-import {
-  requestFromVanilla,
-  handleVanillaReply,
-  handleVanillaError,
-} from "@jmondi/oauth2-server/vanilla";
+## Functions
+
+```ts
+responseFromVanilla(res: Response): OAuthResponse
 ```
 
-The following functions are imported directly from the adapter instead of the root package.
-
-```typescript
-requestFromVanilla(req: Request): OAuthRequest;
+```ts
+requestFromVanilla(req: Request): OAuthRequest
 ```
 
-Helper function to return an OAuthRequest from an `VanillaRequest`.
-
-```typescript
-handleVanillaReply(res: Response, oauthResponse: OAuthResponse): void;
+```ts
+responseToVanilla(oauthResponse: OAuthResponse): Response
 ```
 
-Helper function that handles the express response after authorization.
+## Example
 
-```typescript
-handleVanillaError(res: Response, e: unknown | OAuthException): void;
+```ts
+import { requestFromVanilla, responseToVanilla } from "@jmondi/oauth2-server/vanilla";
+
+import { Hono } from 'hono'
+const app = new Hono()
+  
+// ...
+
+app.post('/oauth2/token', async (c) => {
+  const authorizationServer = c.get("authorization_server");
+  
+  const oauthResponse = await authorizationServer
+    .respondToAccessTokenRequest(requestFromVanilla(request))
+    .catch(e => {
+      error(400, e.message);
+    });
+
+  return responseToVanilla(oauthResponse);
+});
+
+export default app
 ```
-
-Helper function that handles the express response if an error was thrown.
