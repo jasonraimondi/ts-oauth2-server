@@ -143,9 +143,9 @@ Before initializing [Part One](#part-one) of the authorization code flow, the cl
 We can do this in Node using the native crypto package and a `base64urlencode` function:
 
 ```ts
-import crypto from "node:crypto";
+import { randomBytes } from "crypto";
 
-const code_verifier = crypto.randomBytes(43).toString("hex");
+const code_verifier = randomBytes(43).toString("hex");
 ```
 
 @see [https://www.oauth.com/oauth2-servers/pkce/authorization-request/](https://www.oauth.com/oauth2-servers/pkce/authorization-request/)

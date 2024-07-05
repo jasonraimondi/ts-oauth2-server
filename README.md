@@ -327,7 +327,7 @@ Before initializing [Part One](#part-one) of the authorization code flow, the cl
 We can do this in Node using the native crypto package and a `base64urlencode` function:
 
 ```typescript
-import crypto from "node:crypto";
+import crypto from "crypto";
 
 const code_verifier = crypto.randomBytes(43).toString("hex");
 ```
