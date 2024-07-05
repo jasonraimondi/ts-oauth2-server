@@ -1,6 +1,6 @@
 {
   "name": "@jmondi/oauth2-server",
-  "version": "3.3.1",
+  "version": "3.4.0-next.3",
   "type": "module",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "funding": "https://github.com/sponsors/jasonraimondi",
@@ -19,6 +19,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./vanilla": "./src/adapters/vanilla.ts",
     "./express": "./src/adapters/express.ts",
     "./fastify": "./src/adapters/fastify.ts"
   },
@@ -31,6 +32,11 @@
         "import": "./dist/index.js",
         "require": "./dist/index.cjs",
         "types": "./dist/index.d.ts"
+      },
+      "./vanilla": {
+        "import": "./dist/vanilla.js",
+        "require": "./dist/vanilla.cjs",
+        "types": "./dist/vanilla.d.ts"
       },
       "./express": {
         "import": "./dist/express.js",
@@ -88,6 +94,7 @@
   "tsup": {
     "entry": {
       "index": "./src/index.ts",
+      "vanilla": "./src/adapters/vanilla.ts",
       "express": "./src/adapters/express.ts",
       "fastify": "./src/adapters/fastify.ts"
     },
