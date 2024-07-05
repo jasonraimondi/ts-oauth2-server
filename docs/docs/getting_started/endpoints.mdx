@@ -8,7 +8,7 @@ sidebar_position: 4
 
 The `/token` endpoint is a back channel endpoint that issues a usable access token.
 
-```typescript
+```ts
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
   try {
     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
@@ -26,7 +26,7 @@ The `/authorize` endpoint is a front channel endpoint that issues an authorizati
 
 The endpoint should redirect the user to login, and then to accept the scopes requested by the application, and only when the user accepts, should it send the user back to the clients redirect uri.
 
-```typescript
+```ts
 import { requestFromExpress } from "@jmondi/oauth2-server/express";
 
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
@@ -75,7 +75,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
 ## The Revoke Endpoint
 
-:::tip Note
+:::info Note
 
 Implementing this endpoint is optional, but recommended. RFC7009 “OAuth 2.0 Token Revocation”
 
@@ -83,7 +83,7 @@ Implementing this endpoint is optional, but recommended. RFC7009 “OAuth 2.0 To
 
 The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.
 
-```typescript
+```ts
 app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
   try {
     const oauthResponse = await authorizationServer.revoke(req);

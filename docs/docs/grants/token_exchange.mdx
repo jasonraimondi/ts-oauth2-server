@@ -6,7 +6,7 @@ sidebar_position: 6
 
 The [RFC 8693 - OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693) facilitates the secure exchange of tokens for accessing different resources or services. This documentation guides you through enabling this grant type on your authorization server, detailing request and response handling to ensure robust and secure token management.
 
-### Enable Grant
+:::note Enable this grant
 
 To enable the token exchange grant, you'll need to provide your own implementation of `processTokenExchangeFn`. This function should orchestrate the exchange with the required third-party services based on your specific needs.
 
@@ -38,6 +38,8 @@ authorizationServer.enableGrant({
   },
 });
 ```
+
+:::
 
 ### Flow
 

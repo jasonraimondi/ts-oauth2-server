@@ -2,9 +2,28 @@
 sidebar_position: 7
 ---
 
-# Custom Grants
+# Custom Grant ⚠️
 
-To implement a custom grant, you need to extend the `AbstractGrant` class. This guide will walk you through the steps to create your own custom grant.
+To implement a custom grant, you may extend the `AbstractGrant` class.
+
+:::warning
+
+This is advanced usage. Make sure you understand the OAuth2.0 specification before implementing a custom grant.
+
+:::
+
+:::note Enable this grant
+
+```ts
+const customGrant = new MyCustomGrant(...);
+
+authorizationServer.enableGrantTypes(
+  ["client_credentials", new DateInterval("1d")],
+  [customGrant, new DateInterval("1d")],
+);
+```
+
+:::
 
 ## Extending the CustomGrant class
 
@@ -18,20 +37,3 @@ export class MyCustomGrant extends CustomGrant {
 }
 ```
 
-Use your custom grant
-
-```typescript
-const authorizationServer = new AuthorizationServer(
-  clientRepository,
-  accessTokenRepository,
-  scopeRepository,
-  new JwtService("secret-key"),
-);
-
-const customGrant = new MyCustomGrant(...);
-
-authorizationServer.enableGrantTypes(
-  ["client_credentials", new DateInterval("1d")],
-  [customGrant, new DateInterval("1d")],
-);
-```

@@ -1,31 +1,47 @@
 # Express
 
-[Express](https://expressjs.com/)
+:::info
 
-Adapts the [Express.Request](https://expressjs.com/en/api.html#req) and [Express.Response](https://expressjs.com/en/api.html#res) for use with `@jmondi/oauth2-server`.
+Available in >2.0.0
 
-```typescript
-import {
-  requestFromExpress,
-  handleExpressResponse,
-  handleExpressError,
-} from "@jmondi/oauth2-server/express";
+:::
+
+This adapter provides utility functions to convert between Express [Request](https://expressjs.com/en/api.html#req) and [Response](https://expressjs.com/en/api.html#res) objects and the `OAuthRequest`/`OAuthResponse` objects used by this package.
+
+## Functions
+
+```ts
+requestFromExpress(req: Express.Request): OAuthRequest
 ```
 
-```typescript
-requestFromExpress(req: Express.Request): OAuthRequest;
+```ts
+handleExpressResponse(expressResponse: Express.Response, oauthResponse: OAuthResponse): void
 ```
 
-Helper function to return an OAuthRequest from an `Express.Request`.
-
-```typescript
-handleExpressResponse(expressResponse: Express.Response, oauthResponse: OAuthResponse): void;
+```ts
+handleExpressError(res: Express.Response, e: unknown | OAuthException): void
 ```
 
-Helper function that handles the express response after authorization.
+## Example
 
-```typescript
-handleExpressError(res: Express.Response, e: unknown | OAuthException): void;
+```ts
+import { requestFromExpress, handleExpressResponse, handleExpressError } from "@jmondi/oauth2-server/express";
+import express from 'express';
+
+const app = express();
+
+// ...
+
+app.post('/oauth2/token', async (req: express.Request, res: express.Response) => {
+  const authorizationServer = req.app.get('authorization_server');
+  
+  try {
+    const oauthResponse = await authorizationServer
+      .respondToAccessTokenRequest(requestFromExpress(req));
+
+    handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(res, e);
+  }
+});
 ```
-
-Helper function that handles the express response if an error was thrown.

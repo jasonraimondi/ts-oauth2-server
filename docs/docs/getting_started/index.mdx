@@ -29,15 +29,21 @@ This section provides a high-level overview of setting up the OAuth2 server.
 1. Set up the [AuthorizationServer](#the-authorization-server) with desired grant types
 1. Implement the [Endpoints](./endpoints)
 
-## Installation
+### Installation
 
 Choose your preferred package manager to install @jmondi/oauth2-server:
 
 <Installation />
 
-## Basic Setup
+### Implement Entities
 
-### The Authorization Server
+You are going to need to setup the entities that the OAuth2 server uses to store data. See the [full list of entities](./entities.md).
+
+### Implement Repositories
+
+Next you need to implement the repositories that the OAuth2 server uses to interact with the entities. See the [full list of repositories](./repositories).
+
+### Setup the Authorization Server
 
 The AuthorizationServer is the core component of the OAuth2 implementation. It requires repositories for managing clients, access tokens, and scopes. Grant types are opt-in and must be explicitly enabled.
 
