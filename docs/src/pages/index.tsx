@@ -1,17 +1,13 @@
+import { CheckCircleIcon, LinkIcon } from "lucide-react";
+import { Contributors } from "@jmondi/github-ui/contributors";
+import { Sponsors } from "@jmondi/github-ui/sponsors";
+import "@jmondi/github-ui/style.css"
+
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
 import { IconPackOauth } from "@site/src/components/icons";
-
-import HowToInstall from "./_index_install.mdx";
-import ExampleEntities from "./_example_entities.mdx";
-import ExampleRepositories from "./_example_repositories.mdx";
-import ExampleAuthorizationServer from "./_example_authorization_server.mdx";
-import WhichGrant from "./_which_grant.mdx";
 import MarkdownWrapper from "@site/src/components/MarkdownWrapper";
-import { CheckCircleIcon, LinkIcon } from "lucide-react";
-import { Contributors } from "@site/src/components/Contributors";
-import { Sponsors } from "@site/src/components/Sponsors";
 import {
   ExpressLogo,
   FastifyLogo,
@@ -20,6 +16,12 @@ import {
   NPMLogo,
   TSLogo,
 } from "@site/src/pages/_logos";
+
+import HowToInstall from "./_index_install.mdx";
+import ExampleEntities from "./_example_entities.mdx";
+import ExampleRepositories from "./_example_repositories.mdx";
+import ExampleAuthorizationServer from "./_example_authorization_server.mdx";
+import WhichGrant from "./_which_grant.mdx";
 
 function HeroButton({ href, children }) {
   return (
@@ -100,7 +102,7 @@ function Features() {
   ];
 
   return (
-    <div className="pt-14 w-full max-w-4xl mx-auto prose prose-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="pt-14 px-3 w-full max-w-4xl mx-auto prose prose-lg grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="text-center">
         <SectionTitle>Supported Grants</SectionTitle>
         <ul className="list-none pl-0 flex flex-col gap-2">
@@ -145,7 +147,7 @@ export function Adapters() {
   ] as const;
 
   return (
-    <div className="pt-14">
+    <div className="pt-14 px-3">
       <SectionTitle>Built in Adapters</SectionTitle>
       <div className="flex justify-center gap-16">
         {adapters.map(({ name, logo, href }) => {
@@ -190,7 +192,8 @@ export default function Home() {
           </div>
         </div>
       </header>
-      <div className="pt-14 flex flex-col justify-center align-middle text-center">
+
+      <div className="pt-14 px-3 flex flex-col justify-center align-middle text-center">
         <SectionTitle>Contributors</SectionTitle>
         <div className="flex justify-center">
           <Contributors owner="jasonraimondi" repo="ts-oauth2-server" />
@@ -248,7 +251,7 @@ export default function Home() {
         </div>
       </MarkdownWrapper>
 
-      <div className="pt-14">
+      <div className="pt-14 px-3">
         <SectionTitle>Source</SectionTitle>
         <div className="flex justify-center gap-14">
           <a

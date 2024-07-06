@@ -37,7 +37,7 @@ export default function RequiredForGrants(props) {
           <a
             key={s.label}
             href={`/docs/grants/${s.href}`}
-            className="px-2 bg-[--ifm-color-primary] text-white hover:text-white hover:no-underline rounded"
+            className=" bg-[--ifm-color-primary] text-white hover:text-white hover:no-underline rounded"
           >
             {s.label}
           </a>
