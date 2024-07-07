@@ -65,6 +65,11 @@ const config: Config = {
           position: "left",
         },
         {
+          href: "https://github.com/sponsors/jasonraimondi",
+          label: "❤️ Sponsor",
+          position: "right",
+        },
+        {
           href: "https://github.com/jasonraimondi/ts-oauth2-server",
           label: "GitHub",
           position: "right",
@@ -83,7 +88,7 @@ const config: Config = {
     },
     footer: {
       style: "dark",
-      copyright: `© ${new Date().getFullYear()} Jason Raimondi`,
+      copyright: `© ${new Date().getFullYear()} <a href="https://jasonraimondi.com">Jason Raimondi</a>`,
     },
     prism: {
       theme: prismThemes.github,
