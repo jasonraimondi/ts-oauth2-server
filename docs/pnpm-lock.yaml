@@ -15,8 +15,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(@algolia/client-search@4.24.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.14.0)(typescript@5.5.3)
       '@jmondi/github-ui':
-        specifier: ^0.2.7
-        version: 0.2.7
+        specifier: ^0.2.8
+        version: 0.2.8
       '@mdx-js/react':
         specifier: ^3.0.1
         version: 3.0.1(@types/react@18.3.3)(react@18.3.1)
@@ -984,8 +984,8 @@ packages:
     resolution: {integrity: sha512-u3UPsIilWKOM3F9CXtrG8LEJmNxwoCQC/XVj4IKYXvvpx7QIi/Kg1LI5uDmDpKlac62NUtX7eLjRh+jVZcLOzw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  '@jmondi/github-ui@0.2.7':
-    resolution: {integrity: sha512-dCpcF6dY3GJ5HrDaa26dx5aMrrpgpsc5ArlikJaKRrhbbTxPv+rpkKBjguOnI2SOzEPm0WeILAZt1AE657xasA==}
+  '@jmondi/github-ui@0.2.8':
+    resolution: {integrity: sha512-9B5A/+DmN8rqq7doKG2KdJguXm2yl4E4AkfJ9IKVhHarqMrBkdkIQMsSFhICiNJgEeQ/mKPjcusme3CEyaErFA==}
 
   '@jridgewell/gen-mapping@0.3.5':
     resolution: {integrity: sha512-IzL8ZoEDIBRWEzlCcRhOaCupYyN5gdIK+Q6fbFdPDg6HqX6jpkItn7DFIpW9LQzXG6Df9sA7+OKnq0qlz/GaQg==}
@@ -6390,7 +6390,7 @@ snapshots:
       '@types/yargs': 17.0.32
       chalk: 4.1.2
 
-  '@jmondi/github-ui@0.2.7':
+  '@jmondi/github-ui@0.2.8':
     dependencies:
       react: 18.3.1
       swr: 2.2.5(react@18.3.1)
