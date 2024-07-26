@@ -23,6 +23,7 @@ export function handleExpressResponse(expressResponse: Response, oauthResponse: 
   }
 }
 
+// @todo v4.0 flip these to always be Express as first arg, OAuth as second. Then update Docs
 export function handleExpressError(e: unknown | OAuthException, res: Response): void {
   if (e instanceof OAuthException) {
     res.status(e.status);

@@ -19,7 +19,7 @@ handleExpressResponse(expressResponse: Express.Response, oauthResponse: OAuthRes
 ```
 
 ```ts
-handleExpressError(res: Express.Response, e: unknown | OAuthException): void
+handleExpressError(e: unknown | OAuthException, res: Express.Response): void
 ```
 
 ## Example

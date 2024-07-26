@@ -20,7 +20,7 @@ handleFastifyReply(fastifyReply: FastifyReply, oauthResponse: OAuthResponse): vo
 ```
 
 ```ts
-handleFastifyError(reply: FastifyReply, e: unknown | OAuthException): void
+handleFastifyError(e: unknown | OAuthException, reply: FastifyReply): void
 ```
 
 ## Example

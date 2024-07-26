@@ -18,6 +18,7 @@ export function requestFromFastify(req: FastifyRequest): OAuthRequest {
   });
 }
 
+// @todo v4.0 flip these to always be Fastify as first arg, OAuth as second. Then update Docs
 export function handleFastifyError(e: unknown | OAuthException, res: FastifyReply): void {
   if (e instanceof OAuthException) {
     res.status(e.status).send({
