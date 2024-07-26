@@ -3,6 +3,7 @@ import { OAuthException } from "../exceptions/oauth.exception.js";
 
 import { OAuthRequest } from "../requests/request.js";
 import { OAuthResponse } from "../responses/response.js";
+import { isOAuthError } from "../utils/errors.js";
 
 export function responseFromExpress(res: Response): OAuthResponse {
   return new OAuthResponse(res);
@@ -25,7 +26,7 @@ export function handleExpressResponse(expressResponse: Response, oauthResponse: 
 
 // @todo v4.0 flip these to always be Express as first arg, OAuth as second. Then update Docs
 export function handleExpressError(e: unknown | OAuthException, res: Response): void {
-  if (e instanceof OAuthException) {
+  if (isOAuthError(e)) {
     res.status(e.status);
     res.send({
       status: e.status,

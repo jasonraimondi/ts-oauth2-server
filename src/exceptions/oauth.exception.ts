@@ -18,6 +18,8 @@ export enum ErrorType {
 }
 
 export class OAuthException extends Error {
+  private readonly oauth = true;
+
   constructor(
     public readonly error: string,
     public readonly errorType: ErrorType,
@@ -122,5 +124,9 @@ export class OAuthException extends Error {
       undefined,
       HttpStatus.INTERNAL_SERVER_ERROR,
     );
+  }
+
+  get isOAuth(): boolean {
+    return this.oauth;
   }
 }
