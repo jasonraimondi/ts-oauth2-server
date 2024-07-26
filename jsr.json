@@ -3,7 +3,6 @@
   "version": "3.4.0",
   "exports": {
     ".": "./src/index.ts",
-    "./vanilla": "./src/adapters/vanilla.ts",
     "./express": "./src/adapters/express.ts",
     "./fastify": "./src/adapters/fastify.ts",
     "./vanilla": "./src/adapters/vanilla.ts"
