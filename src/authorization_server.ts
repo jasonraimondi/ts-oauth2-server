@@ -29,6 +29,7 @@ export interface AuthorizationServerOptions {
   requiresS256: boolean;
   tokenCID: "id" | "name";
   issuer?: string;
+  scopeDelimiter: string;
 }
 
 export type EnableableGrants =

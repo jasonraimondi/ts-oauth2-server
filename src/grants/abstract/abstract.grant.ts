@@ -36,7 +36,6 @@ export interface ITokenData {
 export abstract class AbstractGrant implements GrantInterface {
   protected authCodeRepository?: OAuthAuthCodeRepository;
   protected userRepository?: OAuthUserRepository;
-  protected readonly scopeDelimiterString = " ";
   protected readonly supportedGrantTypes: GrantIdentifier[] = [
     "client_credentials",
     "authorization_code",
@@ -56,13 +55,17 @@ export abstract class AbstractGrant implements GrantInterface {
     public readonly options: AuthorizationServerOptions,
   ) {}
 
+  get scopeDelimiter(): string {
+    return this.options.scopeDelimiter;
+  }
+
   async makeBearerTokenResponse(
     client: OAuthClient,
     accessToken: OAuthToken,
     scopes: OAuthScope[] = [],
     extraJwtFields: ExtraAccessTokenFields = {},
   ): Promise<BearerTokenResponse> {
-    const scope = scopes.map(scope => scope.name).join(this.scopeDelimiterString);
+    const scope = scopes.map(scope => scope.name).join(this.scopeDelimiter);
 
     const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes, extraJwtFields);
 
@@ -91,7 +94,7 @@ export abstract class AbstractGrant implements GrantInterface {
       client_id: client.id,
       access_token_id: refreshToken.accessToken,
       refresh_token_id: refreshToken.refreshToken,
-      scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
+      scope: scopes.map(scope => scope.name).join(this.scopeDelimiter),
       user_id: refreshToken.user?.id,
       expire_time: Math.ceil(expiresAtMs / 1000),
     });
@@ -114,7 +117,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
       // non-standard claims over which this library asserts control
       cid: client[this.options.tokenCID],
-      scope: scopes.map(scope => scope.name).join(this.scopeDelimiterString),
+      scope: scopes.map(scope => scope.name).join(this.scopeDelimiter),
 
       // standard claims over which this library asserts control
       sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
@@ -194,7 +197,7 @@ export abstract class AbstractGrant implements GrantInterface {
     redirectUri?: string,
   ): Promise<OAuthScope[]> {
     if (typeof scopes === "string") {
-      scopes = scopes.split(this.scopeDelimiterString);
+      scopes = scopes.split(this.scopeDelimiter);
     }
 
     if (!scopes || scopes.length === 0 || scopes[0] === "") {

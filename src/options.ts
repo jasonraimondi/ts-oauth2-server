@@ -6,4 +6,5 @@ export const DEFAULT_AUTHORIZATION_SERVER_OPTIONS: AuthorizationServerOptions = 
   notBeforeLeeway: 0,
   tokenCID: "id",
   issuer: undefined,
+  scopeDelimiter: " ",
 };
