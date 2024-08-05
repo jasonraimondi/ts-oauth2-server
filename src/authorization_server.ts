@@ -54,6 +54,21 @@ export type EnableableGrants =
     };
 export type EnableGrant = EnableableGrants | [EnableableGrants, DateInterval];
 
+export type OAuthTokenIntrospectionResponse = {
+  active: boolean;
+  scope?: string;
+  client_id?: string;
+  username?: string;
+  token_type?: string;
+  exp?: number;
+  iat?: number;
+  nbf?: number;
+  sub?: string;
+  aud?: string | string[];
+  iss?: string;
+  jti?: string;
+};
+
 export class AuthorizationServer {
   public readonly enabledGrantTypes: Record<string, GrantInterface> = {};
   public readonly grantTypeAccessTokenTTL: Record<string, DateInterval> = {};
@@ -203,6 +218,16 @@ export class AuthorizationServer {
     }
 
     return response;
+  }
+
+  async introspect(req: RequestInterface): Promise<ResponseInterface> {
+    for (const grantType of Object.values(this.enabledGrantTypes)) {
+      if (grantType.canRespondToIntrospectRequest(req)) {
+        return grantType.respondToIntrospectRequest(req);
+      }
+    }
+
+    throw OAuthException.unsupportedGrantType();
   }
 
   // I am only using this in testing... should it be here?

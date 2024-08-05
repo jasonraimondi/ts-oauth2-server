@@ -77,7 +77,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
 :::info Note
 
-Implementing this endpoint is optional, but recommended. RFC7009 “OAuth 2.0 Token Revocation”
+Implementing this endpoint is optional, but recommended. RFC7009 "OAuth 2.0 Token Revocation"
 
 :::
 
@@ -87,6 +87,28 @@ The `/token/revoke` endpoint is a back channel endpoint that revokes an existing
 app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
   try {
     const oauthResponse = await authorizationServer.revoke(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+    return;
+  }
+});
+```
+
+## The Introspect Endpoint
+
+:::info Note
+
+Implementing this endpoint is optional. RFC7662 "OAuth 2.0 Token Introspection"
+
+:::
+
+The `/token/introspect` endpoint is a back channel endpoint that revokes an existing token. The introspect endpoint requires the TokenRepository#getByAccessToken method.
+
+```ts
+app.post("/token/introspect", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.introspect(req);
     return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);
