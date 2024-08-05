@@ -19,7 +19,7 @@ responseFromVanilla(res: Response): OAuthResponse
 ```
 
 ```ts
-requestFromVanilla(req: Request): OAuthRequest
+requestFromVanilla(req: Request): Promise<OAuthRequest>
 ```
 
 ```ts
