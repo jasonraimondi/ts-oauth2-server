@@ -1,4 +1,4 @@
-import { AuthorizationServerOptions } from "../../authorization_server.js";
+import { AuthorizationServerOptions, OAuthTokenIntrospectionResponse } from "../../authorization_server.js";
 import { isClientConfidential, OAuthClient } from "../../entities/client.entity.js";
 import { OAuthScope } from "../../entities/scope.entity.js";
 import { OAuthToken } from "../../entities/token.entity.js";
@@ -20,17 +20,30 @@ import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt.js";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time.js";
 import { GrantIdentifier, GrantInterface } from "./grant.interface.js";
 
-export interface ITokenData {
-  iss: undefined;
-  sub: string | undefined;
-  aud: undefined;
+export interface JwtPayload {
+  iss?: string;
+  aud?: string | string[];
+
+  // Standard claims
+  sub?: string;
   exp: number;
   nbf: number;
   iat: number;
   jti: string;
+}
+
+export interface ParsedAccessToken extends JwtPayload {
+  // Non-standard claims
   cid: string;
   scope: string;
+
+  // Extra JWT fields (assuming they can be of any type)
   [key: string]: unknown;
+}
+export interface ITokenData extends ParsedAccessToken {}
+export interface ParsedRefreshToken extends JwtPayload {
+  access_token_id: string;
+  refresh_token_id: string;
 }
 
 export abstract class AbstractGrant implements GrantInterface {
@@ -298,6 +311,68 @@ export abstract class AbstractGrant implements GrantInterface {
 
     await this.doRevoke(encryptedToken);
     return new OAuthResponse();
+  }
+
+  canRespondToIntrospectRequest(_request: RequestInterface): boolean {
+    return false;
+  }
+
+  async respondToIntrospectRequest(req: RequestInterface): Promise<ResponseInterface> {
+    await this.validateClient(req);
+
+    const token = req.body?.["token"];
+    const tokenTypeHint = req.body?.["token_type_hint"];
+
+    if (!token) {
+      throw OAuthException.invalidParameter("token", "Missing `token` parameter in request body");
+    }
+
+    const parsedToken: unknown = this.jwt.decode(token);
+
+    let oauthToken: undefined | OAuthToken = undefined;
+    let expiresAt = new Date(0);
+    let tokenType: string = "access_token";
+
+    if (tokenTypeHint === "refresh_token" && this.isRefreshTokenPayload(parsedToken)) {
+      oauthToken = await this.tokenRepository.getByRefreshToken(parsedToken.refresh_token_id);
+      expiresAt = oauthToken.refreshTokenExpiresAt ?? expiresAt;
+      tokenType = "refresh_token";
+    } else if (this.isAccessTokenPayload(parsedToken)) {
+      if (typeof this.tokenRepository.getByAccessToken !== "function") {
+        throw OAuthException.internalServerError("Token introspection for access tokens is not supported");
+      }
+      oauthToken = await this.tokenRepository.getByAccessToken(parsedToken.jti!);
+      if (!oauthToken) {
+        throw OAuthException.badRequest("Token not found");
+      }
+      expiresAt = oauthToken.accessTokenExpiresAt ?? expiresAt;
+    } else {
+      throw OAuthException.invalidParameter("token", "Invalid token provided");
+    }
+
+    const active = expiresAt > new Date();
+
+    const responseBody: OAuthTokenIntrospectionResponse = active
+      ? {
+          active: true,
+          scope: oauthToken.scopes.map(s => s.name).join(this.options.scopeDelimiter),
+          client_id: oauthToken.client.id,
+          token_type: tokenType,
+          ...parsedToken,
+        }
+      : { active: false };
+
+    const response = new OAuthResponse();
+    response.body = responseBody;
+    return response;
+  }
+
+  private isAccessTokenPayload(token: unknown): token is ParsedAccessToken {
+    return typeof token === "object" && token !== null && "jti" in token;
+  }
+
+  private isRefreshTokenPayload(token: unknown): token is ParsedRefreshToken {
+    return typeof token === "object" && token !== null && "refresh_token_id" in token;
   }
 
   protected async doRevoke(_encryptedToken: string): Promise<void> {

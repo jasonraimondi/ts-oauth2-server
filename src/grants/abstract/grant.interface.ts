@@ -31,4 +31,8 @@ export interface GrantInterface {
   canRespondToRevokeRequest(request: RequestInterface): boolean;
 
   respondToRevokeRequest(request: RequestInterface): Promise<ResponseInterface>;
+
+  canRespondToIntrospectRequest(request: RequestInterface): boolean;
+
+  respondToIntrospectRequest(request: RequestInterface): Promise<ResponseInterface>;
 }

@@ -21,4 +21,8 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     return await this.makeBearerTokenResponse(client, accessToken, validScopes, jwtExtras);
   }
+
+  canRespondToIntrospectRequest(request: RequestInterface): boolean {
+    return this.getRequestParameter("grant_type", request) === this.identifier;
+  }
 }
