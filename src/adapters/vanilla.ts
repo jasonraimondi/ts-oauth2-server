@@ -49,7 +49,8 @@ export async function requestFromVanilla(req: Request): Promise<OAuthRequest> {
   }
 
   const headers: Record<string, unknown> = {};
-  Object.entries(req.headers).forEach(([key, value]) => {
+  req.headers.forEach((value, key) => {
+    if (key === "cookie") return;
     headers[key] = value;
   });
 
