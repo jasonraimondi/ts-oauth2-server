@@ -25,6 +25,8 @@ export function handleFastifyError(e: unknown | OAuthException, res: FastifyRepl
     res.status(e.status).send({
       status: e.status,
       message: e.message,
+      error: e.errorType,
+      error_description: e.errorDescription ?? e.error,
     });
     return;
   }
