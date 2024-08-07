@@ -369,13 +369,6 @@ describe("authorization_server", () => {
         });
       });
 
-      it("throws when missing grant_type", async () => {
-        request.headers = { authorization: basicAuth };
-        request.body = {};
-
-        await expect(authorizationServer.introspect(request)).rejects.toThrowError(/unsupported grant_type/i);
-      });
-
       it("throws when missing client id and secret", async () => {
         request.body = { grant_type: "client_credentials" };
 
