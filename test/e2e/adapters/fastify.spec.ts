@@ -46,6 +46,8 @@ describe("Fastify OAuth Utilities", () => {
       expect(mockReply.send).toHaveBeenCalledWith({
         status: 400,
         message: "Test error",
+        error: "server_error",
+        error_description: "Test error",
       });
     });
 
