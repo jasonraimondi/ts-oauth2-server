@@ -101,9 +101,23 @@ app.post("/token/revoke", async (req: Express.Request, res: Express.Response) =>
 
 Implementing this endpoint is optional. RFC7662 "OAuth 2.0 Token Introspection"
 
+```ts
+const response = await fetch("/oauth/introspect", {
+  method: "POST",
+  body: JSON.stringify({
+    token: token,
+    client_id: clientId,
+    client_secret: clientSecret,
+  }),
+});
+await response.json()
+```
+
 :::
 
 The `/token/introspect` endpoint is a back channel endpoint that revokes an existing token. The introspect endpoint requires the TokenRepository#getByAccessToken method.
+
+A client credentials grant can be used to authenticate the client.
 
 ```ts
 app.post("/token/introspect", async (req: Express.Request, res: Express.Response) => {
