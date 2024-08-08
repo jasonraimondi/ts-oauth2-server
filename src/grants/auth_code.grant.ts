@@ -14,14 +14,14 @@ import { OAuthUserRepository } from "../repositories/user.repository.js";
 import { AuthorizationRequest } from "../requests/authorization.request.js";
 import { RequestInterface } from "../requests/request.js";
 import { RedirectResponse } from "../responses/redirect.response.js";
-import { ResponseInterface } from "../responses/response.js";
+import { OAuthResponse, ResponseInterface } from "../responses/response.js";
 import { DateInterval } from "../utils/date_interval.js";
 import { JwtInterface } from "../utils/jwt.js";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant.js";
 import { GrantIdentifier } from "./abstract/grant.interface.js";
 import { AuthorizationServerOptions } from "../authorization_server.js";
 
-export interface IAuthCodePayload {
+export interface PayloadAuthCode {
   client_id: string;
   auth_code_id: string;
   expire_time: number;
@@ -32,6 +32,8 @@ export interface IAuthCodePayload {
   code_challenge_method?: CodeChallengeMethod | null;
   audience?: string[] | string | null;
 }
+/** @deprecated use `PayloadAuthCode` instead */
+export interface IAuthCodePayload extends PayloadAuthCode {}
 
 export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
 
@@ -250,24 +252,6 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     return new RedirectResponse(finalRedirectUri);
   }
 
-  async doRevoke(encryptedToken: string): Promise<void> {
-    let decryptedCode: any;
-
-    try {
-      decryptedCode = await this.decrypt(encryptedToken);
-    } catch (e) {
-      return;
-    }
-
-    if (!decryptedCode?.auth_code_id) {
-      return;
-    }
-
-    await this.authCodeRepository.revoke(decryptedCode.auth_code_id);
-
-    return;
-  }
-
   private async validateAuthorizationCode(payload: any, client: OAuthClient, request: RequestInterface) {
     if (!payload.auth_code_id) {
       throw OAuthException.invalidParameter("code", "Authorization code malformed");
@@ -321,5 +305,38 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     scopes.forEach(scope => authCode.scopes.push(scope));
     await this.authCodeRepository.persist(authCode);
     return authCode;
+  }
+
+  canRespondToRevokeRequest(request: RequestInterface): boolean {
+    return this.getRequestParameter("token_type_hint", request) === "auth_code";
+  }
+
+  async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
+    req.body["grant_type"] = this.identifier;
+
+    await this.validateClient(req);
+
+    const token = this.getRequestParameter("token", req);
+
+    if (!token) {
+      throw OAuthException.invalidParameter("token", "Missing `token` parameter in request body");
+    }
+
+    const parsedCode: unknown = this.jwt.decode(token);
+
+    if (!this.isAuthCodePayload(parsedCode)) {
+      throw OAuthException.invalidParameter("token", "Token does not contain valid auth code payload");
+    }
+
+    try {
+      await this.authCodeRepository.revoke(parsedCode.auth_code_id);
+      return new OAuthResponse();
+    } catch (e) {
+      throw OAuthException.invalidParameter("token", "Error during token revocation");
+    }
+  }
+
+  private isAuthCodePayload(code: unknown): code is PayloadAuthCode {
+    return typeof code === "object" && code !== null && "auth_code_id" in code;
   }
 }

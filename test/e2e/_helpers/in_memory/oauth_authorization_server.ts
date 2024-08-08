@@ -15,9 +15,14 @@ const tokenRepository = inMemoryAccessTokenRepository;
 const scopeRepository = inMemoryScopeRepository;
 const userRepository = inMemoryUserRepository;
 
-const jwtService = new JwtService("secret secret secret");
+export const testingJwtService = new JwtService("secret secret secret");
 
-const authorizationServer = new AuthorizationServer(clientRepository, tokenRepository, scopeRepository, jwtService);
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  tokenRepository,
+  scopeRepository,
+  testingJwtService,
+);
 
 authorizationServer.enableGrantType(
   { grant: "authorization_code", authCodeRepository, userRepository },

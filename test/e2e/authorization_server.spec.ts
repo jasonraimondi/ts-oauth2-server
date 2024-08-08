@@ -31,6 +31,8 @@ import {
 import { expectTokenResponse } from "./grants/client_credentials.grant.spec.js";
 import { CustomGrant } from "../../src/grants/abstract/custom.grant.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../src/options.js";
+import { OAuthAuthCode } from "@jmondi/oauth2-server";
+import { testingJwtService } from "./_helpers/in_memory/oauth_authorization_server.js";
 
 // const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
 const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest());
@@ -355,8 +357,6 @@ describe("authorization_server", () => {
 
     beforeEach(() => {
       inMemoryDatabase.clients[client.id] = client;
-      inMemoryAccessTokenRepository.getByAccessToken = (token: string) =>
-        Promise.resolve(inMemoryDatabase.tokens[token]);
     });
 
     describe("with invalid auth", () => {
@@ -395,11 +395,14 @@ describe("authorization_server", () => {
           grant_type: "client_credentials",
           token: accessTokenJWT,
         };
+        const backupFn = inMemoryAccessTokenRepository.getByAccessToken;
         inMemoryAccessTokenRepository.getByAccessToken = undefined;
 
-        await expect(authorizationServer.introspect(request)).rejects.toThrowError(
-          /Token introspection for access tokens is not supported/i,
-        );
+        await expect(authorizationServer.introspect(request))
+          .rejects.toThrowError(/TokenRepository#getByAccessToken is not implemented/i)
+          .finally(() => {
+            inMemoryAccessTokenRepository.getByAccessToken = backupFn;
+          });
       });
 
       it("succeeds by access token", async () => {
@@ -414,7 +417,6 @@ describe("authorization_server", () => {
         request.body = {
           token: accessTokenJWT,
           token_type_hint: "access_token",
-          grant_type: "client_credentials",
         };
         const response = await authorizationServer.introspect(request);
 
@@ -441,13 +443,10 @@ describe("authorization_server", () => {
           scopes: [],
         };
         inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
-        inMemoryAccessTokenRepository.getByAccessToken = (token: string) =>
-          Promise.resolve(inMemoryDatabase.tokens[token]);
 
         request.body = {
           token: accessTokenJWT,
           token_type_hint: "access_token",
-          grant_type: "client_credentials",
         };
         const response = await authorizationServer.introspect(request);
 
@@ -468,7 +467,6 @@ describe("authorization_server", () => {
         request.body = {
           token: refreshTokenJWT,
           token_type_hint: "refresh_token",
-          grant_type: "client_credentials",
         };
         const response = await authorizationServer.introspect(request);
 
@@ -485,6 +483,145 @@ describe("authorization_server", () => {
         expect(response.body.scope).toBe("");
         expect(response.body.token_type).toBe("refresh_token");
         expect(response.body.user_id).toBe("0190efe7-7503-7dd2-8516-6375fd5de88b");
+      });
+    });
+  });
+
+  describe("#revoke", () => {
+    let client: OAuthClient = {
+      id: "1",
+      name: "test client",
+      secret: "super-secret-secret",
+      redirectUris: ["http://localhost"],
+      allowedGrants: ["client_credentials", "authorization_code"],
+      scopes: [],
+    };
+    const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+
+    let accessToken: OAuthToken;
+    let request: OAuthRequest;
+
+    const accessTokenJWT =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imphc29uQHJhaW1vbmRpLnVzIiwiY2xpZW50IjoiU3ZlbHRlIEtpdCIsImNpZCI6IjE2YzExODEyLTg5ZGEtNGQ2OC05ZTljLTc3MTUzMjNlMzRmNSIsInNjb3BlIjoiIiwic3ViIjoiMDE5MGVmZTctNzUwMy03ZGQyLTg1MTYtNjM3NWZkNWRlODhiIiwiZXhwIjoxNzIyNTY5NDQ2LCJuYmYiOjE3MjI1NjU4NDYsImlhdCI6MTcyMjU2NTg0NiwianRpIjoiZDcxZTI3ZDdiMWNhNDczZDMxNWJiYzk1NTM0ODg4YTgwNzQ5NTdiNWNiODJkOWE3N2QzODY2ODliNTQ5NzA2MjZlYjM3N2UyYmMwZjlkZGMifQ.HsHqJOjCFt6KiT6H1y13QbMxUljqkFaFVT0WPxrO25Q";
+    const parsedAccessToken = jwt.decode(accessTokenJWT) as ParsedAccessToken;
+    const refreshTokenJWT =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIxNmMxMTgxMi04OWRhLTRkNjgtOWU5Yy03NzE1MzIzZTM0ZjUiLCJhY2Nlc3NfdG9rZW5faWQiOiJkNzFlMjdkN2IxY2E0NzNkMzE1YmJjOTU1MzQ4ODhhODA3NDk1N2I1Y2I4MmQ5YTc3ZDM4NjY4OWI1NDk3MDYyNmViMzc3ZTJiYzBmOWRkYyIsInJlZnJlc2hfdG9rZW5faWQiOiI5NzQxMDZlNjBiZDk0YTU5MzE0YzMxMzY5ZDlhZDg0ZWYwNTU3MGFiZmQ3N2JmYWI0YmUxMGYzMmY5MDQxZDBlMmRmMzE2YmY2MTM5ZjJiOCIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjAxOTBlZmU3LTc1MDMtN2RkMi04NTE2LTYzNzVmZDVkZTg4YiIsImV4cGlyZV90aW1lIjoxNzIyNTczMDQ3LCJpYXQiOjE3MjI1NjU4NDZ9.vpPKS9grMO5gIUQJI2ss525bwxNez9Xo0Rv6Y10DSqY";
+    const parsedRefreshToken = jwt.decode(refreshTokenJWT) as ParsedRefreshToken;
+
+    beforeEach(() => {
+      inMemoryDatabase.clients[client.id] = client;
+    });
+
+    describe("with invalid auth", () => {
+      beforeEach(() => {
+        request = new OAuthRequest({
+          headers: {},
+        });
+      });
+
+      it("throws when missing client id and secret", async () => {
+        request.body = {};
+
+        await expect(authorizationServer.revoke(request)).rejects.toThrowError(/Check the `client_id` parameter/i);
+      });
+    });
+
+    describe("with valid auth", () => {
+      beforeEach(() => {
+        request = new OAuthRequest({
+          headers: {
+            authorization: basicAuth,
+          },
+        });
+      });
+
+      it("throws when missing token param", async () => {
+        request.body = { grant_type: "client_credentials" };
+
+        await expect(authorizationServer.revoke(request)).rejects.toThrowError(
+          /Missing `token` parameter in request body/i,
+        );
+      });
+
+      it("succeeds by access token", async () => {
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        request.body = {
+          token: accessTokenJWT,
+          token_type_hint: "access_token",
+        };
+        const response = await authorizationServer.revoke(request);
+
+        expect(response.status).toBe(200);
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].refreshTokenExpiresAt).toEqual(new Date(0));
+      });
+
+      it("succeeds when access token is expired", async () => {
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: new Date(0),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        request.body = {
+          token: accessTokenJWT,
+          token_type_hint: "access_token",
+        };
+        const response = await authorizationServer.revoke(request);
+
+        expect(response.status).toBe(200);
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].refreshTokenExpiresAt).toEqual(new Date(0));
+      });
+
+      it("succeeds by refresh token", async () => {
+        accessToken = {
+          accessToken: "176aa0a5-acc7-4ef7-8ff3-17cace20f83e",
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          refreshToken: parsedRefreshToken.refresh_token_id,
+          refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        request.body = {
+          token: refreshTokenJWT,
+          token_type_hint: "refresh_token",
+        };
+        const response = await authorizationServer.revoke(request);
+
+        expect(response.status).toBe(200);
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].refreshTokenExpiresAt).toEqual(new Date(0));
+      });
+
+      it("succeeds by authorization code", async () => {
+        const authCode: OAuthAuthCode = {
+          code: "123445",
+          client,
+          scopes: [],
+          expiresAt: DateInterval.getDateEnd("1h"),
+        };
+        inMemoryDatabase.authCodes[authCode.code] = authCode;
+
+        request.body = {
+          token: await testingJwtService.sign({ auth_code_id: authCode.code }),
+          token_type_hint: "auth_code",
+        };
+        const response = await authorizationServer.revoke(request);
+
+        expect(response.status).toBe(200);
+        // expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
       });
     });
   });

@@ -79,32 +79,4 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     return refreshToken;
   }
-
-  async doRevoke(encryptedToken: string): Promise<void> {
-    let refreshTokenData: any;
-
-    try {
-      refreshTokenData = await this.decrypt(encryptedToken);
-    } catch (e) {
-      return;
-    }
-
-    if (!refreshTokenData?.refresh_token_id) {
-      return;
-    }
-
-    if (Date.now() / 1000 > refreshTokenData?.expire_time) {
-      return;
-    }
-
-    const refreshToken = await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
-
-    if (await this.tokenRepository.isRefreshTokenRevoked(refreshToken)) {
-      return;
-    }
-
-    await this.tokenRepository.revoke(refreshToken);
-
-    return;
-  }
 }
