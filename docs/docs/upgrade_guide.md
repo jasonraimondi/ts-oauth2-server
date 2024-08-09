@@ -1,10 +1,6 @@
----
-sidebar_position: 6
----
-
 # Upgrade Guide
 
-## Migrating from v2 to v3
+## From v2 to v3
 
 ### This package is now pure ESM
 

@@ -18,7 +18,6 @@ This is advanced usage. Make sure you understand the OAuth2.0 specification befo
 const customGrant = new MyCustomGrant(...);
 
 authorizationServer.enableGrantTypes(
-  ["client_credentials", new DateInterval("1d")],
   [customGrant, new DateInterval("1d")],
 );
 ```

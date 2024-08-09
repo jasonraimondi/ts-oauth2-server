@@ -1,0 +1,76 @@
+---
+sidebar_position: 3
+title: /token/revoke
+---
+
+# The Revoke Endpoint
+
+The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.
+
+```ts
+app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.revoke(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+    return;
+  }
+});
+```
+
+### Request
+
+A complete token revocation request will include the following parameters:
+
+- **token** (required): The token to be revoked
+- **token_type_hint** (optional): A hint about the type of the token submitted for revocation. Valid values are: `access_token`, `refresh_token`, `auth_code`
+
+The request must be authenticated using client_credentials.
+
+<details>
+<summary>View sample introspect request</summary>
+
+You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+  <Tabs>
+    <TabItem value="query-string" label="Query String">
+      ```http request
+      POST /token/revoke HTTP/1.1
+      Host: example.com
+      Content-Type: application/x-www-form-urlencoded
+
+      token=xxxxxxxxxx
+      &token_type_hint=refresh_token
+      &client_id=xxxxxxxxxx
+      &client_secret=xxxxxxxxxx
+      ```
+    </TabItem>
+    <TabItem value="basic-auth" label="Basic Auth">
+      ```http request []
+      POST /token/revoke HTTP/1.1
+      Host: example.com
+      Content-Type: application/x-www-form-urlencoded
+      Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
+
+      token=xxxxxxxxxx
+      &token_type_hint=refresh_token
+      ```
+    </TabItem>
+
+  </Tabs>
+</details>
+
+
+### Response
+
+The authorization server will respond with:
+
+- An HTTP 200 (OK) status code if the token was successfully revoked or if the client submitted an invalid token
+- An HTTP 400 (Bad Request) status code if the request is invalid or malformed
+- An HTTP 401 (Unauthorized) status code if the client is not authorized to revoke the token
+
+The response body will be empty for successful revocations. For error responses, the server may include additional error information as specified in the OAuth 2.0 specification
+
+:::note Supports the following RFC\'S
+[RFC7009 (OAuth 2.0 Token Revocation)](https://datatracker.ietf.org/doc/html/rfc7009)
+:::

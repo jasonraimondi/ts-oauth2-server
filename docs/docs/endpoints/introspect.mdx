@@ -1,0 +1,119 @@
+---
+sidebar_position: 4
+title: /token/introspect
+---
+
+# The Introspect Endpoint
+
+The `/token/introspect` endpoint is a back channel endpoint that revokes an existing token. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect `token_type_hint=access_token`.
+
+```ts
+app.post("/token/introspect", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.introspect(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+    return;
+  }
+});
+```
+
+### Request
+
+A complete token introspection request will include the following parameters:
+
+- **token** (required): The string value of the token to be introspected
+- **token_type_hint** (optional, default: access_token): A hint about the type of the token submitted for introspection. Valid values are: `access_token` and `refresh_token`
+
+The request must be authenticated using the client credentials method.
+
+<details>
+<summary>View sample introspect request</summary>
+
+You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+  <Tabs>
+    <TabItem value="query-string" label="Query String">
+      ```http request
+      POST /token/introspect HTTP/1.1
+      Host: example.com
+      Content-Type: application/x-www-form-urlencoded
+
+      token=xxxxxxxxxx
+      &token_type_hint=refresh_token
+      &client_id=xxxxxxxxxx
+      &client_secret=xxxxxxxxxx
+      ```
+    </TabItem>
+    <TabItem value="basic-auth" label="Basic Auth">
+      ```http request []
+      POST /token/introspect HTTP/1.1
+      Host: example.com
+      Content-Type: application/x-www-form-urlencoded
+      Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
+
+      token=xxxxxxxxxx
+      &token_type_hint=refresh_token
+      ```
+    </TabItem>
+
+  </Tabs>
+</details>
+
+### Response
+
+The authorization server will respond with a JSON object containing the following fields:
+
+- **active** (required): A boolean value indicating whether the token is currently active
+- **scope** (optional): A space-separated list of scopes associated with the token
+- **client_id** (optional): The client identifier for the OAuth 2.0 client that requested this token
+- **username** (optional): A human-readable identifier for the resource owner who authorized this token
+- **token_type** (optional): The type of the token (e.g., `Bearer`)
+- **exp** (optional): The timestamp indicating when the token will expire
+- **iat** (optional): The timestamp indicating when the token was issued
+- **nbf** (optional): The timestamp indicating when the token is not to be used before
+- **sub** (optional): The subject of the token
+- **aud** (optional): The intended audience of the token
+- **iss** (optional): The issuer of the token
+- **jti** (optional): The unique identifier for the token
+
+Additional fields may be included in the response.
+
+A client credentials grant can be used to authenticate the client.
+
+<Tabs>
+  <TabItem value="header" label="Auth Using Headers">
+    ```ts
+    import { base64encode } from "@jmondi/oauth2-server";
+
+    const basicAuth = "Basic " + base64encode(`${clientId}:${clientSecret}`);
+    const response = await fetch("/token/introspect", {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth,
+      },
+      body: JSON.stringify({
+        token: token,
+      }),
+    });
+    await response.json()
+    ```
+  </TabItem>
+  <TabItem value="body" label="Auth Using Body">
+    ```ts
+    const response = await fetch("/token/introspect", {
+      method: "POST",
+      body: JSON.stringify({
+        token: token,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+    await response.json()
+    ```
+  </TabItem>
+</Tabs>
+
+:::note Supports the following RFC\'S
+[RFC7662 (OAuth 2.0 Token Introspection)](https://datatracker.ietf.org/doc/html/rfc7662)
+:::

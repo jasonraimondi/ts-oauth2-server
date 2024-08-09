@@ -6,7 +6,7 @@ sidebar_position: 5
 
 ## Issuer (**iss** [rfc](https://tools.ietf.org/html/rfc7519#section-4.1.1))
 
-You can customize the `iss` property by setting the `issuer` property in [the AuthorizationServer configuration](./authorization_server/configuration.mdx).
+You can customize the `iss` property by setting the `issuer` property in [the AuthorizationServer configuration](../authorization_server/configuration.mdx).
 
 ## Audience (**aud** [rfc](https://tools.ietf.org/html/rfc7519#section-4.1.3))
 

@@ -7,7 +7,7 @@ const config: Config = {
   title: "@jmondi/oauth2-server",
   plugins: [tailwindPlugin],
   tagline:
-    "Standards-Compliant OAuth 2.0 Server in TypeScript, Utilizing JWT and Proof Key for Code Exchange (PKCE)",
+    "A Node.js OAuth 2.0 Server in TypeScript that is standards compliant, utilizes JWT and Proof Key for Code Exchange (PKCE)",
   favicon: "favicon.ico",
   url: "https://tsoauth2server.com",
   baseUrl: "/",

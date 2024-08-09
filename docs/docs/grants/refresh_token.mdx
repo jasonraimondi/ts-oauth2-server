@@ -9,11 +9,9 @@ import TabItem from "@theme/TabItem";
 
 Access tokens eventually expire. The refresh token grant enables the client to obtain a new access_token from an existing refresh_token.
 
-:::note Enable this grant
+:::tip
 
-```ts
-authorizationServer.enableGrantType("refresh_token");
-```
+The `refresh_token` grant is enabled by default
 
 :::
 
