@@ -69,13 +69,11 @@ describe("authorization_server", () => {
       authCodeRepository: inMemoryAuthCodeRepository,
       userRepository: inMemoryUserRepository,
     });
-    authorizationServer.enableGrantType("client_credentials");
     authorizationServer.enableGrantType("implicit");
     authorizationServer.enableGrantType({
       grant: "password",
       userRepository: inMemoryUserRepository,
     });
-    authorizationServer.enableGrantType("refresh_token");
     const customGrant = new MyCustomGrant(
       inMemoryClientRepository,
       inMemoryAccessTokenRepository,
@@ -202,7 +200,6 @@ describe("authorization_server", () => {
       inMemoryScopeRepository,
       new JwtService("secret-key"),
     );
-    authorizationServer.enableGrantType("refresh_token");
     const request = new OAuthRequest({
       query: {
         response_type: "code",

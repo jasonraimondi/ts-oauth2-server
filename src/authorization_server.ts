@@ -104,6 +104,7 @@ export class AuthorizationServer {
       refresh_token: new RefreshTokenGrant(...grantProps),
       implicit: new ImplicitGrant(...grantProps),
     };
+    this.enableGrantTypes("client_credentials", "refresh_token");
   }
 
   enableGrantTypes(...grants: EnableGrant[]): void {
