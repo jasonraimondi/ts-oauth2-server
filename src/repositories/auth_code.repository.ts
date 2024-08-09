@@ -15,6 +15,5 @@ export interface OAuthAuthCodeRepository {
   persist(authCode: OAuthAuthCode): Promise<void>;
 
   isRevoked(authCodeCode: string): Promise<boolean>;
-
   revoke(authCodeCode: string): Promise<void>;
 }

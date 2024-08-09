@@ -70,6 +70,9 @@ export const inMemoryAccessTokenRepository: OAuthTokenRepository = {
     if (!token) throw new Error("token not found");
     return token;
   },
+  async getByAccessToken(accessToken: string): Promise<OAuthToken> {
+    return inMemoryDatabase.tokens[accessToken];
+  },
   async isRefreshTokenRevoked(token: OAuthToken): Promise<boolean> {
     return Date.now() > (token.refreshTokenExpiresAt?.getTime() ?? 0);
   },

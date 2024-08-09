@@ -12,7 +12,7 @@ import { OAuthUserRepository } from "../../repositories/user.repository.js";
 import { AuthorizationRequest } from "../../requests/authorization.request.js";
 import { RequestInterface } from "../../requests/request.js";
 import { BearerTokenResponse } from "../../responses/bearer_token.response.js";
-import { OAuthResponse, ResponseInterface } from "../../responses/response.js";
+import { ResponseInterface } from "../../responses/response.js";
 import { arrayDiff } from "../../utils/array.js";
 import { base64decode } from "../../utils/base64.js";
 import { DateInterval } from "../../utils/date_interval.js";
@@ -290,8 +290,12 @@ export abstract class AbstractGrant implements GrantInterface {
     return false;
   }
 
-  canRespondToRevokeRequest(request: RequestInterface): boolean {
-    return this.getRequestParameter("token_type_hint", request) === this.identifier;
+  canRespondToRevokeRequest(_request: RequestInterface): boolean {
+    return false;
+  }
+
+  canRespondToIntrospectRequest(_request: RequestInterface): boolean {
+    return false;
   }
 
   async completeAuthorizationRequest(_authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
@@ -302,28 +306,12 @@ export abstract class AbstractGrant implements GrantInterface {
     throw new Error("Grant does not support the request");
   }
 
-  async respondToRevokeRequest(request: RequestInterface): Promise<ResponseInterface> {
-    const encryptedToken = this.getRequestParameter("token", request);
-
-    if (!encryptedToken) {
-      throw OAuthException.invalidParameter("token");
-    }
-
-    await this.doRevoke(encryptedToken);
-    return new OAuthResponse();
-  }
-
-  canRespondToIntrospectRequest(_request: RequestInterface): boolean {
-    return false;
+  async respondToRevokeRequest(_request: RequestInterface): Promise<ResponseInterface> {
+    throw new Error("Grant does not support the request");
   }
 
   async respondToIntrospectRequest(_req: RequestInterface): Promise<ResponseInterface> {
     throw new Error("Grant does not support the request");
-  }
-
-  protected async doRevoke(_encryptedToken: string): Promise<void> {
-    // default: nothing to do, be quiet about it
-    return;
   }
 
   protected async extraJwtFields(
