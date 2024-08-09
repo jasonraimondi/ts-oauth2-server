@@ -96,6 +96,10 @@ function Features() {
       title: `RFC7636 "Proof Key for Code Exchange by OAuth Public Clients"`,
     },
     {
+      to: "https://tools.ietf.org/html/rfc7662",
+      title: `RFC7662 "OAuth 2.0 Token Introspection"`,
+    },
+    {
       to: "https://datatracker.ietf.org/doc/html/rfc8693",
       title: `RFC8693 "OAuth 2.0 Token Exchange"`,
     },

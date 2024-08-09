@@ -75,12 +75,6 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
 ## The Revoke Endpoint
 
-:::info Note
-
-Implementing this endpoint is optional, but recommended. RFC7009 "OAuth 2.0 Token Revocation"
-
-:::
-
 The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.
 
 ```ts
@@ -96,12 +90,6 @@ app.post("/token/revoke", async (req: Express.Request, res: Express.Response) =>
 ```
 
 ## The Introspect Endpoint
-
-:::info Note
-
-Implementing this endpoint is optional. RFC7662 "OAuth 2.0 Token Introspection"
-
-:::
 
 The `/token/introspect` endpoint is a back channel endpoint that revokes an existing token. The introspect endpoint requires the TokenRepository#getByAccessToken method.
 
@@ -119,8 +107,30 @@ app.post("/token/introspect", async (req: Express.Request, res: Express.Response
 
 A client credentials grant can be used to authenticate the client.
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+<Tabs>
+  <TabItem value="header" label="Auth Using Headers">
 ```ts
-const response = await fetch("/oauth/introspect", {
+import { base64encode } from "@jmondi/oauth2-server";
+
+const basicAuth = "Basic " + base64encode(`${clientId}:${clientSecret}`);
+const response = await fetch("/token/introspect", {
+  method: "POST",
+  headers: {
+    Authorization: basicAuth,
+  },
+  body: JSON.stringify({
+    token: token,
+  }),
+});
+await response.json()
+```
+  </TabItem>
+  <TabItem value="body" label="Auth Using Body">
+```ts
+const response = await fetch("/token/introspect", {
   method: "POST",
   body: JSON.stringify({
     token: token,
@@ -130,3 +140,10 @@ const response = await fetch("/oauth/introspect", {
 });
 await response.json()
 ```
+  </TabItem>
+</Tabs>
+
+
+
+
+

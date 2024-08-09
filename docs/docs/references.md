@@ -11,6 +11,7 @@ sidebar_position: 9
 - https://tools.ietf.org/html/rfc6749#section-4.1
 - https://tools.ietf.org/html/rfc7009
 - https://tools.ietf.org/html/rfc7636
+- https://tools.ietf.org/html/rfc7662
 - https://www.oauth.com/oauth2-servers/pkce/
 - https://www.oauth.com/oauth2-servers/pkce/authorization-request/
 

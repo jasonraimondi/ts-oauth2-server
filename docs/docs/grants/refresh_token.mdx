@@ -95,7 +95,7 @@ Refresh tokens are only valid for a single use. In addition, they can be explici
 A refresh token revocation request will include the following parameters:
 
 - **token** is the signed token previously issued to the client
-- **token_type_hint** (optional) should be set to `refresh_token`
+- **token_type_hint** MUST be set to `refresh_token`
 
 <details>
 <summary>View sample revoke refresh_token request</summary>
