@@ -621,7 +621,7 @@ describe("authorization_server", () => {
         const response = await authorizationServer.revoke(request);
 
         expect(response.status).toBe(200);
-        // expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
+        expect(inMemoryDatabase.authCodes[authCode.code].expiresAt).toEqual(new Date(0));
       });
     });
   });
