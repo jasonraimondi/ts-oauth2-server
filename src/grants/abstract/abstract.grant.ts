@@ -155,7 +155,7 @@ export abstract class AbstractGrant implements GrantInterface {
     const userValidationSuccess = await this.clientRepository.isClientValid(grantType, client, clientSecret);
 
     if (!userValidationSuccess) {
-      throw OAuthException.invalidClient();
+      throw OAuthException.invalidClient("Client has been revoked or is invalid.");
     }
 
     return client;
