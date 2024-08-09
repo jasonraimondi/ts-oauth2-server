@@ -5,7 +5,8 @@ import type { ReadableStream } from "stream/web";
 
 export function responseFromVanilla(res: Response): OAuthResponse {
   const headers: Record<string, unknown> = {};
-  Object.entries(res.headers).forEach(([key, value]) => {
+  res.headers.forEach((value, key) => {
+    if (key === "cookie") return;
     headers[key] = value;
   });
 
@@ -16,7 +17,7 @@ export function responseFromVanilla(res: Response): OAuthResponse {
 
 export function responseToVanilla(oauthResponse: OAuthResponse): Response {
   if (oauthResponse.status === 302) {
-    if (!oauthResponse.headers.location) {
+    if (typeof oauthResponse.headers.location !== "string" || oauthResponse.headers.location === "") {
       throw new OAuthException(`missing redirect location`, ErrorType.InvalidRequest);
     }
     return new Response(null, {
