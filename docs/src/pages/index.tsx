@@ -200,11 +200,11 @@ export default function Home() {
       <div className="pt-14 px-3 flex flex-col justify-center align-middle text-center">
         <SectionTitle>Contributors</SectionTitle>
         <div className="flex justify-center">
-          <Contributors owner="jasonraimondi" repo="ts-oauth2-server" />
+          {typeof window !== 'undefined' && <Contributors owner="jasonraimondi" repo="ts-oauth2-server" />}
         </div>
         <SectionTitle>Sponsors</SectionTitle>
         <div className="flex justify-center">
-          <Sponsors username="jasonraimondi" />
+          {typeof window !== 'undefined' && <Sponsors username="jasonraimondi" />}
         </div>
       </div>
       <Features />
