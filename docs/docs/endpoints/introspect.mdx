@@ -7,6 +7,10 @@ title: /token/introspect
 
 The `/token/introspect` endpoint is a back channel endpoint that revokes an existing token. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect `token_type_hint=access_token`.
 
+:::tip
+This endpoint requires `TokenRepository#getByAccessToken` to be defined
+:::
+
 ```ts
 app.post("/token/introspect", async (req: Express.Request, res: Express.Response) => {
   try {

@@ -117,6 +117,13 @@ interface OAuthTokenRepository {
 
   // Fetch refresh token entity from storage by refresh token
   getByRefreshToken(refreshTokenToken: string): Promise<OAuthToken>;
+
+  // (Optional)
+  //     Required if using /revoke RFC7009 "OAuth 2.0 Token Revocation"
+  //     Required if using /introspect RFC7662 "OAuth 2.0 Token Introspection"
+  // @see https://tsoauth2server.com/docs/getting_started/endpoints#the-introspect-endpoint
+  // @see https://tsoauth2server.com/docs/getting_started/endpoints#the-revoke-endpoint
+  getByAccessToken?(accessTokenToken: string): Promise<OAuthToken>;
 }
 ```
 

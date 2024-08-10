@@ -7,6 +7,10 @@ title: /token/revoke
 
 The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.
 
+:::tip
+This endpoint requires `TokenRepository#getByAccessToken` to be defined
+:::
+
 ```ts
 app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
   try {
