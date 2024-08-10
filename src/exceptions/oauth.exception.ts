@@ -13,6 +13,7 @@ export enum ErrorType {
   InvalidScope = "invalid_scope",
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
+  UnsupportedTokenType = "unsupported_token_type",
   AccessDenied = "access_denied",
   InternalServerError = "server_error",
 }
@@ -99,7 +100,15 @@ export class OAuthException extends Error {
    * rather than using the invalid_request above.
    */
   static unsupportedGrantType(): OAuthException {
-    return new OAuthException("unsupported grant_type", ErrorType.UnsupportedGrantType);
+    return new OAuthException("Unsupported grant_type", ErrorType.UnsupportedGrantType);
+  }
+
+  /**
+   * The authorization server does not support the revocation of the presented token type.
+   * That is, the client tried to revoke an access token on a server not supporting this feature.
+   */
+  static unsupportedTokenType(): OAuthException {
+    return new OAuthException("Unsupported token_type_hint", ErrorType.UnsupportedTokenType);
   }
 
   static badRequest(message: string): OAuthException {

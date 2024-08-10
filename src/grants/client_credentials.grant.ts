@@ -34,19 +34,17 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const active = expiresAt > new Date();
 
-    const responseBody: OAuthTokenIntrospectionResponse = active
-      ? {
-          active: true,
-          scope: oauthToken.scopes.map(s => s.name).join(this.options.scopeDelimiter),
-          client_id: oauthToken.client.id,
-          token_type: tokenType,
-          ...parsedToken,
-        }
-      : { active: false };
+    if (!active || !oauthToken) return new OAuthResponse({ body: { active: false } });
 
-    const response = new OAuthResponse();
-    response.body = responseBody;
-    return response;
+    const body: OAuthTokenIntrospectionResponse = {
+      active: true,
+      scope: oauthToken.scopes.map(s => s.name).join(this.options.scopeDelimiter),
+      client_id: oauthToken.client.id,
+      token_type: tokenType,
+      ...(typeof parsedToken === "object" ? parsedToken : {}),
+    };
+
+    return new OAuthResponse({ body });
   }
 
   canRespondToRevokeRequest(request: RequestInterface): boolean {
@@ -56,10 +54,14 @@ export class ClientCredentialsGrant extends AbstractGrant {
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
     let { oauthToken } = await this.tokenFromRequest(req);
 
-    await this.tokenRepository.revoke(oauthToken);
+    // Invalid tokens do not cause an error response since the client cannot handle such an error.
+    // @see https://datatracker.ietf.org/doc/html/rfc7009#section-2.2
+    if (oauthToken) await this.tokenRepository.revoke(oauthToken).catch();
 
     return new OAuthResponse();
   }
+
+  private readonly revokeTokenTypeHintRegExp = /^(access_token|refresh_token|auth_code)$/;
 
   private async tokenFromRequest(req: RequestInterface) {
     req.body["grant_type"] = this.identifier;
@@ -67,10 +69,15 @@ export class ClientCredentialsGrant extends AbstractGrant {
     await this.validateClient(req);
 
     const token = this.getRequestParameter("token", req);
-    const tokenTypeHint = this.getRequestParameter("token_type_hint", req);
 
     if (!token) {
       throw OAuthException.invalidParameter("token", "Missing `token` parameter in request body");
+    }
+
+    const tokenTypeHint = this.getRequestParameter("token_type_hint", req);
+
+    if (typeof tokenTypeHint === "string" && !this.revokeTokenTypeHintRegExp.test(tokenTypeHint)) {
+      throw OAuthException.unsupportedTokenType();
     }
 
     const parsedToken: unknown = this.jwt.decode(token);
@@ -80,21 +87,19 @@ export class ClientCredentialsGrant extends AbstractGrant {
     let tokenType: "access_token" | "refresh_token" = "access_token";
 
     if (tokenTypeHint === "refresh_token" && this.isRefreshTokenPayload(parsedToken)) {
-      oauthToken = await this.tokenRepository.getByRefreshToken(parsedToken.refresh_token_id);
-      expiresAt = oauthToken.refreshTokenExpiresAt ?? expiresAt;
+      oauthToken = await this.tokenRepository.getByRefreshToken(parsedToken.refresh_token_id).catch();
+      expiresAt = oauthToken?.refreshTokenExpiresAt ?? expiresAt;
       tokenType = "refresh_token";
     } else if (this.isAccessTokenPayload(parsedToken)) {
       if (typeof this.tokenRepository.getByAccessToken !== "function") {
         throw OAuthException.internalServerError("TokenRepository#getByAccessToken is not implemented");
       }
-      oauthToken = await this.tokenRepository.getByAccessToken(parsedToken.jti!);
-      if (!oauthToken) {
-        throw OAuthException.badRequest("Token not found");
-      }
-      expiresAt = oauthToken.accessTokenExpiresAt ?? expiresAt;
-    } else {
-      throw OAuthException.invalidParameter("token", "Invalid token provided");
+
+      // if token not found, ignore and return undefined oauthToken
+      oauthToken = await this.tokenRepository.getByAccessToken(parsedToken.jti).catch();
+      expiresAt = oauthToken?.accessTokenExpiresAt ?? expiresAt;
     }
+
     return { parsedToken, oauthToken, expiresAt, tokenType };
   }
 

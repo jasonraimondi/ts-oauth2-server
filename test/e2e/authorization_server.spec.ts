@@ -210,7 +210,7 @@ describe("authorization_server", () => {
     });
 
     // act & assert
-    expect(() => authorizationServer.validateAuthorizationRequest(request)).toThrowError(/unsupported grant_type/);
+    expect(() => authorizationServer.validateAuthorizationRequest(request)).toThrowError(/Unsupported grant_type/);
   });
 
   describe("option requirePKCE", () => {
