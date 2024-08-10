@@ -7,6 +7,7 @@ export interface Options {
   headers?: Headers;
   body?: { [key: string]: any };
   query?: { [key: string]: any };
+  status?: number;
   [key: string]: any;
 }
 
@@ -21,13 +22,14 @@ export interface ResponseInterface {
 }
 
 export class OAuthResponse implements ResponseInterface {
-  status = 200;
-  body: Record<string, unknown> = {};
-  headers: Headers = {};
+  status: number;
+  body: Record<string, unknown>;
+  headers: Headers;
 
   constructor(responseOptions: Options = { headers: {} }) {
     this.headers = responseOptions.headers ?? {};
     this.body = responseOptions.body ?? {};
+    this.status = responseOptions.status ?? 200;
   }
 
   get(field: string): any {
