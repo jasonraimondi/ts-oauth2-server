@@ -343,8 +343,7 @@ describe("authorization_server", () => {
       allowedGrants: ["client_credentials"],
       scopes: [],
     };
-    // skipping for v3.6.0 where there is no auth needed by default
-    // const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+    const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
 
     let accessToken: OAuthToken;
     let request: OAuthRequest;
@@ -396,8 +395,7 @@ describe("authorization_server", () => {
       });
     });
 
-    // skipping for v3.6.0 where there is no auth by default
-    describe.skip("with invalid auth", () => {
+    describe("with invalid auth", () => {
       beforeEach(() => {
         request = new OAuthRequest({
           headers: {},
@@ -415,8 +413,7 @@ describe("authorization_server", () => {
       beforeEach(() => {
         request = new OAuthRequest({
           headers: {
-            // skipping for v3.6.0 where there is no auth needed by default
-            // authorization: basicAuth,
+            authorization: basicAuth,
           },
         });
       });
@@ -535,8 +532,7 @@ describe("authorization_server", () => {
       allowedGrants: ["client_credentials", "authorization_code"],
       scopes: [],
     };
-    // skipping for v3.6.0 where there is no auth needed by default
-    // const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+    const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
 
     let accessToken: OAuthToken;
     let request: OAuthRequest;
@@ -554,7 +550,7 @@ describe("authorization_server", () => {
 
     describe("without option revokeWithClientCredentials=false", () => {
       it("does not require client credentials", async () => {
-        const authorizationServer = new AuthorizationServer(
+        authorizationServer = new AuthorizationServer(
           inMemoryClientRepository,
           inMemoryAccessTokenRepository,
           inMemoryScopeRepository,
@@ -588,8 +584,7 @@ describe("authorization_server", () => {
       });
     });
 
-    // skipping for v3.6.0 where there is no auth by default
-    describe.skip("with invalid auth", () => {
+    describe("with invalid auth", () => {
       beforeEach(() => {
         request = new OAuthRequest({
           headers: {},
@@ -607,8 +602,7 @@ describe("authorization_server", () => {
       beforeEach(() => {
         request = new OAuthRequest({
           headers: {
-            // skipping for v3.6.0 where there is no auth needed by default
-            // authorization: basicAuth,
+            authorization: basicAuth,
           },
         });
       });
