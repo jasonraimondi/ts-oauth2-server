@@ -32,7 +32,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
   async respondToIntrospectRequest(req: RequestInterface): Promise<ResponseInterface> {
     req.body["grant_type"] = this.identifier;
 
-    if (this.options.introspectWithClientCredentials) await this.validateClient(req);
+    if (this.options.authenticateIntrospect) await this.validateClient(req);
 
     const { parsedToken, oauthToken, expiresAt, tokenType } = await this.tokenFromRequest(req);
 
@@ -60,7 +60,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
     req.body["grant_type"] = this.identifier;
 
-    if (this.options.revokeWithClientCredentials) await this.validateClient(req);
+    if (this.options.authenticateRevoke) await this.validateClient(req);
 
     let { oauthToken } = await this.tokenFromRequest(req);
 
