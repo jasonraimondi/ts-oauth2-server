@@ -343,7 +343,9 @@ describe("authorization_server", () => {
       allowedGrants: ["client_credentials"],
       scopes: [],
     };
-    const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+    // skipping for v3.6.0 where we were not using auth by default,
+    // in v4.0.0 we will use client_credentials auth by default
+    // const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
 
     let accessToken: OAuthToken;
     let request: OAuthRequest;
@@ -395,8 +397,9 @@ describe("authorization_server", () => {
       });
     });
 
-    // skipping for v3.6.0 where there is no auth by default
-    describe("with invalid auth", () => {
+    // skipping for v3.6.0 where we were not using auth by default,
+    // in v4.0.0 we will use client_credentials auth by default
+    describe.skip("with invalid auth", () => {
       beforeEach(() => {
         request = new OAuthRequest({
           headers: {},
@@ -414,7 +417,9 @@ describe("authorization_server", () => {
       beforeEach(() => {
         request = new OAuthRequest({
           headers: {
-            authorization: basicAuth,
+            // skipping for v3.6.0 where we were not using auth by default,
+            // in v4.0.0 we will use client_credentials auth by default
+            // authorization: basicAuth,
           },
         });
       });
