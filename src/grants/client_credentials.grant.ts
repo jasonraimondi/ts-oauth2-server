@@ -30,19 +30,25 @@ export class ClientCredentialsGrant extends AbstractGrant {
   }
 
   async respondToIntrospectRequest(req: RequestInterface): Promise<ResponseInterface> {
+    req.body["grant_type"] = this.identifier;
+
+    if (this.options.introspectWithClientCredentials) await this.validateClient(req);
+
     const { parsedToken, oauthToken, expiresAt, tokenType } = await this.tokenFromRequest(req);
 
     const active = expiresAt > new Date();
 
-    if (!active || !oauthToken) return new OAuthResponse({ body: { active: false } });
+    let body: OAuthTokenIntrospectionResponse = { active: false };
 
-    const body: OAuthTokenIntrospectionResponse = {
-      active: true,
-      scope: oauthToken.scopes.map(s => s.name).join(this.options.scopeDelimiter),
-      client_id: oauthToken.client.id,
-      token_type: tokenType,
-      ...(typeof parsedToken === "object" ? parsedToken : {}),
-    };
+    if (active && oauthToken) {
+      body = {
+        active: true,
+        scope: oauthToken.scopes.map(s => s.name).join(this.options.scopeDelimiter),
+        client_id: oauthToken.client.id,
+        token_type: tokenType,
+        ...(typeof parsedToken === "object" ? parsedToken : {}),
+      };
+    }
 
     return new OAuthResponse({ body });
   }
@@ -52,6 +58,10 @@ export class ClientCredentialsGrant extends AbstractGrant {
   }
 
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
+    req.body["grant_type"] = this.identifier;
+
+    if (this.options.revokeWithClientCredentials) await this.validateClient(req);
+
     let { oauthToken } = await this.tokenFromRequest(req);
 
     // Invalid tokens do not cause an error response since the client cannot handle such an error.
@@ -64,10 +74,6 @@ export class ClientCredentialsGrant extends AbstractGrant {
   private readonly revokeTokenTypeHintRegExp = /^(access_token|refresh_token|auth_code)$/;
 
   private async tokenFromRequest(req: RequestInterface) {
-    req.body["grant_type"] = this.identifier;
-
-    await this.validateClient(req);
-
     const token = this.getRequestParameter("token", req);
 
     if (!token) {

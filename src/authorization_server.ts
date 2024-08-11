@@ -30,6 +30,8 @@ export interface AuthorizationServerOptions {
   tokenCID: "id" | "name";
   issuer?: string;
   scopeDelimiter: string;
+  introspectWithClientCredentials: boolean;
+  revokeWithClientCredentials: boolean;
 }
 
 export type EnableableGrants =

@@ -314,7 +314,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
     req.body["grant_type"] = this.identifier;
 
-    await this.validateClient(req);
+    if (this.options.revokeWithClientCredentials) await this.validateClient(req);
 
     const token = this.getRequestParameter("token", req);
 

@@ -359,6 +359,42 @@ describe("authorization_server", () => {
       inMemoryDatabase.clients[client.id] = client;
     });
 
+    describe("without option introspectWithClientCredentials=false", () => {
+      it("does not require client credentials", async () => {
+        authorizationServer = new AuthorizationServer(
+          inMemoryClientRepository,
+          inMemoryAccessTokenRepository,
+          inMemoryScopeRepository,
+          new JwtService("secret-key"),
+          {
+            introspectWithClientCredentials: false,
+          },
+        );
+
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        const request = new OAuthRequest({
+          headers: {},
+          body: {
+            token: accessTokenJWT,
+            token_type_hint: "access_token",
+          },
+        });
+
+        const response = await authorizationServer.introspect(request);
+
+        expect(response.body.active).toBe(true);
+        expect(response.body.cid).toBe("16c11812-89da-4d68-9e9c-7715323e34f5");
+        expect(response.body.client).toBe("Svelte Kit");
+      });
+    });
+
     describe("with invalid auth", () => {
       beforeEach(() => {
         request = new OAuthRequest({
@@ -510,6 +546,42 @@ describe("authorization_server", () => {
 
     beforeEach(() => {
       inMemoryDatabase.clients[client.id] = client;
+    });
+
+    describe("without option revokeWithClientCredentials=false", () => {
+      it("does not require client credentials", async () => {
+        authorizationServer = new AuthorizationServer(
+          inMemoryClientRepository,
+          inMemoryAccessTokenRepository,
+          inMemoryScopeRepository,
+          new JwtService("secret-key"),
+          {
+            revokeWithClientCredentials: false,
+          },
+        );
+
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        const request = new OAuthRequest({
+          headers: {},
+          body: {
+            token: accessTokenJWT,
+            token_type_hint: "access_token",
+          },
+        });
+
+        const response = await authorizationServer.revoke(request);
+
+        expect(response.status).toBe(200);
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].refreshTokenExpiresAt).toEqual(new Date(0));
+      });
     });
 
     describe("with invalid auth", () => {
