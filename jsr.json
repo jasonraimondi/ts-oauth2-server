@@ -1,6 +1,6 @@
 {
   "name": "@jmondi/oauth2-server",
-  "version": "3.6.0-alpha.2",
+  "version": "3.6.0-alpha.3",
   "exports": {
     ".": "./src/index.ts",
     "./express": "./src/adapters/express.ts",
