@@ -45,6 +45,7 @@ Example implementations:
 
 | Version         | Latest Version | Security Updates |
 |-----------------|----------------|------------------|
+| [4.x][version4] | :tada:         | :tada:           |
 | [3.x][version3] | :tada:         | :tada:           |
 | [2.x][version2] |                | :tada:           |
 

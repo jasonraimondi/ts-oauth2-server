@@ -4,6 +4,7 @@
 
 | Version | Latest Version     | Security Updates   |
 |---------|--------------------|--------------------|
+| 4.x     | :white_check_mark: | :white_check_mark: |
 | 3.x     | :white_check_mark: | :white_check_mark: |
 | 2.x     |                    | :white_check_mark: |
 | 1.x     |                    |                    |

@@ -15,8 +15,8 @@ The authorization server has a few optional settings with the following default 
 | `notBeforeLeeway`                 | number              | 0         | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. Its value MUST be a number containing a NumericDate value.                  |
 | `tokenCID`                        | "id" or "name"      | "id"      | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`.<br /><br />In 3.x the default is **"id"**, in v2.x the default was **"name"**. [[Learn more]][token-cid]        |
 | `issuer`                          | string \| undefined | undefined | Sets the JWT `accessToken.iss` to this value.                                                                                                                                              |
-| `introspectWithClientCredentials` | boolean             | false     | Authorize [the /introspect endpoint](../endpoints/introspect.mdx) using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) |
-| `revokeWithClientCredentials`     | boolean             | false     | Authorize [the /revoke endpoint](../endpoints/revoke.mdx) using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header)         |
+| `introspectWithClientCredentials` | boolean             | true      | Authorize [the /introspect endpoint](../endpoints/introspect.mdx) using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) |
+| `revokeWithClientCredentials`     | boolean             | true      | Authorize [the /revoke endpoint](../endpoints/revoke.mdx) using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header)         |
 
 ```ts
 type AuthorizationServerOptions = {
