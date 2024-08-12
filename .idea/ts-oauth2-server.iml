@@ -10,7 +10,6 @@
       <excludeFolder url="file://$MODULE_DIR$/docs/.vitepress/cache" />
       <excludeFolder url="file://$MODULE_DIR$/docs/.vitepress/dist" />
       <excludeFolder url="file://$MODULE_DIR$/example" />
-      <excludeFolder url="file://$MODULE_DIR$/docs" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -7,6 +7,6 @@ export const DEFAULT_AUTHORIZATION_SERVER_OPTIONS: AuthorizationServerOptions = 
   tokenCID: "id",
   issuer: undefined,
   scopeDelimiter: " ",
-  introspectWithClientCredentials: true,
-  revokeWithClientCredentials: true,
+  authenticateIntrospect: true,
+  authenticateRevoke: true,
 };

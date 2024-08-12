@@ -359,7 +359,7 @@ describe("authorization_server", () => {
       inMemoryDatabase.clients[client.id] = client;
     });
 
-    describe("without option introspectWithClientCredentials=false", () => {
+    describe("without option authenticateIntrospect=false", () => {
       it("does not require client credentials", async () => {
         authorizationServer = new AuthorizationServer(
           inMemoryClientRepository,
@@ -367,7 +367,7 @@ describe("authorization_server", () => {
           inMemoryScopeRepository,
           new JwtService("secret-key"),
           {
-            introspectWithClientCredentials: false,
+            authenticateIntrospect: false,
           },
         );
 
@@ -548,7 +548,7 @@ describe("authorization_server", () => {
       inMemoryDatabase.clients[client.id] = client;
     });
 
-    describe("without option revokeWithClientCredentials=false", () => {
+    describe("without option authenticateRevoke=false", () => {
       it("does not require client credentials", async () => {
         authorizationServer = new AuthorizationServer(
           inMemoryClientRepository,
@@ -556,7 +556,7 @@ describe("authorization_server", () => {
           inMemoryScopeRepository,
           new JwtService("secret-key"),
           {
-            revokeWithClientCredentials: false,
+            authenticateRevoke: false,
           },
         );
 
