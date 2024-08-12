@@ -5,8 +5,8 @@ import { OAuthRequest } from "../requests/request.js";
 import { OAuthResponse } from "../responses/response.js";
 import { isOAuthError } from "../utils/errors.js";
 
-export function responseFromExpress(res: Response): OAuthResponse {
-  return new OAuthResponse(res);
+export function responseFromExpress({ status, ...res }: Response): OAuthResponse {
+  return new OAuthResponse({ status: res.statusCode ?? 200, ...res });
 }
 
 export function requestFromExpress(req: Request): OAuthRequest {
