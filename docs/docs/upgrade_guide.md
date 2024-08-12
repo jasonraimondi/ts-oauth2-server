@@ -1,6 +1,34 @@
 # Upgrade Guide
 
-## From v2 to v3
+## To v4
+
+### Breaking Change
+
+Only affects users implementing the `/revoke` and `/introspect` endpoints
+
+- [`/introspect`](https://tsoauth2server.com/docs/endpoints/introspect) will now authenticate via client_credentials by default
+- [`/revoke`](https://tsoauth2server.com/docs/endpoints/revoke) will now authenticate via client_credentials by default
+
+Before (v3.x):
+
+```ts
+new AuthorizationServer(..., {
+  authenticateIntrospect: false,
+  authenticateRevoke: false,
+})
+```
+
+Before (v4.x):
+
+
+```ts
+new AuthorizationServer(..., {
+  authenticateIntrospect: true, // set to false to match 3.x
+  authenticateRevoke: true,     // set to false to match 3.x
+})
+```
+
+## To v3
 
 ### This package is now pure ESM
 
