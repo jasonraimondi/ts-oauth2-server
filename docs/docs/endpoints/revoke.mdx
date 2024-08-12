@@ -7,8 +7,9 @@ title: /token/revoke
 
 The `/token/revoke` endpoint is a back channel endpoint that revokes an existing token.
 
-:::tip
-This endpoint requires `TokenRepository#getByAccessToken` to be defined
+:::info
+- Implementing this endpoint is optional
+- This endpoint requires `TokenRepository#getByAccessToken` to be defined if using `token_type_hint=access_token`
 :::
 
 ```ts
@@ -21,6 +22,19 @@ app.post("/token/revoke", async (req: Express.Request, res: Express.Response) =>
     return;
   }
 });
+```
+
+### Configure
+
+Client credentials authentication is enabled by default. To disable, set `authenticateRevoke` to `false`.
+
+```ts
+const authoriztionServer = new AuthorizationServer(
+  ...,
+  {
+    authenticateRevoke: false,
+  }
+);
 ```
 
 ### Request
@@ -55,6 +69,23 @@ You can authenticate by passing the `client_id` and `client_secret` as a query s
       Host: example.com
       Content-Type: application/x-www-form-urlencoded
       Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
+
+      token=xxxxxxxxxx
+      &token_type_hint=refresh_token
+      ```
+    </TabItem>
+
+    <TabItem value="authenticateRevoke" label="authenticateRevoke = false">
+      ```ts
+      new AuthorizationServer(..., {
+        authenticateRevoke: false,
+      })
+      ```
+
+      ```http request []
+      POST /token/revoke HTTP/1.1
+      Host: example.com
+      Content-Type: application/x-www-form-urlencoded
 
       token=xxxxxxxxxx
       &token_type_hint=refresh_token

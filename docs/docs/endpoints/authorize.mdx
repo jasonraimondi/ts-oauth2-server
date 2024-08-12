@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 title: /authorize
 ---
 
@@ -8,11 +8,11 @@ title: /authorize
 The `/authorize` endpoint is a front channel endpoint that initiates the authorization process and issues an authorization code. This code can then be exchanged at the `/token` endpoint for a usable access token.
 
 :::info
+- This endpoint is only necessary if you are implementing the Authorization Code Grant.
 
 - The authorization endpoint should only support the GET method for the initial request. The user agent should be redirected to the authorization page.
 
 - The URL `/authorize` can be customized, some other common urls are: `/oauth/authorize`, `/v1/authorize`, etc.
-
 :::
 
 ## Purpose

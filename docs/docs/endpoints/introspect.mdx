@@ -7,8 +7,9 @@ title: /token/introspect
 
 The `/token/introspect` endpoint is a back channel endpoint that revokes an existing token. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect `token_type_hint=access_token`.
 
-:::tip
-This endpoint requires `TokenRepository#getByAccessToken` to be defined
+:::info
+- Implementing this endpoint is optional
+- This endpoint requires `TokenRepository#getByAccessToken` to be defined if using `token_type_hint=access_token`
 :::
 
 ```ts
@@ -21,6 +22,19 @@ app.post("/token/introspect", async (req: Express.Request, res: Express.Response
     return;
   }
 });
+```
+
+### Configure
+
+Client credentials authentication is enabled by default. To disable, set `authenticateIntrospect` to `false`.
+
+```ts
+const authoriztionServer = new AuthorizationServer(
+  ...,
+  {
+    authenticateIntrospect: false,
+  }
+);
 ```
 
 ### Request
@@ -61,6 +75,22 @@ You can authenticate by passing the `client_id` and `client_secret` as a query s
       ```
     </TabItem>
 
+    <TabItem value="authenticateIntrospect" label="authenticateIntrospect = false">
+      ```ts
+      new AuthorizationServer(..., {
+        authenticateIntrospect: false,
+      })
+      ```
+
+      ```http request []
+      POST /token/introspect HTTP/1.1
+      Host: example.com
+      Content-Type: application/x-www-form-urlencoded
+
+      token=xxxxxxxxxx
+      &token_type_hint=refresh_token
+      ```
+    </TabItem>
   </Tabs>
 </details>
 
