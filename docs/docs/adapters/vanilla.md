@@ -40,7 +40,7 @@ app.post('/oauth2/token', async (c) => {
   const authorizationServer = c.get("authorization_server");
   
   const oauthResponse = await authorizationServer
-    .respondToAccessTokenRequest(requestFromVanilla(request))
+    .respondToAccessTokenRequest(await requestFromVanilla(request))
     .catch(e => {
       error(400, e.message);
     });
