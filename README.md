@@ -49,7 +49,8 @@ Example implementations:
 | [3.x][version3] | :tada:         | :tada:           |
 | [2.x][version2] |                | :tada:           |
 
-[version3]: https://github.com/jasonraimondi/ts-oauth2-server/tree/main
+[version4]: https://github.com/jasonraimondi/ts-oauth2-server/tree/main
+[version3]: https://github.com/jasonraimondi/ts-oauth2-server/tree/3.x
 [version2]: https://github.com/jasonraimondi/ts-oauth2-server/tree/2.x
 
 ## Migration Guide
