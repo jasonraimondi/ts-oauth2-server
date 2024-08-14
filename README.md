@@ -55,7 +55,8 @@ Example implementations:
 ## Migration Guide
 
 - [v1 to v2](https://github.com/jasonraimondi/ts-oauth2-server/releases/tag/v2.0.0)
-- [v2 to v3](https://tsoauth2server.com/migration/v2_to_v3.html) 
+- [v2 to v3](https://tsoauth2server.com/docs/upgrade_guide#to-v3) 
+- [v3 to v4](https://tsoauth2server.com/docs/upgrade_guide#to-v4) 
 
 ## Thanks
 
