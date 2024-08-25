@@ -16,6 +16,7 @@ export * from "./responses/response.js";
 export * from "./code_verifiers/verifier.js";
 export * from "./utils/base64.js";
 export * from "./utils/date_interval.js";
+export * from "./utils/errors.js";
 export * from "./utils/jwt.js";
 export * from "./utils/time.js";
 export * from "./utils/token.js";
