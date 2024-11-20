@@ -76,7 +76,7 @@ In v3, `enableGrantType` has been updated for the **"authorization_code"** and *
 
 #### Authorization Code Grant
 
-`AuthorizationCodeGrant` now requires a [AuthorizationCodeRepository](./getting_started/repositories.mdx#auth-code-repository) and a [UserRepository](./getting_started/repositories.mdx#user-repository).
+`AuthCodeGrant` now requires a [`authCodeRepository`](./getting_started/repositories.mdx#auth-code-repository) and a [`userRepository`](./getting_started/repositories.mdx#user-repository).
 
 **Before (v2.x):**
 
@@ -90,13 +90,13 @@ authorizationServer.enableGrantType("authorization_code");
 authorizationServer.enableGrantType({
   grant: "authorization_code",
   userRepository,
-  authorizationCodeRepository,
+  authCodeRepository,
 });
 ```
 
 #### Password Grant
 
-`PasswordGrant` now requires a [UserRepository](./getting_started/repositories.mdx#user-repository).
+`PasswordGrant` now requires a [`userRepository`](./getting_started/repositories.mdx#user-repository).
 
 **Before (v2.x):**
 

@@ -38,12 +38,12 @@ authorizationServer.enableGrantType("refresh_token");
 authorizationServer.enableGrantType({
   grant: "authorization_code",
   userRepository,
-  authorizationCodeRepository,
+  authCodeRepository,
 });
 // any other grant types you want to enable
 ```
 
-Note that the Authorization Code grant requires additional repositories: `userRepository` and `authorizationCodeRepository`.
+Note that the Authorization Code grant requires additional repositories: `userRepository` and `authCodeRepository`.
 
 ### Example: Enabling Multiple Grant Types
 
@@ -63,7 +63,7 @@ authorizationServer.enableGrantType("refresh_token");
 authorizationServer.enableGrantType({
   grant: "authorization_code",
   userRepository,
-  authorizationCodeRepository,
+  authCodeRepository,
 });
 ```
 
