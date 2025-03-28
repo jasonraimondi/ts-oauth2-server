@@ -14,15 +14,19 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const bodyScopes = this.getRequestParameter("scope", req, []);
 
-    const validScopes = await this.validateScopes(bodyScopes);
+    const finalizedScopes = await this.scopeRepository.finalize(
+      await this.validateScopes(bodyScopes),
+      this.identifier,
+      client,
+    );
 
     const user = undefined;
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, validScopes);
+    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, finalizedScopes);
 
     const jwtExtras = await this.extraJwtFields(req, client, user);
 
-    return await this.makeBearerTokenResponse(client, accessToken, validScopes, jwtExtras);
+    return await this.makeBearerTokenResponse(client, accessToken, finalizedScopes, jwtExtras);
   }
 
   canRespondToIntrospectRequest(_request: RequestInterface): boolean {
