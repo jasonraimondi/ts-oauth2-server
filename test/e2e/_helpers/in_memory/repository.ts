@@ -43,7 +43,7 @@ export const inMemoryScopeRepository: OAuthScopeRepository = {
     client: OAuthClient,
     _user_id?: string,
   ): Promise<OAuthScope[]> {
-    guardAgainstInvalidClientScopes(scopes, client);
+    guardAgainstInvalidClientScopes(client, scopes);
 
     return scopes;
   },
