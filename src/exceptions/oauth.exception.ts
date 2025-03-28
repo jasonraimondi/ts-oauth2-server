@@ -91,7 +91,7 @@ export class OAuthException extends Error {
    */
   static unauthorizedScope(scope: string, redirectUri?: string): OAuthException {
     const message = "Unauthorized scope requested by the client";
-    return new OAuthException(message, ErrorType.UnauthorizedScope, scope, redirectUri);
+    return new OAuthException(message, ErrorType.UnauthorizedScope, scope, redirectUri, HttpStatus.UNAUTHORIZED);
   }
 
   /**
@@ -100,7 +100,13 @@ export class OAuthException extends Error {
    * for the other apps.
    */
   static unauthorizedClient(): OAuthException {
-    return new OAuthException(`unauthorized client`, ErrorType.UnauthorizedClient);
+    return new OAuthException(
+      `unauthorized client`,
+      ErrorType.UnauthorizedClient,
+      undefined,
+      undefined,
+      HttpStatus.UNAUTHORIZED,
+    );
   }
 
   /**
