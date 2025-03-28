@@ -64,13 +64,19 @@ describe("client_credentials grant", () => {
   beforeEach(() => {
     request = new OAuthRequest();
 
+    const scope1 = { name: "scope-1" };
+    const scope2 = { name: "scope-2" };
+
+    inMemoryDatabase.scopes["scope-1"] = scope1;
+    inMemoryDatabase.scopes["scope-2"] = scope2;
+
     client = {
       id: "1",
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["client_credentials"],
-      scopes: [],
+      scopes: [scope1, scope2],
     };
 
     grant = createGrant({
@@ -147,8 +153,6 @@ describe("client_credentials grant", () => {
 
   it("successfully grants using body with scopes", async () => {
     // arrange
-    inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
-    inMemoryDatabase.scopes["scope-2"] = { name: "scope-2" };
     request = new OAuthRequest({
       body: {
         grant_type: "client_credentials",

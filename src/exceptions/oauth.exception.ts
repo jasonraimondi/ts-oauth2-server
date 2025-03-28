@@ -11,6 +11,7 @@ export enum ErrorType {
   InvalidClient = "invalid_client",
   InvalidGrant = "invalid_grant",
   InvalidScope = "invalid_scope",
+  UnauthorizedScope = "unauthorized_scope",
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
   UnsupportedTokenType = "unsupported_token_type",
@@ -83,6 +84,14 @@ export class OAuthException extends Error {
       hint = `Check the \`${scope}\` scope(s)`;
     }
     return new OAuthException(message, ErrorType.InvalidScope, hint, redirectUri);
+  }
+
+  /**
+   * When a client requests a scope that is not allowed for its client.
+   */
+  static unauthorizedScope(scope: string, redirectUri?: string): OAuthException {
+    const message = "Unauthorized scope requested by the client";
+    return new OAuthException(message, ErrorType.UnauthorizedScope, scope, redirectUri);
   }
 
   /**
