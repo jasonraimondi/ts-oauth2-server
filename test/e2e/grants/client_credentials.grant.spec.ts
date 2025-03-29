@@ -10,6 +10,7 @@ import {
   JwtService,
   OAuthClient,
   OAuthRequest,
+  OAuthScope,
   REGEX_ACCESS_TOKEN,
   ResponseInterface,
 } from "../../../src/index.js";
@@ -63,13 +64,19 @@ describe("client_credentials grant", () => {
   beforeEach(() => {
     request = new OAuthRequest();
 
+    const scope1 = { name: "scope-1" };
+    const scope2 = { name: "scope-2" };
+
+    inMemoryDatabase.scopes["scope-1"] = scope1;
+    inMemoryDatabase.scopes["scope-2"] = scope2;
+
     client = {
       id: "1",
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
       allowedGrants: ["client_credentials"],
-      scopes: [],
+      scopes: [scope1, scope2],
     };
 
     grant = createGrant({
@@ -146,8 +153,6 @@ describe("client_credentials grant", () => {
 
   it("successfully grants using body with scopes", async () => {
     // arrange
-    inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
-    inMemoryDatabase.scopes["scope-2"] = { name: "scope-2" };
     request = new OAuthRequest({
       body: {
         grant_type: "client_credentials",
@@ -172,6 +177,47 @@ describe("client_credentials grant", () => {
     expect(decodedToken.aud).toStrictEqual(["test-audience", "test-audience-2"]);
     expect(tokenResponse.body.refresh_token).toBeUndefined();
     expect(tokenResponse.body.scope).toBe("scope-1 scope-2");
+  });
+
+  it("throws when token requests scope that client should not be able to access", async () => {
+    const scope: OAuthScope = {
+      id: "1",
+      name: "scope-1",
+    };
+    const scope2: OAuthScope = {
+      id: "2",
+      name: "scope-2",
+    };
+    client = {
+      id: "1",
+      name: "test client",
+      secret: "super-secret-secret",
+      redirectUris: ["http://localhost"],
+      allowedGrants: ["client_credentials"],
+      scopes: [scope],
+    };
+    inMemoryDatabase.scopes[scope.id] = scope;
+    inMemoryDatabase.scopes[scope2.id] = scope2;
+    inMemoryDatabase.clients[client.id] = client;
+
+    // arrange
+    const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+    request = new OAuthRequest({
+      headers: {
+        authorization: basicAuth,
+      },
+      body: {
+        grant_type: "client_credentials",
+        scope: "scope-2",
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
+
+    // assert
+    await expect(tokenResponse).rejects.toThrowError(/Unauthorized scope requested by the client: scope-2/);
   });
 
   it("throws for invalid scope", async () => {

@@ -11,6 +11,7 @@ export enum ErrorType {
   InvalidClient = "invalid_client",
   InvalidGrant = "invalid_grant",
   InvalidScope = "invalid_scope",
+  UnauthorizedScope = "unauthorized_scope",
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
   UnsupportedTokenType = "unsupported_token_type",
@@ -86,12 +87,26 @@ export class OAuthException extends Error {
   }
 
   /**
+   * When a client requests a scope that is not allowed for its client.
+   */
+  static unauthorizedScope(scope: string, redirectUri?: string): OAuthException {
+    const message = "Unauthorized scope requested by the client";
+    return new OAuthException(message, ErrorType.UnauthorizedScope, scope, redirectUri, HttpStatus.UNAUTHORIZED);
+  }
+
+  /**
    * This client is not authorized to use the requested grant type. For example, if you
    * restrict which applications can use the Implicit grant, you would return this error
    * for the other apps.
    */
   static unauthorizedClient(): OAuthException {
-    return new OAuthException(`unauthorized client`, ErrorType.UnauthorizedClient);
+    return new OAuthException(
+      `unauthorized client`,
+      ErrorType.UnauthorizedClient,
+      undefined,
+      undefined,
+      HttpStatus.UNAUTHORIZED,
+    );
   }
 
   /**

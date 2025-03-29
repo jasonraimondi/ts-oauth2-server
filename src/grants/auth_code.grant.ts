@@ -87,7 +87,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         client,
         userId,
       );
-      finalizedScopes.forEach(scope => scopes.push(scope));
+      scopes.push(...finalizedScopes);
     } catch (_) {
       throw OAuthException.invalidParameter("code", "Cannot verify scopes");
     }

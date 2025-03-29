@@ -9,6 +9,7 @@ import { OAuthAuthCodeRepository } from "../../../../src/repositories/auth_code.
 import { OAuthClientRepository } from "../../../../src/repositories/client.repository.js";
 import { OAuthScopeRepository } from "../../../../src/repositories/scope.repository.js";
 import { OAuthUserRepository } from "../../../../src/repositories/user.repository.js";
+import { guardAgainstInvalidClientScopes } from "../../../../src/utils/scopes.js";
 import { DateInterval } from "../../../../src/utils/date_interval.js";
 import { inMemoryDatabase } from "./database.js";
 
@@ -39,9 +40,11 @@ export const inMemoryScopeRepository: OAuthScopeRepository = {
   async finalize(
     scopes: OAuthScope[],
     _identifier: GrantIdentifier,
-    _client: OAuthClient,
+    client: OAuthClient,
     _user_id?: string,
   ): Promise<OAuthScope[]> {
+    guardAgainstInvalidClientScopes(client, scopes);
+
     return scopes;
   },
 };
