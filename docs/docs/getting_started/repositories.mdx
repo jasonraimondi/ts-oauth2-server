@@ -69,8 +69,8 @@ interface OAuthScopeRepository {
   getAllByIdentifiers(scopeNames: string[]): Promise<OAuthScope[]>;
 
   // This method is called right before an access token or authorization code is created.
-  // Validate the set of scopes requested are valid for the current client, and optionally
-  // append additional scopes or remove requested scopes.
+  // Here you can validate the set of scopes requested are valid for the current client,
+  // and optionally append additional scopes or remove requested scopes.
   finalize(
     scopes: OAuthScope[],
     identifier: GrantIdentifier,
