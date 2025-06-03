@@ -37,7 +37,7 @@ export function handleFastifyReply(res: FastifyReply, response: OAuthResponse): 
   if (response.status === 302) {
     if (!response.headers.location) throw new Error("missing redirect location");
     res.headers(response.headers);
-    res.redirect(response.headers.location);
+    res.redirect(response.headers.location, response.status);
   } else {
     res.headers(response.headers);
     res.status(response.status).send(response.body);
