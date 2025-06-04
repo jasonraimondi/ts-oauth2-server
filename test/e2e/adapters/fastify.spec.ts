@@ -94,7 +94,7 @@ describe("adapters/fastify.js", () => {
       handleFastifyReply(mockFastifyReply, mockOAuthResponse);
 
       expect(mockFastifyReply.headers).toHaveBeenCalledWith(mockOAuthResponse.headers);
-      expect(mockFastifyReply.redirect).toHaveBeenCalledWith("https://example.com");
+      expect(mockFastifyReply.redirect).toHaveBeenCalledWith("https://example.com", 302);
     });
 
     it("should handle non-redirect responses", () => {
