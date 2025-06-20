@@ -42,10 +42,10 @@ export async function requestFromVanilla(req: Request): Promise<OAuthRequest> {
   const contentType = headers['content-type'];
 
   if (req.body) {
-    if (contentType === 'application/x-www-form-urlencoded') {
+    if (contentType === "application/x-www-form-urlencoded") {
       body = Object.fromEntries(new URLSearchParams(await req.text()));
-    } else if (contentType === 'application/json') {
-      body = await req.json() as Record<string, unknown>;
+    } else if (contentType === "application/json") {
+      body = (await req.json()) as Record<string, unknown>;
     }
   }
 

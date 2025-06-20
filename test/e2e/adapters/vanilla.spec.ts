@@ -88,16 +88,16 @@ describe("adapters/vanilla.js", () => {
         method: "POST",
         duplex: "half",
         headers: new Headers({
-          "content-type": "application/x-www-form-urlencoded"
+          "content-type": "application/x-www-form-urlencoded",
         }),
-        body: 'key1=value1&key2=value2',
+        body: "key1=value1&key2=value2",
       } as RequestInit);
 
       const result = await requestFromVanilla(mockRequest);
 
       expect(result.body).toEqual({
         key1: "value1",
-        key2: "value2"
+        key2: "value2",
       });
     });
 
@@ -106,7 +106,7 @@ describe("adapters/vanilla.js", () => {
         headers: new Headers({
           "content-type": "application/json",
           "x-custom-header": "custom-value",
-        })
+        }),
       });
 
       const result = await requestFromVanilla(mockRequest);
@@ -125,7 +125,7 @@ describe("adapters/vanilla.js", () => {
         method: "POST",
         duplex: "half",
         headers: new Headers({
-          "content-type": "application/json"
+          "content-type": "application/json",
         }),
         body: mockStream,
       } as RequestInit);
