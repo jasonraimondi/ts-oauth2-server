@@ -39,7 +39,8 @@ export async function requestFromVanilla(req: Request): Promise<OAuthRequest> {
   const headers: Record<string, unknown> = Object.fromEntries(req.headers);
 
   let body: Record<string, unknown> = {};
-  const contentType = headers['content-type'];
+  const rawContentType = req.headers.get("content-type") || "";
+  const contentType = rawContentType.split(";")[0].trim();
 
   if (req.body) {
     if (contentType === "application/x-www-form-urlencoded") {
