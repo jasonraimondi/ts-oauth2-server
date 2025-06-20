@@ -60,14 +60,15 @@ describe("adapters/vanilla.js", () => {
     let mockRequest: Request;
 
     beforeEach(() => {
-      mockRequest = {
-        url: "https://example.com/path?param1=value1&param2=value2",
+      mockRequest = new Request("https://example.com/path?param1=value1&param2=value2", {
+        method: "POST",
+        duplex: "half",
         headers: new Headers({
           "content-type": "application/json",
           "x-custom-header": "custom-value",
         }),
         body: JSON.stringify({ key: "value" }),
-      } as unknown as Request;
+      } as RequestInit);
     });
 
     it("should create an OAuthRequest from a vanilla Request", async () => {
@@ -82,15 +83,31 @@ describe("adapters/vanilla.js", () => {
       });
     });
 
+    it("should handle requests of type application/x-www-form-urlencoded", async () => {
+      mockRequest = new Request("https://example.com/path?param1=value1&param2=value2", {
+        method: "POST",
+        duplex: "half",
+        headers: new Headers({
+          "content-type": "application/x-www-form-urlencoded"
+        }),
+        body: 'key1=value1&key2=value2',
+      } as RequestInit);
+
+      const result = await requestFromVanilla(mockRequest);
+
+      expect(result.body).toEqual({
+        key1: "value1",
+        key2: "value2"
+      });
+    });
+
     it("should handle requests without body", async () => {
-      mockRequest = {
-        url: "https://example.com/path?param1=value1&param2=value2",
+      mockRequest = new Request("https://example.com/path?param1=value1&param2=value2", {
         headers: new Headers({
           "content-type": "application/json",
           "x-custom-header": "custom-value",
-        }),
-        body: null,
-      } as unknown as Request;
+        })
+      });
 
       const result = await requestFromVanilla(mockRequest);
 
@@ -104,11 +121,14 @@ describe("adapters/vanilla.js", () => {
           controller.close();
         },
       });
-      mockRequest = {
-        url: "https://example.com/path?param1=value1&param2=value2",
-        headers: new Headers(),
+      mockRequest = new Request("https://example.com/path?param1=value1&param2=value2", {
+        method: "POST",
+        duplex: "half",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
         body: mockStream,
-      } as unknown as Request;
+      } as RequestInit);
 
       const result = await requestFromVanilla(mockRequest);
 
