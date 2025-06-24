@@ -13,7 +13,7 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     const oldToken = await this.validateOldRefreshToken(req, client.id);
 
-    const user = oldToken.user;
+    const user = oldToken.user ?? null;
 
     const scopes = await this.scopeRepository.finalize(
       await this.validateScopes(
@@ -41,7 +41,7 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     newToken = await this.issueRefreshToken(newToken, client);
 
-    const extraJwtFields = await this.extraJwtFields(req, client);
+    const extraJwtFields = await this.extraJwtFields(req, client, user);
 
     return await this.makeBearerTokenResponse(client, newToken, scopes, extraJwtFields);
   }

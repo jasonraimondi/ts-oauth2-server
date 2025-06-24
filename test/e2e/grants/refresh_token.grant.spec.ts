@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi} from "vitest";
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
@@ -12,6 +12,7 @@ import {
   OAuthRequest,
   OAuthScope,
   OAuthToken,
+  OAuthUser,
   RefreshTokenGrant,
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
@@ -29,6 +30,7 @@ function createGrant() {
 }
 
 describe("refresh_token grant", () => {
+  let user: OAuthUser;
   let client: OAuthClient;
   let accessToken: OAuthToken;
   let scope1: OAuthScope;
@@ -51,11 +53,15 @@ describe("refresh_token grant", () => {
       allowedGrants: ["refresh_token"],
       scopes: [scope1, scope2],
     };
+    user = {
+      id: "mock-user-id",
+    };
     accessToken = {
       accessToken: "176fa0a5-acc7-4ef7-8ff3-17cace20f83e",
       accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
       refreshToken: "8a0d01db-4da7-4250-8f18-f6c096b1912e",
       refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
+      user,
       client,
       scopes: [scope1, scope2],
     };
@@ -81,6 +87,9 @@ describe("refresh_token grant", () => {
     });
     const accessTokenTTL = new DateInterval("1h");
 
+
+    const extraJwtFieldsSpy = vi.spyOn(grant as any, 'extraJwtFields');
+
     // act
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
@@ -88,6 +97,7 @@ describe("refresh_token grant", () => {
     expectTokenResponse(tokenResponse);
     expect(tokenResponse.body.scope).toBe("scope-1");
     expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
+    expect(extraJwtFieldsSpy).toHaveBeenCalledWith(request, client, user);
   });
 
   it("successful without scope", async () => {
