@@ -179,7 +179,7 @@ export abstract class AbstractGrant implements GrantInterface {
     return [clientId, clientSecret];
   }
 
-  protected getBasicAuthCredentials(request: RequestInterface): [undefined, undefined] | [string, string] {
+  protected getBasicAuthCredentials(request: RequestInterface): [undefined, undefined] | [string, string | undefined] {
     if (!request.headers?.hasOwnProperty("authorization")) {
       return [undefined, undefined];
     }
@@ -198,11 +198,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
     const [type = undefined, token = undefined] = decoded.split(":");
 
-    if (type && token) {
-      return [type, token];
-    }
-
-    return [undefined, undefined];
+    return type ? [type, token] : [undefined, undefined];
   }
 
   protected async validateScopes(

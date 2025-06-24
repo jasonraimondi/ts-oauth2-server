@@ -275,4 +275,30 @@ describe("client_credentials grant", () => {
     // assert
     await expect(tokenResponse).rejects.toThrowError(/Check the `grant_type` parameter/);
   });
+
+  it("allows authentication with empty string client secret", async () => {
+    // arrange
+    const clientWithEmptySecret = {
+      ...client,
+      secret: "",
+    };
+    inMemoryDatabase.clients[client.id] = clientWithEmptySecret;
+
+    request = new OAuthRequest({
+      body: {
+        grant_type: "client_credentials",
+        client_id: client.id,
+        client_secret: "",
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
+
+    // assert
+    const decodedToken = expectTokenResponse(tokenResponse);
+    expect(decodedToken.cid).toBe(client.id);
+    expect(tokenResponse.body.refresh_token).toBeUndefined();
+  });
 });

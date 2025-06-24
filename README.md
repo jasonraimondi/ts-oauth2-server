@@ -36,6 +36,38 @@ The included adapters are just helper functions, any framework should be support
 - [Express](https://tsoauth2server.com/docs/adapters/express)
 - [Fastify](https://tsoauth2server.com/docs/adapters/fastify). 
 
+### Usage
+
+A example using client credentials grant
+
+```ts
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  "secret-key",
+);
+authorizationServer.enableGrantType("client_credentials");
+
+app.post("/token", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+  }
+});
+
+app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
+  try {
+    const oauthResponse = await authorizationServer.revoke(req);
+    return handleExpressResponse(res, oauthResponse);
+  } catch (e) {
+    handleExpressError(e, res);
+  }
+});
+```
+
 Example implementations:
 
 - [Simple](./example)
