@@ -313,7 +313,7 @@ export abstract class AbstractGrant implements GrantInterface {
   protected async extraJwtFields(
     req: RequestInterface,
     client: OAuthClient,
-    user?: OAuthUser,
+    user?: OAuthUser | null,
   ): Promise<ExtraAccessTokenFields> {
     const extraJwtFields = await this.jwt.extraTokenFields?.({ user, client });
     const aud: string[] | string | undefined =
