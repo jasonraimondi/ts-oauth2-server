@@ -43,13 +43,8 @@ jobs:
           CI: true
           DOMAIN: localhost
           JWT_SECRET: testing-access-token-secret
-      - name: report coverage to code climate
-        # code coverage report will only run on the main branch and not on pull request
+      - name: Upload coverage reports to Codecov
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.node-version == '20.x' }}
-        run: |
-          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-          chmod +x ./cc-test-reporter
-          ./cc-test-reporter format-coverage -t lcov coverage/lcov.info
-          ./cc-test-reporter upload-coverage
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
