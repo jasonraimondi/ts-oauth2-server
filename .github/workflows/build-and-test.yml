@@ -26,7 +26,7 @@ jobs:
     needs: [check_versions]
     strategy:
       matrix:
-        node-version: [ 20.x, 22.x ]
+        node-version: [ 20.x, 22.x, 24.x ]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -45,7 +45,7 @@ jobs:
           JWT_SECRET: testing-access-token-secret
       - name: report coverage to code climate
         # code coverage report will only run on the main branch and not on pull request
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.node-version == '20.x' }}
         run: |
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
