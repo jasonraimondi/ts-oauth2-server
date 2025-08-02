@@ -88,8 +88,10 @@ OAuthTokenRepository interface manages OAuth tokens. It contains methods for iss
 
 ```ts
 interface OAuthTokenRepository {
-  // An async call that should return an OAuthToken that has not been
-  // persisted to storage yet.
+  // Asynchronously issues a new OAuthToken for the given client, scopes, and optional user.
+  // The returned token should not be persisted yet.
+  // Note: The `accessTokenExpiresAt` and `refreshTokenExpiresAt` value set here will be replaced
+  //   by the authorization server using the TTL configured in `enableGrantType`.
   issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken>;
 
   // An async call that should persist an OAuthToken into your storage.
