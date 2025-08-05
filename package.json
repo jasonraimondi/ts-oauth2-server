@@ -108,6 +108,11 @@
     "splitting": false,
     "sourcemap": true,
     "minify": false,
-    "keepNames": true
+    "keepNames": true,
+    "dts": {
+      "compilerOptions": {
+        "removeComments": false
+      }
+    }
   }
 }
