@@ -106,6 +106,8 @@
     "clean": true,
     "dts": true,
     "splitting": false,
-    "sourcemap": true
+    "sourcemap": true,
+    "minify": false,
+    "keepNames": true
   }
 }
