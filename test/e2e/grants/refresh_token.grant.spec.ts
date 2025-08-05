@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   inMemoryAccessTokenRepository,
@@ -87,8 +87,7 @@ describe("refresh_token grant", () => {
     });
     const accessTokenTTL = new DateInterval("1h");
 
-
-    const extraJwtFieldsSpy = vi.spyOn(grant as any, 'extraJwtFields');
+    const extraJwtFieldsSpy = vi.spyOn(grant as any, "extraJwtFields");
 
     // act
     const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
