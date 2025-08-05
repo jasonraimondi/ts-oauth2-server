@@ -71,6 +71,12 @@ export type OAuthTokenIntrospectionResponse = {
   jti?: string;
 };
 
+/**
+ * The Authorization Server is the core component of the OAuth 2.0 framework.
+ * It is responsible for authenticating resource owners and issuing access tokens to clients.
+ *
+ * @see https://tsoauth2server.com/authorization_server/
+ */
 export class AuthorizationServer {
   public readonly enabledGrantTypes: Record<string, GrantInterface> = {};
   public readonly grantTypeAccessTokenTTL: Record<string, DateInterval> = {};
@@ -85,6 +91,26 @@ export class AuthorizationServer {
   private readonly options: AuthorizationServerOptions = DEFAULT_AUTHORIZATION_SERVER_OPTIONS;
   private readonly jwt: JwtInterface;
 
+  /**
+   * Creates an instance of the AuthorizationServer.
+   *
+   * @param clientRepository - Repository for managing OAuth clients
+   * @param tokenRepository - Repository for managing access tokens
+   * @param scopeRepository - Repository for managing OAuth scopes
+   * @param serviceOrString - JWT service instance or secret key string for signing tokens
+   * @param options - Optional configuration options for the authorization server
+   *
+   * @example
+   * ```ts
+   * const authorizationServer = new AuthorizationServer(
+   *   clientRepository,
+   *   accessTokenRepository,
+   *   scopeRepository,
+   *   "secret-key",
+   *   { requiresPKCE: true }
+   * );
+   * ```
+   */
   constructor(
     private readonly clientRepository: OAuthClientRepository,
     private readonly tokenRepository: OAuthTokenRepository,
@@ -109,6 +135,20 @@ export class AuthorizationServer {
     this.enableGrantTypes("client_credentials", "refresh_token");
   }
 
+  /**
+   * Enables multiple grant types on the authorization server.
+   *
+   * @param grants - Array of grant types to enable
+   *
+   * @example
+   * ```ts
+   * authorizationServer.enableGrantTypes(
+   *   "client_credentials",
+   *   "refresh_token",
+   *   { grant: "authorization_code", userRepository, authCodeRepository }
+   * );
+   * ```
+   */
   enableGrantTypes(...grants: EnableGrant[]): void {
     for (const grant of grants) {
       if (Array.isArray(grant)) {
@@ -120,6 +160,28 @@ export class AuthorizationServer {
     }
   }
 
+  /**
+   * Enables a specific grant type on the authorization server.
+   * By default, no grant types are enabled when creating an AuthorizationServer.
+   * Each grant type must be explicitly enabled using this method.
+   *
+   * @param toEnable - The grant type to enable
+   * @param accessTokenTTL - Time-to-live for access tokens (defaults to 1 hour)
+   *
+   * @example
+   * ```ts
+   * // Enable simple grant types
+   * authorizationServer.enableGrantType("client_credentials");
+   * authorizationServer.enableGrantType("refresh_token");
+   *
+   * // Enable authorization code grant with required repositories
+   * authorizationServer.enableGrantType({
+   *   grant: "authorization_code",
+   *   userRepository,
+   *   authCodeRepository,
+   * });
+   * ```
+   */
   enableGrantType(toEnable: EnableGrant, accessTokenTTL: DateInterval = new DateInterval("1h")): void {
     if (Array.isArray(toEnable)) {
       const [grantType, ttl] = toEnable;
@@ -176,6 +238,26 @@ export class AuthorizationServer {
     this.grantTypeAccessTokenTTL[grant.identifier] = accessTokenTTL;
   }
 
+  /**
+   * Handles requests to the `/token` endpoint and issues access tokens.
+   * This is a back-channel endpoint that supports multiple grant types.
+   *
+   * @param req - The incoming HTTP request
+   * @returns A promise that resolves to an OAuth response with the access token
+   * @throws {OAuthException} When the grant type is not supported or the request is invalid
+   *
+   * @example
+   * ```ts
+   * app.post("/token", async (req, res) => {
+   *   try {
+   *     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+   *     return handleExpressResponse(res, oauthResponse);
+   *   } catch (e) {
+   *     handleExpressError(e, res);
+   *   }
+   * });
+   * ```
+   */
   respondToAccessTokenRequest(req: RequestInterface): Promise<ResponseInterface> {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (!grantType.canRespondToAccessTokenRequest(req)) {
@@ -188,6 +270,24 @@ export class AuthorizationServer {
     throw OAuthException.unsupportedGrantType();
   }
 
+  /**
+   * Validates the authorization request from the `/authorize` endpoint.
+   * This is the first step in the authorization code flow.
+   *
+   * @param req - The incoming HTTP request
+   * @returns A promise that resolves to an AuthorizationRequest object
+   * @throws {OAuthException} When the request is invalid or grant type is not supported
+   *
+   * @example
+   * ```ts
+   * app.get("/authorize", async (req, res) => {
+   *   const authRequest = await authorizationServer.validateAuthorizationRequest(
+   *     requestFromExpress(req)
+   *   );
+   *   // Handle user authentication and consent...
+   * });
+   * ```
+   */
   validateAuthorizationRequest(req: RequestInterface): Promise<AuthorizationRequest> {
     for (const grant of Object.values(this.enabledGrantTypes)) {
       if (grant.canRespondToAuthorizationRequest(req)) {
@@ -198,11 +298,49 @@ export class AuthorizationServer {
     throw OAuthException.unsupportedGrantType();
   }
 
+  /**
+   * Completes the authorization request and issues an authorization code.
+   * This should be called after the user has been authenticated and has approved the authorization.
+   *
+   * @param authorizationRequest - The authorization request with user and approval status set
+   * @returns A promise that resolves to an OAuth response with the authorization code
+   *
+   * @example
+   * ```ts
+   * // Set the authenticated user and approval status
+   * authRequest.user = req.user;
+   * authRequest.isAuthorizationApproved = true;
+   *
+   * // Complete the authorization
+   * const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
+   * return handleExpressResponse(res, oauthResponse);
+   * ```
+   */
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     const grant = this.enabledGrantTypes[authorizationRequest.grantTypeId];
     return await grant.completeAuthorizationRequest(authorizationRequest);
   }
 
+  /**
+   * Handles requests to the `/token/revoke` endpoint to revoke tokens.
+   * This endpoint revokes access tokens, refresh tokens, or authorization codes.
+   *
+   * @param req - The incoming HTTP request containing the token to revoke
+   * @returns A promise that resolves to an OAuth response
+   * @throws {OAuthException} When the request is invalid or grant type doesn't support revocation
+   *
+   * @example
+   * ```ts
+   * app.post("/token/revoke", async (req, res) => {
+   *   try {
+   *     const oauthResponse = await authorizationServer.revoke(req);
+   *     return handleExpressResponse(res, oauthResponse);
+   *   } catch (e) {
+   *     handleExpressError(e, res);
+   *   }
+   * });
+   * ```
+   */
   async revoke(req: RequestInterface): Promise<ResponseInterface> {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (grantType.canRespondToRevokeRequest(req)) {
@@ -213,6 +351,27 @@ export class AuthorizationServer {
     throw OAuthException.unsupportedGrantType();
   }
 
+  /**
+   * Handles requests to the `/token/introspect` endpoint to introspect tokens.
+   * This endpoint allows clients to query the authorization server to determine
+   * the active state and meta-information of a given token.
+   *
+   * @param req - The incoming HTTP request containing the token to introspect
+   * @returns A promise that resolves to an OAuth response with token information
+   * @throws {OAuthException} When the request is invalid or grant type doesn't support introspection
+   *
+   * @example
+   * ```ts
+   * app.post("/token/introspect", async (req, res) => {
+   *   try {
+   *     const oauthResponse = await authorizationServer.introspect(req);
+   *     return handleExpressResponse(res, oauthResponse);
+   *   } catch (e) {
+   *     handleExpressError(e, res);
+   *   }
+   * });
+   * ```
+   */
   async introspect(req: RequestInterface): Promise<ResponseInterface> {
     for (const grantType of Object.values(this.enabledGrantTypes)) {
       if (grantType.canRespondToIntrospectRequest(req)) {

@@ -14,7 +14,16 @@ export interface JwtInterface {
   extraTokenFields?(params: ExtraAccessTokenFieldArgs): ExtraAccessTokenFields | Promise<ExtraAccessTokenFields>;
 }
 
+/**
+ * JWT service implementation for handling JSON Web Tokens.
+ * Provides methods to sign, verify, and decode JWT tokens.
+ */
 export class JwtService implements JwtInterface {
+  /**
+   * Creates a new JWT service instance.
+   *
+   * @param secretOrPrivateKey - Secret key or private key for signing/verifying tokens
+   */
   constructor(private readonly secretOrPrivateKey: Secret) {}
 
   /**
