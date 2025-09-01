@@ -104,7 +104,6 @@
     ],
     "target": "node16",
     "clean": true,
-    "dts": true,
     "splitting": false,
     "sourcemap": true,
     "minify": false,
