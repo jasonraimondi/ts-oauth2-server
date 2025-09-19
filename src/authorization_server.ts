@@ -18,6 +18,7 @@ import { JwtInterface, JwtService } from "./utils/jwt.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
 import { AbstractGrant } from "./grants/abstract/abstract.grant.js";
+import { LoggerService } from "./utils/logger.js";
 
 /**
  * @see https://tsoauth2server.com/configuration/
@@ -32,6 +33,7 @@ export interface AuthorizationServerOptions {
   scopeDelimiter: string;
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
+  logger?: LoggerService;
 }
 
 export type EnableableGrants =
