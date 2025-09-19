@@ -1,10 +1,8 @@
 import { GrantIdentifier } from "../grants/abstract/grant.interface.js";
 import { OAuthScope } from "./scope.entity.js";
 
-export type OAuthClientIdentifier = string | number;
-
 export interface OAuthClient {
-  id: OAuthClientIdentifier;
+  id: string;
   name: string;
   secret?: string | null;
   redirectUris: string[];
