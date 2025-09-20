@@ -586,4 +586,134 @@ describe("authorization_code grant", () => {
       await expect(accessTokenResponse).rejects.toThrow(OAuthException);
     });
   });
+
+  describe("respond to revoke request", () => {
+    let authorizationRequest: AuthorizationRequest;
+    let authorizationCode: string;
+
+    beforeEach(async () => {
+      authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.user = user;
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = new URLSearchParams(redirectResponse.headers.location.split("?")[1]);
+      authorizationCode = String(authorizeResponseQuery.get("code"));
+    });
+
+    it("successfully revokes valid auth code", async () => {
+      request = new OAuthRequest({
+        body: {
+          token: authorizationCode,
+        },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    it("returns 200 for invalid token (silent failure per RFC 7009)", async () => {
+      request = new OAuthRequest({
+        body: {
+          token: "invalid-token",
+        },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    it("returns 200 for missing token parameter (silent failure per RFC 7009)", async () => {
+      request = new OAuthRequest({
+        body: {},
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    it("returns 200 for malformed JWT token (silent failure per RFC 7009)", async () => {
+      request = new OAuthRequest({
+        body: {
+          token: "not.a.jwt",
+        },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    describe("with client authentication", () => {
+      beforeEach(() => {
+        grant = createGrant({ authenticateRevoke: true });
+      });
+
+      it("successfully revokes when client owns the token", async () => {
+        client.secret = "secret123";
+        inMemoryDatabase.clients[client.id] = client;
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: `Basic ${Buffer.from(`${client.id}:${client.secret}`).toString("base64")}`,
+          },
+          body: {
+            token: authorizationCode,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+
+      it("returns 200 when client does not own the token (silent failure per RFC 7009)", async () => {
+        const otherClient = {
+          id: "other-client",
+          name: "other client",
+          secret: "other-secret",
+          redirectUris: ["http://example.com"],
+          allowedGrants: ["authorization_code"],
+          scopes: [],
+        };
+        inMemoryDatabase.clients[otherClient.id] = otherClient;
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: `Basic ${Buffer.from(`${otherClient.id}:${otherClient.secret}`).toString("base64")}`,
+          },
+          body: {
+            token: authorizationCode,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+
+      it("returns 200 when authentication required but not provided (silent failure)", async () => {
+        request = new OAuthRequest({
+          body: {
+            token: authorizationCode,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+    });
+  });
 });

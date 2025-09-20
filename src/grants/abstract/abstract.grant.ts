@@ -42,6 +42,7 @@ export interface ParsedAccessToken extends JwtPayload {
 }
 export interface ITokenData extends ParsedAccessToken {}
 export interface ParsedRefreshToken extends JwtPayload {
+  client_id: string;
   access_token_id: string;
   refresh_token_id: string;
 }

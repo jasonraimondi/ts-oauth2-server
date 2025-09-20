@@ -64,15 +64,53 @@ export class ClientCredentialsGrant extends AbstractGrant {
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
     req.body["grant_type"] = this.identifier;
 
-    if (this.options.authenticateRevoke) await this.validateClient(req);
-
-    let { oauthToken } = await this.tokenFromRequest(req);
-
-    // Invalid tokens do not cause an error response since the client cannot handle such an error.
+    // Silently ignore - per RFC 7009, invalid tokens should not cause error responses
     // @see https://datatracker.ietf.org/doc/html/rfc7009#section-2.2
-    if (oauthToken) await this.tokenRepository.revoke(oauthToken).catch();
+    const errorResponse = new OAuthResponse();
 
-    return new OAuthResponse();
+    let authenticatedClient;
+    if (this.options.authenticateRevoke) {
+      try {
+        authenticatedClient = await this.validateClient(req);
+      } catch (err) {
+        this.options.logger?.log(err);
+        return errorResponse;
+      }
+    }
+
+    let parsedToken;
+    let oauthToken;
+    try {
+      const tokenData = await this.tokenFromRequest(req);
+      parsedToken = tokenData.parsedToken;
+      oauthToken = tokenData.oauthToken;
+    } catch (err) {
+      this.options.logger?.log(err);
+      return errorResponse;
+    }
+
+    if (this.options.authenticateRevoke && authenticatedClient && parsedToken) {
+      const tokenClientId = this.options.tokenCID === "id" ? authenticatedClient.id : authenticatedClient.name;
+
+      if (this.isAccessTokenPayload(parsedToken) && parsedToken.cid !== tokenClientId) {
+        this.options.logger?.log("Token client ID does not match authenticated client");
+        return errorResponse;
+      }
+
+      if (this.isRefreshTokenPayload(parsedToken) && parsedToken.client_id !== authenticatedClient.id) {
+        this.options.logger?.log("Token client ID does not match authenticated client");
+        return errorResponse;
+      }
+    }
+
+    try {
+      if (oauthToken) await this.tokenRepository.revoke(oauthToken);
+    } catch (err) {
+      this.options.logger?.log(err);
+      // Silently ignore - per RFC 7009, invalid tokens should not cause error responses
+    }
+
+    return errorResponse;
   }
 
   private readonly revokeTokenTypeHintRegExp = /^(access_token|refresh_token|auth_code)$/;
