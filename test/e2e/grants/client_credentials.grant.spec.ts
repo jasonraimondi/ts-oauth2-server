@@ -301,4 +301,246 @@ describe("client_credentials grant", () => {
     expect(decodedToken.cid).toBe(client.id);
     expect(tokenResponse.body.refresh_token).toBeUndefined();
   });
+
+  describe("respond to revoke request", () => {
+    let accessToken: string;
+    let refreshToken: string;
+
+    beforeEach(async () => {
+      const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+      request = new OAuthRequest({
+        headers: {
+          authorization: basicAuth,
+        },
+        body: {
+          grant_type: "client_credentials",
+        },
+      });
+      const tokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+      accessToken = tokenResponse.body.access_token;
+      refreshToken = tokenResponse.body.refresh_token;
+    });
+
+    it("successfully revokes valid access token", async () => {
+      request = new OAuthRequest({
+        body: {
+          token: accessToken,
+        },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    it("returns 200 for invalid token (silent failure per RFC 7009)", async () => {
+      request = new OAuthRequest({
+        body: {
+          token: "invalid-token",
+        },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    it("returns 200 for missing token parameter (silent failure per RFC 7009)", async () => {
+      request = new OAuthRequest({
+        body: {},
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    it("returns 200 for malformed JWT token (silent failure per RFC 7009)", async () => {
+      request = new OAuthRequest({
+        body: {
+          token: "not.a.jwt",
+        },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({});
+    });
+
+    describe("with client authentication", () => {
+      beforeEach(() => {
+        grant = createGrant({ authenticateRevoke: true });
+      });
+
+      it("successfully revokes access token when client owns it", async () => {
+        const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+        request = new OAuthRequest({
+          headers: {
+            authorization: basicAuth,
+          },
+          body: {
+            grant_type: "client_credentials",
+          },
+        });
+        const tokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: basicAuth,
+          },
+          body: {
+            token: tokenResponse.body.access_token,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+
+      it("returns 200 when client does not own the access token (silent failure per RFC 7009)", async () => {
+        const otherClient = {
+          id: "other-client",
+          name: "other client",
+          secret: "other-secret",
+          redirectUris: ["http://localhost"],
+          allowedGrants: ["client_credentials"],
+          scopes: [],
+        };
+        inMemoryDatabase.clients[otherClient.id] = otherClient;
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: `Basic ${base64encode(`${otherClient.id}:${otherClient.secret}`)}`,
+          },
+          body: {
+            token: accessToken,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+
+      it("successfully revokes refresh token when client owns it with tokenCID=id", async () => {
+        grant = createGrant({ authenticateRevoke: true, tokenCID: "id" });
+
+        const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+        request = new OAuthRequest({
+          headers: {
+            authorization: basicAuth,
+          },
+          body: {
+            grant_type: "client_credentials",
+          },
+        });
+        const tokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+        // Create a mock refresh token with client_id
+        const mockRefreshToken = grant.jwt.sign({
+          client_id: client.id,
+          access_token_id: "test-access-token-id",
+          refresh_token_id: "test-refresh-token-id",
+        });
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: basicAuth,
+          },
+          body: {
+            token: mockRefreshToken,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+
+      it("returns 200 when client does not own the refresh token (silent failure per RFC 7009)", async () => {
+        grant = createGrant({ authenticateRevoke: true, tokenCID: "id" });
+
+        const otherClient = {
+          id: "other-client",
+          name: "other client",
+          secret: "other-secret",
+          redirectUris: ["http://localhost"],
+          allowedGrants: ["client_credentials"],
+          scopes: [],
+        };
+        inMemoryDatabase.clients[otherClient.id] = otherClient;
+
+        // Create a mock refresh token with different client_id
+        const mockRefreshToken = grant.jwt.sign({
+          client_id: client.id,
+          access_token_id: "test-access-token-id",
+          refresh_token_id: "test-refresh-token-id",
+        });
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: `Basic ${base64encode(`${otherClient.id}:${otherClient.secret}`)}`,
+          },
+          body: {
+            token: mockRefreshToken,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+
+      it("successfully revokes access token when client owns it with tokenCID=name", async () => {
+        grant = createGrant({ authenticateRevoke: true, tokenCID: "name" });
+
+        const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+        request = new OAuthRequest({
+          headers: {
+            authorization: basicAuth,
+          },
+          body: {
+            grant_type: "client_credentials",
+          },
+        });
+        const tokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: basicAuth,
+          },
+          body: {
+            token: tokenResponse.body.access_token,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+
+      it("returns 200 when authentication required but not provided (silent failure)", async () => {
+        request = new OAuthRequest({
+          body: {
+            token: accessToken,
+          },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+      });
+    });
+  });
 });

@@ -525,7 +525,7 @@ describe("authorization_server", () => {
 
   describe("#revoke", () => {
     let client: OAuthClient = {
-      id: "1",
+      id: "16c11812-89da-4d68-9e9c-7715323e34f5",
       name: "test client",
       secret: "super-secret-secret",
       redirectUris: ["http://localhost"],
@@ -591,10 +591,12 @@ describe("authorization_server", () => {
         });
       });
 
-      it("throws when missing client id and secret", async () => {
+      it("returns 200 when missing client id and secret (silent failure per RFC 7009)", async () => {
         request.body = {};
 
-        await expect(authorizationServer.revoke(request)).rejects.toThrowError(/Check the `client_id` parameter/i);
+        const response = await authorizationServer.revoke(request);
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
       });
     });
 
@@ -607,12 +609,12 @@ describe("authorization_server", () => {
         });
       });
 
-      it("throws when missing token param", async () => {
+      it("returns 200 when missing token param (silent failure per RFC 7009)", async () => {
         request.body = { grant_type: "client_credentials" };
 
-        await expect(authorizationServer.revoke(request)).rejects.toThrowError(
-          /Missing `token` parameter in request body/i,
-        );
+        const response = await authorizationServer.revoke(request);
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
       });
 
       it("succeeds by access token", async () => {
@@ -686,12 +688,16 @@ describe("authorization_server", () => {
         };
         inMemoryDatabase.authCodes[authCode.code] = authCode;
 
+        const token = await testingJwtService.sign({
+          auth_code_id: authCode.code,
+          client_id: client.id
+        });
+
         request.body = {
-          token: await testingJwtService.sign({ auth_code_id: authCode.code }),
+          token,
           token_type_hint: "auth_code",
         };
         const response = await authorizationServer.revoke(request);
-
         expect(response.status).toBe(200);
         expect(inMemoryDatabase.authCodes[authCode.code].expiresAt).toEqual(new Date(0));
       });
