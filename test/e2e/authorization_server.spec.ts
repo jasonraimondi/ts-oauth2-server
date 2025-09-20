@@ -690,7 +690,7 @@ describe("authorization_server", () => {
 
         const token = await testingJwtService.sign({
           auth_code_id: authCode.code,
-          client_id: client.id
+          client_id: client.id,
         });
 
         request.body = {
