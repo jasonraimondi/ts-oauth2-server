@@ -314,26 +314,53 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
     req.body["grant_type"] = this.identifier;
 
-    if (this.options.authenticateRevoke) await this.validateClient(req);
+    // Silently ignore - per RFC 7009, invalid tokens should not cause error responses
+    // @see https://datatracker.ietf.org/doc/html/rfc7009#section-2.2
+    const errorResponse = new OAuthResponse();
+
+    let authenticatedClient;
+    if (this.options.authenticateRevoke) {
+      try {
+        authenticatedClient = await this.validateClient(req);
+      } catch (err) {
+        this.options.logger?.log(err);
+        return errorResponse;
+      }
+    }
 
     const token = this.getRequestParameter("token", req);
 
     if (!token) {
-      throw OAuthException.invalidParameter("token", "Missing `token` parameter in request body");
+      return errorResponse;
     }
 
-    const parsedCode: unknown = this.jwt.decode(token);
+    let parsedCode: unknown;
+    try {
+      parsedCode = this.jwt.decode(token);
+    } catch (err) {
+      this.options.logger?.log(err);
+      return errorResponse;
+    }
 
     if (!this.isAuthCodePayload(parsedCode)) {
-      throw OAuthException.invalidParameter("token", "Token does not contain valid auth code payload");
+      return errorResponse;
+    }
+
+    if (this.options.authenticateRevoke && authenticatedClient && parsedCode) {
+      if (parsedCode.client_id !== authenticatedClient.id) {
+        this.options.logger?.log("Token client ID does not match authenticated client");
+        return errorResponse;
+      }
     }
 
     try {
       await this.authCodeRepository.revoke(parsedCode.auth_code_id);
-      return new OAuthResponse();
-    } catch (e) {
-      throw OAuthException.invalidParameter("token", "Error during token revocation");
+    } catch (err) {
+      this.options.logger?.log(err);
+      // Silently ignore - per RFC 7009, invalid tokens should not cause error responses
     }
+
+    return errorResponse;
   }
 
   private isAuthCodePayload(code: unknown): code is PayloadAuthCode {
