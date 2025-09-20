@@ -17,6 +17,7 @@ The authorization server has a few optional settings with the following default 
 | `issuer`                 | string \| undefined | undefined | Sets the JWT `accessToken.iss` to this value.                                                                                                                                                                                                                             |
 | `authenticateIntrospect` | boolean             | true      | Authorize the [/introspect](../endpoints/introspect.mdx) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) <br /><br />In 4.x the default is **true**, in v3.x the default was **false**. |
 | `authenticateRevoke`     | boolean             | true      | Authorize the [/revoke](../endpoints/revoke.mdx) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) <br /><br />In 4.x the default is **true**, in v3.x the default was **false**.                             |
+| `logger`                 | LoggerService \| undefined | undefined | Optional logger service to capture debugging information, particularly useful for tracking token operations like revocations. |
 
 ```ts
 type AuthorizationServerOptions = {
@@ -27,6 +28,7 @@ type AuthorizationServerOptions = {
   issuer: undefined;
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
+  logger?: LoggerService;
 };
 ```
 
@@ -43,6 +45,61 @@ const authorizationServer = new AuthorizationServer(
   },
 );
 ```
+
+## Logger Configuration
+
+The authorization server supports optional logging for debugging purposes, particularly useful for tracking token operations. You can provide either a custom logger implementation or use the built-in console logger.
+
+### Using the Built-in Console Logger
+
+```ts
+import { ConsoleLoggerService } from "@jmondi/oauth2-server";
+
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  new JwtService("secret-key"),
+  {
+    logger: new ConsoleLoggerService(),
+  },
+);
+```
+
+### Custom Logger Implementation
+
+Implement the `LoggerService` interface to integrate with your preferred logging library:
+
+```ts
+import { LoggerService } from "@jmondi/oauth2-server";
+
+class MyCustomLogger implements LoggerService {
+  log(message?: any, ...optionalParams: any[]): void {
+    // Integration with your logging library (Winston, Pino, etc.)
+    console.log('[OAuth2]', message, ...optionalParams);
+  }
+}
+
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  new JwtService("secret-key"),
+  {
+    logger: new MyCustomLogger(),
+  },
+);
+```
+
+### What Gets Logged
+
+The logger captures debugging information including:
+- Token validation errors
+- Client authentication failures
+- Token revocation attempts
+- General grant processing errors
+
+This is particularly useful for debugging token-related operations and understanding OAuth flow issues in development and production environments.
 
 [requires-pkce]: https://datatracker.ietf.org/doc/html/rfc7636
 [requires-s256]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2

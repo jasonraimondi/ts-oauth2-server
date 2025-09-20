@@ -58,6 +58,7 @@ This is a TypeScript OAuth 2.0 authorization server library. The core architectu
 - **Repository Pattern**: All data persistence is abstracted through repository interfaces that must be implemented by consumers
 - **Framework Agnostic**: Core library is framework-independent with optional adapters for popular frameworks
 - **Standards Compliance**: Implements multiple OAuth 2.0 RFCs (6749, 6750, 7009, 7519, 7636, 7662, 8693)
+- **Logging Support**: Optional logger service for debugging token operations, revocations, and grant processing errors
 
 #### Module Exports:
 The library supports multiple entry points via package.json exports:
