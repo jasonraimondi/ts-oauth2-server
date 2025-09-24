@@ -9,15 +9,6 @@ The OAuth 2.0 specification intentionally leaves token validation up to individu
 - Custom business logic
 - Performance considerations
 
-## Do I need both JWT verification AND repository checking?
-
-Yes, both are recommended for comprehensive security! Each serves a different purpose:
-
-- **JWT verification** handles signature validation and prevents token tampering
-- **Repository checking** handles token revocation and ensures the token hasn't been invalidated
-
-This dual approach provides comprehensive security for your OAuth implementation.
-
 ## How do I validate OAuth access tokens in my application?
 
 There are two main methods for validating OAuth access tokens:
