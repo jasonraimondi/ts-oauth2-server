@@ -22,8 +22,8 @@ async function validateToken(accessToken: string) {
   // Verify JWT signature and decode
   const decoded = await jwtService.verify(accessToken);
   
-  // Check if token exists and isn't revoked
-  const storedToken = await accessTokenRepository.getByAccessToken(accessToken);
+  // Check if token exists and isn't revoked using the jti claim
+  const storedToken = await accessTokenRepository.getByAccessToken(decoded.jti);
   
   return storedToken && !isExpired(storedToken) ? { valid: true, decoded, storedToken } : { valid: false };
 }
