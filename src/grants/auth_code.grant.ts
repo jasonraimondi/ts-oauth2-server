@@ -64,15 +64,41 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {
     const client = await this.validateClient(req);
 
-    const encryptedAuthCode = this.getRequestParameter("code", req);
+    const incomingRawAuthCodeValue = this.getRequestParameter("code", req);
 
-    if (!encryptedAuthCode) throw OAuthException.invalidParameter("code");
+    if (!incomingRawAuthCodeValue) throw OAuthException.invalidParameter("code");
 
-    const decryptedCode = await this.decrypt(encryptedAuthCode).catch(e => {
-      throw OAuthException.badRequest(e.message ?? "malformed jwt");
-    });
+    let authCodeProperties: Record<string, unknown> | null = null;
 
-    const validatedPayload = await this.validateAuthorizationCode(decryptedCode, client, req);
+    let authCode: OAuthAuthCode | null = null;
+    if (this.options.useOpaqueAuthorizationCodes) {
+      /**
+       * We only getch the auth code from the repository when using opaque authorization codes.
+       * If the `useOpaqueAuthorizationCodes` option is disabled we first verify the JWT before fetching the auth code information from the repository.
+       */
+      authCode = await this.authCodeRepository.getByIdentifier(incomingRawAuthCodeValue);
+
+      if (!authCode) {
+        throw OAuthException.invalidParameter("code");
+      }
+
+      authCodeProperties = {
+        client_id: authCode.client.id,
+        redirect_uri: authCode.redirectUri,
+        auth_code_id: authCode.code,
+        scopes: authCode.scopes.map(scope => scope.name),
+        user_id: authCode.user?.id,
+        expire_time: Math.ceil(authCode.expiresAt.getTime() / 1000),
+        code_challenge: authCode.codeChallenge,
+        code_challenge_method: authCode.codeChallengeMethod,
+      } satisfies PayloadAuthCode;
+    } else {
+      authCodeProperties = await this.decrypt(incomingRawAuthCodeValue).catch(e => {
+        throw OAuthException.badRequest(e.message ?? "malformed jwt");
+      });
+    }
+
+    const validatedPayload = await this.validateAuthorizationCode(authCodeProperties, client, req);
 
     const userId = validatedPayload.user_id;
 
@@ -94,7 +120,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidParameter("code", "Cannot verify scopes");
     }
 
-    const authCode = await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id);
+    /**
+     * If `useOpaqueAuthorizationCodes` is true, `authCode` will be fetched from the respository.
+     */
+    authCode ??= await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id);
 
     if (authCode.codeChallenge) {
       if (!validatedPayload.code_challenge) throw OAuthException.invalidParameter("code_challenge");
@@ -229,6 +258,15 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       authorizationRequest.scopes,
     );
 
+    if (this.options.useOpaqueAuthorizationCodes) {
+      const finalRedirectUri = this.makeRedirectUrl(redirectUri, {
+        code: authCode.code,
+        ...(authorizationRequest.state && { state: authorizationRequest.state }),
+      });
+
+      return new RedirectResponse(finalRedirectUri);
+    }
+
     const payload: IAuthCodePayload = {
       client_id: authCode.client.id,
       redirect_uri: authCode.redirectUri,
@@ -338,33 +376,57 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       return errorResponse;
     }
 
-    let parsedCode: unknown;
+    let providedAuthCode: string;
+    let providedClientId: string;
+
     try {
-      parsedCode = this.jwt.decode(token);
+      const { authCodeId, clientId } = await this.getAuthCodeAndClient(token);
+      providedAuthCode = authCodeId;
+      providedClientId = clientId;
     } catch (err) {
       this.options.logger?.log(err);
       return errorResponse;
     }
 
-    if (!this.isAuthCodePayload(parsedCode)) {
-      return errorResponse;
-    }
-
-    if (this.options.authenticateRevoke && authenticatedClient && parsedCode) {
-      if (parsedCode.client_id !== authenticatedClient.id) {
+    if (this.options.authenticateRevoke && authenticatedClient && providedAuthCode) {
+      if (providedClientId !== authenticatedClient.id) {
         this.options.logger?.log("Token client ID does not match authenticated client");
         return errorResponse;
       }
     }
 
     try {
-      await this.authCodeRepository.revoke(parsedCode.auth_code_id);
+      await this.authCodeRepository.revoke(providedAuthCode);
     } catch (err) {
       this.options.logger?.log(err);
       // Silently ignore - per RFC 7009, invalid tokens should not cause error responses
     }
 
     return errorResponse;
+  }
+
+  private async getAuthCodeAndClient(token: string): Promise<{ authCodeId: string; clientId: string }> {
+    if (this.options.useOpaqueAuthorizationCodes) {
+      const authCodeId = token;
+
+      const clientId = await this.authCodeRepository.getByIdentifier(authCodeId).then(it => it.client.id);
+
+      return {
+        authCodeId,
+        clientId,
+      };
+    } else {
+      let parsedCode: unknown = this.jwt.decode(token);
+
+      if (!this.isAuthCodePayload(parsedCode)) {
+        throw new Error("Malformed auth code payload");
+      }
+
+      return {
+        authCodeId: parsedCode.auth_code_id,
+        clientId: parsedCode.client_id,
+      };
+    }
   }
 
   private isAuthCodePayload(code: unknown): code is PayloadAuthCode {

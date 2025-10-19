@@ -418,13 +418,49 @@ describe("authorization_code grant", () => {
       expect(decodedCode.client_id).toBe(client.id);
       expect(decodedCode.redirect_uri).toBe("http://example.com");
     });
+
+    it("works with opaque authorization codes (with state)", async () => {
+      grant = createGrant({ useOpaqueAuthorizationCodes: true });
+
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.state = "abc123";
+      authorizationRequest.user = user;
+      authorizationRequest.audience = ["MyDinosaurLife"];
+      const response = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+
+      expect(authorizeResponseQuery.get("code")).toStrictEqual("my-super-secret-auth-code");
+      expect(authorizeResponseQuery.get("state")).toStrictEqual("abc123");
+    });
+
+    it("works with opaque authorization codes (without state)", async () => {
+      grant = createGrant({ useOpaqueAuthorizationCodes: true });
+
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.state = undefined;
+      authorizationRequest.user = user;
+      authorizationRequest.audience = ["MyDinosaurLife"];
+      const response = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+
+      expect(authorizeResponseQuery.get("code")).toStrictEqual("my-super-secret-auth-code");
+      expect(authorizeResponseQuery.get("state")).toStrictEqual(null);
+    });
   });
 
-  describe("respond to access token request with code", () => {
+  describe.each([true, false])("respond to access token request with code (opaqueAuthCodes: %s)", opaqueAuthCodes => {
     let authorizationRequest: AuthorizationRequest;
     let authorizationCode: string;
 
     beforeEach(async () => {
+      grant = createGrant({ issuer: "TestIssuer", useOpaqueAuthorizationCodes: opaqueAuthCodes });
+
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.codeChallengeMethod = "S256";
@@ -481,7 +517,7 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful without pkce", async () => {
-      grant = createGrant({ requiresPKCE: false, issuer: "TestIssuer" });
+      grant = createGrant({ requiresPKCE: false, issuer: "TestIssuer", useOpaqueAuthorizationCodes: opaqueAuthCodes });
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
@@ -585,13 +621,33 @@ describe("authorization_code grant", () => {
       // assert
       await expect(accessTokenResponse).rejects.toThrow(OAuthException);
     });
+
+    it("throws if auth code is expired", async () => {
+      // expire the auth code
+      inMemoryDatabase.authCodes["my-super-secret-auth-code"].expiresAt = new Date("2010-12-31T23:59:59Z");
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeVerifier,
+        },
+      });
+      const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+      await expect(accessTokenResponse).rejects.toThrow(OAuthException);
+    });
   });
 
-  describe("respond to revoke request", () => {
+  describe.each([false, true])("respond to revoke request (opaqueAuthCodes: %s)", opaqueAuthCodes => {
     let authorizationRequest: AuthorizationRequest;
     let authorizationCode: string;
 
     beforeEach(async () => {
+      grant = createGrant({ issuer: "TestIssuer", useOpaqueAuthorizationCodes: opaqueAuthCodes });
+
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.codeChallengeMethod = "S256";
@@ -606,13 +662,18 @@ describe("authorization_code grant", () => {
       request = new OAuthRequest({
         body: {
           token: authorizationCode,
+          client_id: client.id,
         },
       });
+
+      await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(false);
 
       const response = await grant.respondToRevokeRequest(request);
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({});
+
+      await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(true);
     });
 
     it("returns 200 for invalid token (silent failure per RFC 7009)", async () => {
