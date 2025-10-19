@@ -121,7 +121,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     /**
-     * If `useOpaqueAuthorizationCodes` is true, `authCode` will be fetched from the respository.
+     * If `useOpaqueAuthorizationCodes` is true, `authCode` will already be fetched from the repository above since the properties are required for validating the request.
+     * With JWT based authorization codes these properties are already contained in the JWT payload so we did not need to fetch the auth code from the repository yet.
      */
     authCode ??= await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id);
 
