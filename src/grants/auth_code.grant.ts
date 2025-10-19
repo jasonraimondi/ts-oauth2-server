@@ -73,7 +73,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     let authCode: OAuthAuthCode | null = null;
     if (this.options.useOpaqueAuthorizationCodes) {
       /**
-       * We only getch the auth code from the repository when using opaque authorization codes.
+       * We only fetch the auth code from the repository when using opaque authorization codes.
        * If the `useOpaqueAuthorizationCodes` option is disabled we first verify the JWT before fetching the auth code information from the repository.
        */
       authCode = await this.authCodeRepository.getByIdentifier(incomingRawAuthCodeValue);
