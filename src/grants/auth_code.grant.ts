@@ -68,35 +68,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     if (!incomingRawAuthCodeValue) throw OAuthException.invalidParameter("code");
 
-    let authCodeProperties: Record<string, unknown> | null = null;
-
-    let authCode: OAuthAuthCode | null = null;
-    if (this.options.useOpaqueAuthorizationCodes) {
-      /**
-       * We only fetch the auth code from the repository when using opaque authorization codes.
-       * If the `useOpaqueAuthorizationCodes` option is disabled we first verify the JWT before fetching the auth code information from the repository.
-       */
-      authCode = await this.authCodeRepository.getByIdentifier(incomingRawAuthCodeValue);
-
-      if (!authCode) {
-        throw OAuthException.invalidParameter("code");
-      }
-
-      authCodeProperties = {
-        client_id: authCode.client.id,
-        redirect_uri: authCode.redirectUri,
-        auth_code_id: authCode.code,
-        scopes: authCode.scopes.map(scope => scope.name),
-        user_id: authCode.user?.id,
-        expire_time: Math.ceil(authCode.expiresAt.getTime() / 1000),
-        code_challenge: authCode.codeChallenge,
-        code_challenge_method: authCode.codeChallengeMethod,
-      } satisfies PayloadAuthCode;
-    } else {
-      authCodeProperties = await this.decrypt(incomingRawAuthCodeValue).catch(e => {
-        throw OAuthException.badRequest(e.message ?? "malformed jwt");
-      });
-    }
+    const { properties: authCodeProperties, authCode: preloadedAuthCode } =
+      await this.resolveAuthCodeData(incomingRawAuthCodeValue);
 
     const validatedPayload = await this.validateAuthorizationCode(authCodeProperties, client, req);
 
@@ -120,11 +93,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidParameter("code", "Cannot verify scopes");
     }
 
-    /**
-     * If `useOpaqueAuthorizationCodes` is true, `authCode` will already be fetched from the repository above since the properties are required for validating the request.
-     * With JWT based authorization codes these properties are already contained in the JWT payload so we did not need to fetch the auth code from the repository yet.
-     */
-    authCode ??= await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id);
+    const authCode =
+      preloadedAuthCode ?? (await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id));
 
     if (authCode.codeChallenge) {
       if (!validatedPayload.code_challenge) throw OAuthException.invalidParameter("code_challenge");
@@ -406,28 +376,52 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     return errorResponse;
   }
 
-  private async getAuthCodeAndClient(token: string): Promise<{ authCodeId: string; clientId: string }> {
+  private async resolveAuthCodeData(rawCode: string): Promise<{
+    properties: PayloadAuthCode;
+    authCode: OAuthAuthCode | null;
+  }> {
     if (this.options.useOpaqueAuthorizationCodes) {
-      const authCodeId = token;
-
-      const clientId = await this.authCodeRepository.getByIdentifier(authCodeId).then(it => it.client.id);
+      const authCode = await this.authCodeRepository.getByIdentifier(rawCode);
+      if (!authCode) throw OAuthException.invalidParameter("code");
 
       return {
-        authCodeId,
-        clientId,
+        properties: {
+          client_id: authCode.client.id,
+          redirect_uri: authCode.redirectUri,
+          auth_code_id: authCode.code,
+          scopes: authCode.scopes.map(scope => scope.name),
+          user_id: authCode.user?.id,
+          expire_time: Math.ceil(authCode.expiresAt.getTime() / 1000),
+          code_challenge: authCode.codeChallenge,
+          code_challenge_method: authCode.codeChallengeMethod,
+        } satisfies PayloadAuthCode,
+        authCode,
       };
     } else {
-      let parsedCode: unknown = this.jwt.decode(token);
+      const properties = await this.decrypt(rawCode).catch(e => {
+        throw OAuthException.badRequest(e.message ?? "malformed jwt");
+      });
 
-      if (!this.isAuthCodePayload(parsedCode)) {
-        throw new Error("Malformed auth code payload");
+      if (!this.isAuthCodePayload(properties)) {
+        throw OAuthException.invalidParameter("code", "Malformed auth code payload");
       }
 
-      return {
-        authCodeId: parsedCode.auth_code_id,
-        clientId: parsedCode.client_id,
-      };
+      return { properties, authCode: null };
     }
+  }
+
+  private async getAuthCodeAndClient(token: string): Promise<{ authCodeId: string; clientId: string }> {
+    if (this.options.useOpaqueAuthorizationCodes) {
+      const authCode = await this.authCodeRepository.getByIdentifier(token);
+      if (!authCode?.client) throw OAuthException.invalidParameter("code");
+      return { authCodeId: token, clientId: authCode.client.id };
+    }
+
+    const parsedCode = this.jwt.decode(token);
+    if (!this.isAuthCodePayload(parsedCode)) {
+      throw new Error("Malformed auth code payload");
+    }
+    return { authCodeId: parsedCode.auth_code_id, clientId: parsedCode.client_id };
   }
 
   private isAuthCodePayload(code: unknown): code is PayloadAuthCode {
