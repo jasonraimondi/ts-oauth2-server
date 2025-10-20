@@ -34,6 +34,10 @@ export interface AuthorizationServerOptions {
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
   logger?: LoggerService;
+  /**
+   * If enabled opaque codes are used instead of JWT-based authorization codes.
+   */
+  useOpaqueAuthorizationCodes?: boolean;
 }
 
 export type EnableableGrants =
