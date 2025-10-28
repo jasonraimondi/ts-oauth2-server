@@ -100,7 +100,7 @@ describe("refresh_token grant", () => {
     expect(extraJwtFieldsSpy).toHaveBeenCalledWith(request, client, user);
   });
 
-  it.only("successful with scope", async () => {
+  it("successful with scope", async () => {
     // arrange
     const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
     request = new OAuthRequest({
