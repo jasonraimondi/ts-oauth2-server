@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { decode } from "jsonwebtoken";
 
@@ -487,6 +487,56 @@ describe("authorization_code grant", () => {
       // assert
       expectTokenResponse(accessTokenResponse);
       expect(accessTokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
+    });
+
+    it("populates originatingAuthCodeId property in OAuthToken object", async () => {
+      // act
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeVerifier,
+        },
+      });
+
+      const persistAccessToken = vi.spyOn(inMemoryAccessTokenRepository, "persist");
+      const issueRefreshToken = vi.spyOn(inMemoryAccessTokenRepository, "issueRefreshToken");
+
+      /**
+       * it would be easier to simply use `toHaveBeenCalledWith` for assertion but vitest only stores the values by reference hence
+       * only get the latest state of the request params. [ref](https://github.com/vitest-dev/vitest/issues/7229)
+       *
+       * This makes an assertion on the `token` object imposible via `toHaveBeenCalledWith` as it is mutated several times and we would only assert the last state.
+       */
+
+      persistAccessToken.mockImplementationOnce(async it => {
+        expect(it).toMatchObject({
+          accessToken: "new token",
+          originatingAuthCodeId: "my-super-secret-auth-code",
+        });
+
+        inMemoryAccessTokenRepository.persist(it);
+      });
+
+      issueRefreshToken.mockImplementationOnce(async (token, client) => {
+        expect(token).toMatchObject({
+          accessToken: "new token",
+          originatingAuthCodeId: "my-super-secret-auth-code",
+        });
+
+        return inMemoryAccessTokenRepository.issueRefreshToken(token, client);
+      });
+
+      await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+      /**
+       * the methods are actually only called once in the actual implementation but since our mock implementaion
+       * also calls the original method, they get called twice.
+       */
+      expect(persistAccessToken).toHaveBeenCalledTimes(2);
+      expect(issueRefreshToken).toHaveBeenCalledTimes(2);
     });
 
     it("is successful with pkce plain", async () => {

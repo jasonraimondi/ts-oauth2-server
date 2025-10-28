@@ -131,8 +131,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       }
     }
 
-    let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes);
-    accessToken.originatingAuthCodeId = validatedPayload.auth_code_id;
+    const originatingAuthCodeId = validatedPayload.auth_code_id;
+    let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes, originatingAuthCodeId);
 
     accessToken = await this.issueRefreshToken(accessToken, client);
 

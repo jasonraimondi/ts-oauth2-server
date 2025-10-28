@@ -233,9 +233,12 @@ export abstract class AbstractGrant implements GrantInterface {
     client: OAuthClient,
     user?: OAuthUser | null,
     scopes: OAuthScope[] = [],
+    originatingAuthCodeId?: string,
   ): Promise<OAuthToken> {
     const accessToken = await this.tokenRepository.issueToken(client, scopes, user);
     accessToken.accessTokenExpiresAt = accessTokenTTL.getEndDate();
+    accessToken.originatingAuthCodeId = originatingAuthCodeId;
+
     await this.tokenRepository.persist(accessToken);
     return accessToken;
   }
