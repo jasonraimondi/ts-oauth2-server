@@ -96,7 +96,30 @@ describe("refresh_token grant", () => {
     expectTokenResponse(tokenResponse);
     expect(tokenResponse.body.scope).toBe("scope-1");
     expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
-    expect(extraJwtFieldsSpy).toHaveBeenCalledWith(request, client, user);
+    expect(extraJwtFieldsSpy).toHaveBeenCalledWith(request, client, user, undefined);
+  });
+
+  it("provides originatingAuthCodeId as argument to extraJwtFields", async () => {
+    accessToken.originatingAuthCodeId = "my-super-secret-auth-code";
+
+    // arrange
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
+    request = new OAuthRequest({
+      body: {
+        grant_type: "refresh_token",
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: bearerResponse.body.refresh_token,
+        scope: "scope-1",
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    const extraJwtFieldsSpy = vi.spyOn(grant as any, "extraJwtFields");
+
+    await grant.respondToAccessTokenRequest(request, accessTokenTTL);
+
+    expect(extraJwtFieldsSpy).toHaveBeenCalledWith(request, client, user, "my-super-secret-auth-code");
   });
 
   it("successful without scope", async () => {

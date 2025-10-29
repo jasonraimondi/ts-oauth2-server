@@ -41,7 +41,7 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     newToken = await this.issueRefreshToken(newToken, client);
 
-    const extraJwtFields = await this.extraJwtFields(req, client, user);
+    const extraJwtFields = await this.extraJwtFields(req, client, user, newToken.originatingAuthCodeId);
 
     return await this.makeBearerTokenResponse(client, newToken, scopes, extraJwtFields);
   }
