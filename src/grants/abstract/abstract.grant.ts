@@ -83,10 +83,14 @@ export abstract class AbstractGrant implements GrantInterface {
 
     const encryptedAccessToken = await this.encryptAccessToken(client, accessToken, scopes, extraJwtFields);
 
-    let encryptedRefreshToken: string | undefined = undefined;
+    let refreshToken: string | undefined = undefined;
 
     if (accessToken.refreshToken) {
-      encryptedRefreshToken = await this.encryptRefreshToken(client, accessToken, scopes);
+      if (this.options.useOpaqueRefreshTokens) {
+        refreshToken = accessToken.refreshToken;
+      } else {
+        refreshToken = await this.encryptRefreshToken(client, accessToken, scopes);
+      }
     }
 
     const bearerTokenResponse = new BearerTokenResponse(accessToken);
@@ -95,7 +99,7 @@ export abstract class AbstractGrant implements GrantInterface {
       token_type: "Bearer",
       expires_in: getSecondsUntil(accessToken.accessTokenExpiresAt),
       access_token: encryptedAccessToken,
-      refresh_token: encryptedRefreshToken,
+      refresh_token: refreshToken,
       scope,
     };
 

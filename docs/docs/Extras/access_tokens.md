@@ -26,9 +26,10 @@ import { JwtService } from "@jmondi/oauth2-server";
 
 export class MyCustomJwtService extends JwtService {
   extraTokenFields(params: ExtraAccessTokenFieldArgs) {
-    const { user = undefined, client } = params;
+    const { user = undefined, client, originatingAuthCodeId } = params;
     return {
       email: user?.email,
+      originatingAuthCodeId,
       myCustomProps: "this will be in the decoded token!",
     };
   }

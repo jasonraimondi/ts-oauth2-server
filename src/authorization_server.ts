@@ -38,6 +38,10 @@ export interface AuthorizationServerOptions {
    * If enabled opaque codes are used instead of JWT-based authorization codes.
    */
   useOpaqueAuthorizationCodes?: boolean;
+  /**
+   * If enabled opaque tokens are used instead of JWT-based refresh tokens.
+   */
+  useOpaqueRefreshTokens?: boolean;
 }
 
 export type EnableableGrants =

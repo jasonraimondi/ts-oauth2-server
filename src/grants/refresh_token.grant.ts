@@ -46,21 +46,31 @@ export class RefreshTokenGrant extends AbstractGrant {
   }
 
   private async validateOldRefreshToken(request: RequestInterface, clientId: string): Promise<OAuthToken> {
-    const encryptedRefreshToken = this.getRequestParameter("refresh_token", request);
+    const providedRefreshToken = this.getRequestParameter("refresh_token", request);
 
-    if (!encryptedRefreshToken) {
+    if (!providedRefreshToken) {
       throw OAuthException.invalidParameter("refresh_token");
     }
 
     let refreshTokenData: any;
+    let refreshToken: OAuthToken | null = null;
 
-    try {
-      refreshTokenData = await this.decrypt(encryptedRefreshToken);
-    } catch (e) {
-      if (e instanceof Error && e.message === "invalid signature") {
-        throw OAuthException.invalidParameter("refresh_token", "Cannot verify the refresh token");
+    if (this.options.useOpaqueRefreshTokens) {
+      refreshToken = await this.tokenRepository.getByRefreshToken(providedRefreshToken);
+      refreshTokenData = {
+        refresh_token_id: refreshToken.refreshToken,
+        client_id: refreshToken.client.id,
+        expire_time: refreshToken.refreshTokenExpiresAt,
+      };
+    } else {
+      try {
+        refreshTokenData = await this.decrypt(providedRefreshToken);
+      } catch (e) {
+        if (e instanceof Error && e.message === "invalid signature") {
+          throw OAuthException.invalidParameter("refresh_token", "Cannot verify the refresh token");
+        }
+        throw OAuthException.invalidParameter("refresh_token", "Cannot decrypt the refresh token");
       }
-      throw OAuthException.invalidParameter("refresh_token", "Cannot decrypt the refresh token");
     }
 
     if (!refreshTokenData?.refresh_token_id) {
@@ -75,7 +85,7 @@ export class RefreshTokenGrant extends AbstractGrant {
       throw OAuthException.invalidParameter("refresh_token", "Token has expired");
     }
 
-    const refreshToken = await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
+    refreshToken ??= await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
 
     if (await this.tokenRepository.isRefreshTokenRevoked(refreshToken)) {
       throw OAuthException.invalidParameter("refresh_token", "Token has been revoked");
