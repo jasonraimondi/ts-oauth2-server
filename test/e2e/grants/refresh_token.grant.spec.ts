@@ -76,6 +76,7 @@ describe("refresh_token grant", () => {
 
   it("successful with scope", async () => {
     // arrange
+    accessToken.originatingAuthCodeId = undefined; // Reset to undefined for this test
     const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
     request = new OAuthRequest({
       body: {
