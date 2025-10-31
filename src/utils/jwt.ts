@@ -6,6 +6,7 @@ export type ExtraAccessTokenFields = Record<string, string | number | boolean | 
 export type ExtraAccessTokenFieldArgs = {
   user?: OAuthUser | null;
   client: OAuthClient;
+  originatingAuthCodeId?: string;
 };
 export interface JwtInterface {
   verify(token: string, options?: VerifyOptions): Promise<Record<string, unknown>>;

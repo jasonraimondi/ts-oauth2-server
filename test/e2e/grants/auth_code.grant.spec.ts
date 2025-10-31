@@ -471,6 +471,25 @@ describe("authorization_code grant", () => {
       authorizationCode = String(authorizeResponseQuery.get("code"));
     });
 
+    it("provides originatingAuthCodeId as argument to extraJwtFields", async () => {
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: authorizationCode,
+          redirect_uri: authorizationRequest.redirectUri,
+          client_id: client.id,
+          code_verifier: codeVerifier,
+        },
+      });
+
+      const extraJwtFieldsSpy = vi.spyOn(grant as any, "extraJwtFields");
+
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+      expectTokenResponse(accessTokenResponse);
+      expect(extraJwtFieldsSpy).toHaveBeenCalledWith(request, client, user, "my-super-secret-auth-code");
+    });
+
     it("is successful with pkce S256", async () => {
       // act
       request = new OAuthRequest({
