@@ -64,6 +64,7 @@ describe("refresh_token grant", () => {
       user,
       client,
       scopes: [scope1, scope2],
+      originatingAuthCodeId: "my-super-secret-auth-code",
     };
     inMemoryDatabase.scopes[scope1.name] = scope1;
     inMemoryDatabase.scopes[scope2.name] = scope2;
@@ -97,6 +98,59 @@ describe("refresh_token grant", () => {
     expect(tokenResponse.body.scope).toBe("scope-1");
     expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
     expect(extraJwtFieldsSpy).toHaveBeenCalledWith(request, client, user);
+  });
+
+  it("populates originatingAuthCodeId property in OAuthToken object", async () => {
+    // arrange
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
+    request = new OAuthRequest({
+      body: {
+        grant_type: "refresh_token",
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: bearerResponse.body.refresh_token,
+        scope: "scope-1",
+      },
+    });
+
+    const persistAccessToken = vi.spyOn(inMemoryAccessTokenRepository, "persist");
+    const issueRefreshToken = vi.spyOn(inMemoryAccessTokenRepository, "issueRefreshToken");
+
+    /**
+     * it would be easier to simply use `toHaveBeenCalledWith` for assertion but vitest only stores the values by reference hence
+     * only get the latest state of the request params. [ref](https://github.com/vitest-dev/vitest/issues/7229)
+     *
+     * This makes an assertion on the `token` object imposible via `toHaveBeenCalledWith` as it is mutated several times and we would only assert the last state.
+     */
+
+    persistAccessToken.mockImplementationOnce(async it => {
+      expect(it).toMatchObject({
+        accessToken: "new token",
+        originatingAuthCodeId: "my-super-secret-auth-code",
+      });
+
+      inMemoryAccessTokenRepository.persist(it);
+    });
+
+    issueRefreshToken.mockImplementationOnce(async (token, client) => {
+      expect(token).toMatchObject({
+        accessToken: "new token",
+        originatingAuthCodeId: "my-super-secret-auth-code",
+      });
+
+      return inMemoryAccessTokenRepository.issueRefreshToken(token, client);
+    });
+
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+    expectTokenResponse(tokenResponse);
+
+    /**
+     * the methods are actually only called once in the actual implementation but since our mock implementaion
+     * also calls the original method, they get called twice.
+     */
+    expect(persistAccessToken).toHaveBeenCalledTimes(2);
+    expect(issueRefreshToken).toHaveBeenCalledTimes(2);
   });
 
   it("successful without scope", async () => {
