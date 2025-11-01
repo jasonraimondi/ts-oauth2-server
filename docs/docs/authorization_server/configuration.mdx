@@ -19,6 +19,7 @@ The authorization server has a few optional settings with the following default 
 | `authenticateRevoke`     | boolean             | true      | Authorize the [/revoke](../endpoints/revoke.mdx) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) <br /><br />In 4.x the default is **true**, in v3.x the default was **false**.                             |
 | `logger`                 | LoggerService \| undefined | undefined | Optional logger service to capture debugging information, particularly useful for tracking token operations like revocations. |
 | `useOpaqueAuthorizationCodes` | boolean        | false     | When enabled, authorization codes are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
+| `useOpaqueRefreshTokens` | boolean        | false     | When enabled, refresh tokens are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
 
 ```ts
 type AuthorizationServerOptions = {
@@ -31,6 +32,7 @@ type AuthorizationServerOptions = {
   authenticateRevoke: boolean;
   logger?: LoggerService;
   useOpaqueAuthorizationCodes?: boolean;
+  useOpaqueRefreshTokens?: boolean;
 };
 ```
 

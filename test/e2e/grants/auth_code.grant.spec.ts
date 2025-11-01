@@ -454,12 +454,20 @@ describe("authorization_code grant", () => {
     });
   });
 
-  describe.each([true, false])("respond to access token request with code (opaqueAuthCodes: %s)", opaqueAuthCodes => {
+  describe.each([
+    { useOpaqueAuthorizationCodes: true, useOpaqueRefreshTokens: true },
+    { useOpaqueAuthorizationCodes: true, useOpaqueRefreshTokens: false },
+    { useOpaqueAuthorizationCodes: false, useOpaqueRefreshTokens: true },
+    { useOpaqueAuthorizationCodes: false, useOpaqueRefreshTokens: false },
+  ])("respond to access token request with code (%s)", options => {
     let authorizationRequest: AuthorizationRequest;
     let authorizationCode: string;
 
     beforeEach(async () => {
-      grant = createGrant({ issuer: "TestIssuer", useOpaqueAuthorizationCodes: opaqueAuthCodes });
+      grant = createGrant({
+        issuer: "TestIssuer",
+        ...options,
+      });
 
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
@@ -586,7 +594,7 @@ describe("authorization_code grant", () => {
     });
 
     it("is successful without pkce", async () => {
-      grant = createGrant({ requiresPKCE: false, issuer: "TestIssuer", useOpaqueAuthorizationCodes: opaqueAuthCodes });
+      grant = createGrant({ requiresPKCE: false, issuer: "TestIssuer", ...options });
       authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;

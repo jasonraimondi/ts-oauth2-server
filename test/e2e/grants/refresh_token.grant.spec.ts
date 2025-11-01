@@ -6,6 +6,7 @@ import {
   inMemoryScopeRepository,
 } from "../_helpers/in_memory/repository.js";
 import {
+  AuthorizationServerOptions,
   DateInterval,
   JwtService,
   OAuthClient,
@@ -19,17 +20,17 @@ import {
 import { expectTokenResponse } from "./client_credentials.grant.spec.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
 
-function createGrant() {
+function createGrant(options?: Partial<AuthorizationServerOptions>) {
   return new RefreshTokenGrant(
     inMemoryClientRepository,
     inMemoryAccessTokenRepository,
     inMemoryScopeRepository,
     new JwtService("secret-key"),
-    DEFAULT_AUTHORIZATION_SERVER_OPTIONS,
+    { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
   );
 }
 
-describe("refresh_token grant", () => {
+describe.each([true, false])("refresh_token grant (opaqueRefreshTokens: %s)", opaqueRefreshTokens => {
   let user: OAuthUser;
   let client: OAuthClient;
   let accessToken: OAuthToken;
@@ -71,7 +72,7 @@ describe("refresh_token grant", () => {
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
 
-    grant = createGrant();
+    grant = createGrant({ useOpaqueRefreshTokens: opaqueRefreshTokens });
   });
 
   it("successful with scope", async () => {
@@ -199,7 +200,7 @@ describe("refresh_token grant", () => {
     expect(tokenResponse.body.refresh_token).toMatch(REGEX_ACCESS_TOKEN);
   });
 
-  it("throws for resigned token", async () => {
+  it.skipIf(opaqueRefreshTokens)("throws for resigned token", async () => {
     // arrange
     const jwt = new JwtService("different secret");
     const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
@@ -242,6 +243,10 @@ describe("refresh_token grant", () => {
     const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
-    await expect(tokenResponse).rejects.toThrowError(/Cannot decrypt the refresh token/);
+    if (opaqueRefreshTokens) {
+      await expect(tokenResponse).rejects.toThrowError("token not found");
+    } else {
+      await expect(tokenResponse).rejects.toThrowError(/Cannot decrypt the refresh token/);
+    }
   });
 });
