@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.2.0] - 2025-10-31
+
+### Added
+- Support for opaque refresh tokens
+- originatingAuthCodeId now provided as argument to extraTokenFields callback
+
+### Fixed
+- originatingAuthCodeId now properly populated during RefreshTokenGrant
+- originatingAuthCodeId now properly populated before calling tokenRepository.persist
+
 ## [4.1.1] - 2025-10-20
 
 ### Fixed
