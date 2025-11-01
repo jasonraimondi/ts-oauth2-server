@@ -85,7 +85,9 @@ export class RefreshTokenGrant extends AbstractGrant {
       throw OAuthException.invalidParameter("refresh_token", "Token has expired");
     }
 
-    refreshToken ??= await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
+    if (!refreshToken) {
+      refreshToken = await this.tokenRepository.getByRefreshToken(refreshTokenData.refresh_token_id);
+    }
 
     if (await this.tokenRepository.isRefreshTokenRevoked(refreshToken)) {
       throw OAuthException.invalidParameter("refresh_token", "Token has been revoked");
