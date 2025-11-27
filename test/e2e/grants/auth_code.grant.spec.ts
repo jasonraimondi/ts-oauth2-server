@@ -52,6 +52,7 @@ describe("authorization_code grant", () => {
   let user: OAuthUser;
   let client: OAuthClient;
   let scope1: OAuthScope;
+  let scope2: OAuthScope;
   let grant: AuthCodeGrant;
 
   let request: OAuthRequest;
@@ -64,6 +65,7 @@ describe("authorization_code grant", () => {
 
     user = { id: "abc123", email: "jason@example.com" };
     scope1 = { name: "scope-1" };
+    scope2 = { name: "scope-2" };
 
     client = {
       id: "authcodeclient",
@@ -71,7 +73,7 @@ describe("authorization_code grant", () => {
       secret: undefined,
       redirectUris: ["http://example.com"],
       allowedGrants: ["authorization_code"],
-      scopes: [],
+      scopes: [scope1],
     };
 
     grant = createGrant({ issuer: "TestIssuer" });
@@ -79,6 +81,7 @@ describe("authorization_code grant", () => {
     inMemoryDatabase.clients[client.id] = client;
     inMemoryDatabase.users[user.id] = user;
     inMemoryDatabase.scopes[scope1.name] = scope1;
+    inMemoryDatabase.scopes[scope2.name] = scope2;
   });
 
   describe("handles response_type for authorization request", () => {
@@ -138,6 +141,27 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.codeChallengeMethod).toBe("S256");
       expect(authorizationRequest.scopes).toStrictEqual([]);
       expect(authorizationRequest.audience).toStrictEqual(["IAmTheMovie", "CommitToThisMemory"]);
+    });
+
+    it("throws when requesting scope that client should not be able to access", async () => {
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          // single object arrays is valid
+          redirect_uri: ["http://example.com"],
+          state: "state-is-a-secret",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+          audience: ["IAmTheMovie", "CommitToThisMemory"],
+          // the client is only allowed to use scope-1
+          scope: "scope-1 scope-2",
+        },
+      });
+
+      await expect(() => grant.validateAuthorizationRequest(request)).rejects.toThrowError(
+        /Unauthorized scope requested by the client: scope-2/,
+      );
     });
 
     it("is successful with plain pkce", async () => {
