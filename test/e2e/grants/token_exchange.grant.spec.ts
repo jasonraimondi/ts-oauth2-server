@@ -129,8 +129,13 @@ describe("token_exchange grant", () => {
 
   it("successfully grants using body with scopes", async () => {
     // arrange
-    inMemoryDatabase.scopes["scope-1"] = { name: "scope-1" };
-    inMemoryDatabase.scopes["scope-2"] = { name: "scope-2" };
+    const scope1 = { name: "scope-1" };
+    const scope2 = { name: "scope-2" };
+    inMemoryDatabase.scopes["scope-1"] = scope1;
+    inMemoryDatabase.scopes["scope-2"] = scope2;
+    client.scopes = [scope1, scope2];
+    inMemoryDatabase.clients[client.id] = client;
+
     request = new OAuthRequest({
       body: {
         grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
@@ -176,6 +181,36 @@ describe("token_exchange grant", () => {
     // assert
     await expect(tokenResponse).rejects.toThrowError(
       /The requested scope is invalid, unknown, or malformed: Check the `this-scope-doesnt-exist` scope/,
+    );
+  });
+
+  it("throws when requesting scope that client should not be able to access", async () => {
+    // arrange
+    const scope1 = { name: "scope-1" };
+    const scope2 = { name: "scope-2" };
+    inMemoryDatabase.scopes["scope-1"] = scope1;
+    inMemoryDatabase.scopes["scope-2"] = scope2;
+
+    client.scopes = [scope1]; // Client only allowed to use scope-1
+    inMemoryDatabase.clients[client.id] = client;
+
+    request = new OAuthRequest({
+      body: {
+        grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+        client_id: client.id,
+        subject_token: "valid-token",
+        subject_token_type: "urn:ietf:params:oauth:token-type:access_token",
+        scope: "scope-1 scope-2", // Client only allowed scope-1
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
+
+    // assert
+    await expect(tokenResponse).rejects.toThrowError(
+      /Unauthorized scope requested by the client: scope-2/,
     );
   });
 

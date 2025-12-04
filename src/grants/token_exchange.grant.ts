@@ -77,11 +77,20 @@ export class TokenExchangeGrant extends AbstractGrant {
       actorTokenType,
     });
 
-    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, validScopes);
+    // Finalize scopes with user_id to validate client authorization
+    // and allow user-specific scope restrictions
+    const finalizedScopes = await this.scopeRepository.finalize(
+      validScopes,
+      this.identifier,
+      client,
+      user?.id,
+    );
+
+    const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, finalizedScopes);
 
     const extraJwtFields = await this.extraJwtFields(req, client, user);
 
-    return await this.makeBearerTokenResponse(client, accessToken, validScopes, extraJwtFields);
+    return await this.makeBearerTokenResponse(client, accessToken, finalizedScopes, extraJwtFields);
   }
 
   private isSubjectTokenType(value: string): value is `urn:${string}:oauth:token-type:${string}` {
