@@ -164,7 +164,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const bodyScopes = this.getQueryStringParameter("scope", request, []);
 
-    const scopes = await this.validateScopes(bodyScopes);
+    const finalizedScopes = await this.scopeRepository.finalize(
+      await this.validateScopes(bodyScopes),
+      this.identifier,
+      client,
+    );
 
     const stateParameter = this.getQueryStringParameter("state", request);
 
@@ -175,7 +179,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     authorizationRequest.state = stateParameter;
 
-    authorizationRequest.scopes = scopes;
+    authorizationRequest.scopes = finalizedScopes;
 
     const codeChallenge = this.getQueryStringParameter("code_challenge", request);
 
