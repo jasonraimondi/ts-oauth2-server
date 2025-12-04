@@ -39,9 +39,14 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
 
     const redirectUri = this.getRedirectUri(request, client);
 
-    const scopes = await this.validateScopes(
-      this.getQueryStringParameter("scope", request, []), // @see about this.defaultSCopes as third param
-      redirectUri,
+    const bodyScopes = this.getQueryStringParameter("scope", request, []);
+
+    // Finalize scopes without user_id (user not authenticated yet)
+    // This validates that the client is authorized to request these scopes
+    const finalizedScopes = await this.scopeRepository.finalize(
+      await this.validateScopes(bodyScopes, redirectUri),
+      this.identifier,
+      client,
     );
 
     const state = this.getQueryStringParameter("state", request);
@@ -50,7 +55,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
 
     authorizationRequest.state = state;
 
-    authorizationRequest.scopes = scopes;
+    authorizationRequest.scopes = finalizedScopes;
 
     return authorizationRequest;
   }

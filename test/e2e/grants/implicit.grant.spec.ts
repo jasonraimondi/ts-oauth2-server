@@ -95,6 +95,9 @@ describe("implicit grant", () => {
 
     it("is successful with state and scopes", async () => {
       // arrange
+      client.scopes = [scope1, scope2];
+      inMemoryDatabase.clients[client.id] = client;
+
       request = new OAuthRequest({
         query: {
           response_type: "token",
@@ -166,6 +169,29 @@ describe("implicit grant", () => {
 
       // assert
       await expect(authorizationRequest).rejects.toThrowError(/Check the `non-existant, non-existant-2` scope\(s\)/);
+    });
+
+    it("throws when requesting scope that client should not be able to access", async () => {
+      // arrange
+      client.scopes = [scope1]; // Client only allowed to use scope-1
+      inMemoryDatabase.clients[client.id] = client;
+
+      request = new OAuthRequest({
+        query: {
+          response_type: "token",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          scope: "scope-1 scope-2", // Client only allowed scope-1
+        },
+      });
+
+      // act
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      // assert
+      await expect(authorizationRequest).rejects.toThrowError(
+        /Unauthorized scope requested by the client: scope-2/,
+      );
     });
   });
 
