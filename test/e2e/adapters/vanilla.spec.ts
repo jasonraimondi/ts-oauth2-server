@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { requestFromVanilla, responseFromVanilla, responseToVanilla } from "../../../src/adapters/vanilla.js";
-import { OAuthException, OAuthRequest, OAuthResponse } from "../../../src/index.js";
+import { requestFromVanilla, responseFromVanilla, responseToVanilla, handleVanillaError } from "../../../src/adapters/vanilla.js";
+import { ErrorType, OAuthException, OAuthRequest, OAuthResponse } from "../../../src/index.js";
 import { RedirectResponse } from "../../../src/responses/redirect.response.js";
 
 describe("adapters/vanilla.js", () => {
@@ -133,6 +133,50 @@ describe("adapters/vanilla.js", () => {
       const result = await requestFromVanilla(mockRequest);
 
       expect(result.body).toEqual({ streamKey: "streamValue" });
+    });
+  });
+
+  describe("handleVanillaError", () => {
+    it("should handle OAuthException", () => {
+      const oauthError = new OAuthException("Test error", ErrorType.InvalidRequest, "Bad request", undefined, 400);
+      const result = handleVanillaError(oauthError);
+
+      expect(result).toBeInstanceOf(OAuthResponse);
+      expect(result.status).toBe(400);
+      expect(result.body).toEqual({
+        status: 400,
+        message: "Test error: Bad request",
+        error: "invalid_request",
+        error_description: "Bad request",
+      });
+    });
+
+    it("should convert non-OAuthException errors to internal server error", () => {
+      const error = new Error("Database connection failed");
+      const result = handleVanillaError(error);
+
+      expect(result).toBeInstanceOf(OAuthResponse);
+      expect(result.status).toBe(500);
+      expect(result.body).toEqual({
+        status: 500,
+        message: "Internal server error: Database connection failed",
+        error: "server_error",
+        error_description: "Database connection failed",
+      });
+    });
+
+    it("should handle unknown error types gracefully", () => {
+      const error = "string error";
+      const result = handleVanillaError(error);
+
+      expect(result).toBeInstanceOf(OAuthResponse);
+      expect(result.status).toBe(500);
+      expect(result.body).toEqual({
+        status: 500,
+        message: "Internal server error: An unexpected error occurred",
+        error: "server_error",
+        error_description: "An unexpected error occurred",
+      });
     });
   });
 });

@@ -61,10 +61,10 @@ export function handleExpressResponse(expressResponse: Response, oauthResponse: 
 /**
  * Handles OAuth errors in Express applications.
  * Converts OAuthExceptions to appropriate HTTP responses.
+ * Generic errors are automatically converted to 500 Internal Server Error.
  *
  * @param e - Error object, typically an OAuthException
  * @param res - Express Response object
- * @throws Re-throws non-OAuth errors
  *
  * @example
  * ```ts
@@ -88,5 +88,16 @@ export function handleExpressError(e: unknown | OAuthException, res: Response): 
     });
     return;
   }
-  throw e;
+
+  // Convert generic errors to OAuthException
+  const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred';
+  const oauthError = OAuthException.internalServerError(errorMessage);
+
+  res.status(oauthError.status);
+  res.send({
+    status: oauthError.status,
+    message: oauthError.message,
+    error: oauthError.errorType,
+    error_description: oauthError.errorDescription ?? oauthError.error,
+  });
 }
