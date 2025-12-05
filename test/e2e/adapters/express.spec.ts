@@ -94,11 +94,39 @@ describe("adapters/express.js", () => {
       });
     });
 
-    it("should rethrow non-OAuthException errors", () => {
-      const mockExpressRes = {} as Response;
-      const error = new Error("Regular error");
+    it("should convert non-OAuthException errors to internal server error", () => {
+      const mockExpressRes = {
+        status: vi.fn().mockReturnThis(),
+        send: vi.fn(),
+      } as unknown as Response;
+      const error = new Error("Database connection failed");
 
-      expect(() => handleExpressError(error, mockExpressRes)).toThrow("Regular error");
+      handleExpressError(error, mockExpressRes);
+
+      expect(mockExpressRes.status).toHaveBeenCalledWith(500);
+      expect(mockExpressRes.send).toHaveBeenCalledWith({
+        status: 500,
+        message: "Internal server error: Database connection failed",
+        error: "server_error",
+        error_description: "Database connection failed",
+      });
+    });
+
+    it("should handle unknown error types gracefully", () => {
+      const mockExpressRes = {
+        status: vi.fn().mockReturnThis(),
+        send: vi.fn(),
+      } as unknown as Response;
+
+      handleExpressError("string error", mockExpressRes);
+
+      expect(mockExpressRes.status).toHaveBeenCalledWith(500);
+      expect(mockExpressRes.send).toHaveBeenCalledWith({
+        status: 500,
+        message: "Internal server error: An unexpected error occurred",
+        error: "server_error",
+        error_description: "An unexpected error occurred",
+      });
     });
   });
 });

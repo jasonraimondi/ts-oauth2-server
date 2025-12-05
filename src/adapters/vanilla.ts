@@ -1,6 +1,7 @@
 import { OAuthRequest } from "../requests/request.js";
 import { OAuthResponse } from "../responses/response.js";
 import { ErrorType, OAuthException } from "../exceptions/oauth.exception.js";
+import { isOAuthError } from "../utils/errors.js";
 
 /**
  * Converts a standard Fetch API Response object to an OAuthResponse.
@@ -90,5 +91,52 @@ export async function requestFromVanilla(req: Request): Promise<OAuthRequest> {
     query: query,
     body: body,
     headers: headers,
+  });
+}
+
+/**
+ * Converts any error to a proper OAuth response.
+ * Use this to handle errors in Vanilla/Fetch API implementations.
+ *
+ * @param e - Error object, typically an OAuthException
+ * @returns OAuthResponse with appropriate error details
+ *
+ * @example
+ * ```ts
+ * try {
+ *   const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+ *   return responseToVanilla(oauthResponse);
+ * } catch (e) {
+ *   return responseToVanilla(handleVanillaError(e));
+ * }
+ * ```
+ */
+export function handleVanillaError(e: unknown | OAuthException): OAuthResponse {
+  if (isOAuthError(e)) {
+    return new OAuthResponse({
+      status: e.status,
+      headers: { "content-type": "application/json" },
+      body: {
+        status: e.status,
+        message: e.message,
+        error: e.errorType,
+        error_description: e.errorDescription ?? e.error,
+      },
+    });
+  }
+
+  // Convert generic errors to OAuthException
+  const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred";
+  const oauthError = OAuthException.internalServerError(errorMessage);
+
+  return new OAuthResponse({
+    status: oauthError.status,
+    headers: { "content-type": "application/json" },
+    body: {
+      status: oauthError.status,
+      message: oauthError.message,
+      error: oauthError.errorType,
+      error_description: oauthError.errorDescription ?? oauthError.error,
+    },
   });
 }

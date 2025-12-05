@@ -43,10 +43,10 @@ export function requestFromFastify(req: FastifyRequest): OAuthRequest {
 /**
  * Handles OAuth errors in Fastify applications.
  * Converts OAuthExceptions to appropriate HTTP responses.
+ * Generic errors are automatically converted to 500 Internal Server Error.
  *
  * @param e - Error object, typically an OAuthException
  * @param res - Fastify Reply object
- * @throws Re-throws non-OAuth errors
  *
  * @example
  * ```ts
@@ -69,7 +69,17 @@ export function handleFastifyError(e: unknown | OAuthException, res: FastifyRepl
     });
     return;
   }
-  throw e;
+
+  // Convert generic errors to OAuthException
+  const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred';
+  const oauthError = OAuthException.internalServerError(errorMessage);
+
+  res.status(oauthError.status).send({
+    status: oauthError.status,
+    message: oauthError.message,
+    error: oauthError.errorType,
+    error_description: oauthError.errorDescription ?? oauthError.error,
+  });
 }
 
 /**

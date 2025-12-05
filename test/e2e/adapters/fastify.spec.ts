@@ -71,11 +71,39 @@ describe("adapters/fastify.js", () => {
       });
     });
 
-    it("should rethrow non-OAuthException errors", () => {
-      const mockFastifyReply = {} as FastifyReply;
-      const error = new Error("Regular error");
+    it("should convert non-OAuthException errors to internal server error", () => {
+      const mockFastifyReply = {
+        status: vi.fn().mockReturnThis(),
+        send: vi.fn(),
+      } as unknown as FastifyReply;
+      const error = new Error("Database connection failed");
 
-      expect(() => handleFastifyError(error, mockFastifyReply)).toThrow("Regular error");
+      handleFastifyError(error, mockFastifyReply);
+
+      expect(mockFastifyReply.status).toHaveBeenCalledWith(500);
+      expect(mockFastifyReply.send).toHaveBeenCalledWith({
+        status: 500,
+        message: "Internal server error: Database connection failed",
+        error: "server_error",
+        error_description: "Database connection failed",
+      });
+    });
+
+    it("should handle unknown error types gracefully", () => {
+      const mockFastifyReply = {
+        status: vi.fn().mockReturnThis(),
+        send: vi.fn(),
+      } as unknown as FastifyReply;
+
+      handleFastifyError("string error", mockFastifyReply);
+
+      expect(mockFastifyReply.status).toHaveBeenCalledWith(500);
+      expect(mockFastifyReply.send).toHaveBeenCalledWith({
+        status: 500,
+        message: "Internal server error: An unexpected error occurred",
+        error: "server_error",
+        error_description: "An unexpected error occurred",
+      });
     });
   });
 
