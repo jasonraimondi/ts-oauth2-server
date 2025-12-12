@@ -1,5 +1,8 @@
 # TypeScript OAuth2.0 Server
 
+[![Run in Smithery](https://smithery.ai/badge/skills/jasonraimondi)](https://smithery.ai/skills?ns=jasonraimondi&utm_source=github&utm_medium=badge)
+
+
 [![JSR](https://jsr.io/badges/@jmondi/oauth2-server?style=flat-square)](https://jsr.io/@jmondi/oauth2-server)
 [![NPM Version](https://img.shields.io/npm/v/%40jmondi%2Foauth2-server?style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
 [![GitHub Workflow Status]( https://img.shields.io/github/actions/workflow/status/jasonraimondi/ts-oauth2-server/build-and-test.yml?branch=main&style=flat-square)](https://github.com/jasonraimondi/ts-oauth2-server)
