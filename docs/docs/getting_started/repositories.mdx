@@ -99,8 +99,10 @@ interface OAuthTokenRepository {
   // An async call that should persist an OAuthToken into your storage.
   persist(accessToken: OAuthToken): Promise<void>;
 
-  // An async call that enhances an already-persisted OAuthToken with
-  // refresh token fields.
+  // Adds refresh token fields to an already-persisted OAuthToken and updates storage.
+  // This method should update the token record in your storage; persist() will not be called again.
+  // Note: The `refreshTokenExpiresAt` value set here will be replaced
+  //   by the authorization server using the TTL configured in `enableGrantType`.
   issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken>;
 
   // This async method is called when a refresh token is used to reissue

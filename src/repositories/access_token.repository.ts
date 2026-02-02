@@ -17,10 +17,13 @@ export interface OAuthTokenRepository {
   issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser | null): Promise<OAuthToken>;
 
   /**
-   * Enhances an already-persisted OAuthToken with refresh token fields.
+   * Adds refresh token fields to an already-persisted OAuthToken and updates storage.
+   * This method should update the token record in your storage; persist() will not be called again.
+   * Note: The `refreshTokenExpiresAt` value set here will be replaced
+   * by the authorization server using the TTL configured in `enableGrantType`.
    * @param accessToken The persisted access token
    * @param client OAuth client entity
-   * @returns Promise resolving to an OAuthToken with refresh token fields
+   * @returns Promise resolving to the updated OAuthToken
    */
   issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken>;
 
