@@ -55,6 +55,19 @@ export class TokenRepository implements OAuthTokenRepository {
     return Date.now() > (token.refreshTokenExpiresAt?.getTime() ?? 0);
   }
 
+  async getByAccessToken(accessToken: string): Promise<Token> {
+    const token = await this.prisma.oAuthToken.findUnique({
+      rejectOnNotFound: true,
+      where: { accessToken },
+      include: {
+        client: true,
+        scopes: true,
+        user: true,
+      },
+    });
+    return new Token(token);
+  }
+
   async issueRefreshToken(token: Token, _: OAuthClient): Promise<Token> {
     token.refreshToken = generateRandomToken();
     token.refreshTokenExpiresAt = new DateInterval("2h").getEndDate();

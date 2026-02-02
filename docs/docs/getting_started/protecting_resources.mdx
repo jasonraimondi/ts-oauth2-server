@@ -1,0 +1,427 @@
+---
+sidebar_position: 5
+title: Protecting Resources
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Protecting Resources with Access Tokens
+
+After issuing access tokens via the OAuth2 endpoints, you need to validate those tokens in your API middleware to protect resources. This guide covers how to implement secure token validation.
+
+## Overview
+
+Access token validation involves several security checks:
+
+1. **JWT Signature Verification** - Ensures the token hasn't been tampered with
+2. **Expiration Check** - Rejects expired tokens
+3. **Issuer Validation** - Confirms the token came from your authorization server
+4. **Audience Validation** - Ensures the token is meant for your API
+5. **Revocation Check** - Verifies the token hasn't been revoked
+6. **Scope Validation** - Confirms the token has required permissions
+
+## Token Payload Structure
+
+Access tokens issued by this library are JWTs with the following claims:
+
+```typescript
+interface AccessTokenPayload {
+  /** Token ID - use this to look up the token in your repository */
+  jti: string;
+  /** Subject - typically the user ID (if user-based grant) */
+  sub?: string;
+  /** Client ID */
+  cid: string;
+  /** Expiration timestamp (Unix seconds) */
+  exp: number;
+  /** Issued at timestamp (Unix seconds) */
+  iat: number;
+  /** Not before timestamp (Unix seconds) */
+  nbf?: number;
+  /** Issuer - your authorization server URL */
+  iss?: string;
+  /** Audience - the intended recipient API */
+  aud?: string | string[];
+  /** Space-delimited list of granted scopes */
+  scope?: string;
+  // Plus any custom fields from extraTokenFields()
+}
+```
+
+:::info Important
+The `jti` claim contains the token identifier used to look up the token in your `OAuthTokenRepository`. This is **not** the raw JWT string - it's the internal token ID.
+:::
+
+## Implementation
+
+### Step 1: Implement `getByAccessToken` in Your Repository
+
+Your `OAuthTokenRepository` must implement the `getByAccessToken` method:
+
+```typescript
+class TokenRepository implements OAuthTokenRepository {
+  // ... other methods ...
+
+  async getByAccessToken(accessToken: string): Promise<OAuthToken> {
+    // accessToken is the jti claim value, not the JWT
+    const token = await this.db.tokens.findUnique({
+      where: { accessToken },
+      include: { client: true, user: true, scopes: true },
+    });
+
+    if (!token) {
+      throw new Error("Token not found");
+    }
+
+    return token;
+  }
+}
+```
+
+### Step 2: Create the Validation Function
+
+```typescript
+import { JwtInterface, OAuthToken, OAuthTokenRepository } from "@jmondi/oauth2-server";
+
+interface AccessTokenPayload {
+  jti: string;
+  sub?: string;
+  cid: string;
+  exp: number;
+  iat: number;
+  iss?: string;
+  aud?: string | string[];
+  scope?: string;
+  [key: string]: unknown;
+}
+
+interface ValidatedToken {
+  payload: AccessTokenPayload;
+  scopes: string[];
+  token: OAuthToken;
+}
+
+interface TokenValidationConfig {
+  jwtService: JwtInterface;
+  tokenRepository: OAuthTokenRepository;
+  expectedIssuer?: string;
+  expectedAudience?: string;
+}
+
+async function validateAccessToken(
+  accessToken: string,
+  config: TokenValidationConfig,
+): Promise<ValidatedToken | null> {
+  try {
+    // 1. Verify JWT signature and check exp/nbf/iat claims
+    const payload = await config.jwtService.verify(accessToken) as AccessTokenPayload;
+
+    // 2. Validate issuer (RFC 7519 Section 4.1.1)
+    if (config.expectedIssuer && payload.iss !== config.expectedIssuer) {
+      console.warn("Token issuer mismatch");
+      return null;
+    }
+
+    // 3. Validate audience (RFC 7519 Section 4.1.3)
+    if (config.expectedAudience) {
+      const audiences = Array.isArray(payload.aud)
+        ? payload.aud
+        : payload.aud ? [payload.aud] : [];
+      if (!audiences.includes(config.expectedAudience)) {
+        console.warn("Token audience mismatch");
+        return null;
+      }
+    }
+
+    // 4. Check revocation status
+    if (typeof config.tokenRepository.getByAccessToken !== "function") {
+      throw new Error("TokenRepository.getByAccessToken is required");
+    }
+
+    let storedToken: OAuthToken;
+    try {
+      storedToken = await config.tokenRepository.getByAccessToken(payload.jti);
+    } catch {
+      console.warn("Token not found in repository");
+      return null;
+    }
+
+    // 5. Verify expiration from database (defense in depth)
+    if (storedToken.accessTokenExpiresAt < new Date()) {
+      console.warn("Token expired");
+      return null;
+    }
+
+    return {
+      payload,
+      scopes: payload.scope?.split(" ").filter(Boolean) ?? [],
+      token: storedToken,
+    };
+  } catch (error) {
+    console.warn("Token validation failed:", error);
+    return null;
+  }
+}
+```
+
+### Step 3: Create the Middleware
+
+<Tabs>
+  <TabItem value="express" label="Express" default>
+
+```typescript
+import { Request, Response, NextFunction } from "express";
+
+// Extend Express types
+declare global {
+  namespace Express {
+    interface Request {
+      accessToken?: ValidatedToken;
+    }
+  }
+}
+
+function requireAuth(config: TokenValidationConfig, requiredScopes: string[] = []) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Extract Bearer token (RFC 6750 Section 2.1)
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      res.status(401)
+        .setHeader("WWW-Authenticate", 'Bearer realm="api"')
+        .json({
+          error: "invalid_request",
+          error_description: "Missing Authorization header",
+        });
+      return;
+    }
+
+    const token = authHeader.slice(7);
+    const validated = await validateAccessToken(token, config);
+
+    if (!validated) {
+      res.status(401)
+        .setHeader("WWW-Authenticate", 'Bearer error="invalid_token"')
+        .json({
+          error: "invalid_token",
+          error_description: "Token is invalid, expired, or revoked",
+        });
+      return;
+    }
+
+    // Check required scopes
+    if (requiredScopes.length > 0) {
+      const hasScopes = requiredScopes.every(s => validated.scopes.includes(s));
+      if (!hasScopes) {
+        res.status(403)
+          .setHeader(
+            "WWW-Authenticate",
+            `Bearer error="insufficient_scope", scope="${requiredScopes.join(" ")}"`
+          )
+          .json({
+            error: "insufficient_scope",
+            error_description: `Required scopes: ${requiredScopes.join(" ")}`,
+          });
+        return;
+      }
+    }
+
+    req.accessToken = validated;
+    next();
+  };
+}
+```
+
+  </TabItem>
+  <TabItem value="fastify" label="Fastify">
+
+```typescript
+import { FastifyRequest, FastifyReply } from "fastify";
+
+declare module "fastify" {
+  interface FastifyRequest {
+    accessToken?: ValidatedToken;
+  }
+}
+
+function requireAuth(config: TokenValidationConfig, requiredScopes: string[] = []) {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    const authHeader = request.headers.authorization;
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      reply.status(401)
+        .header("WWW-Authenticate", 'Bearer realm="api"')
+        .send({ error: "invalid_request" });
+      return;
+    }
+
+    const token = authHeader.slice(7);
+    const validated = await validateAccessToken(token, config);
+
+    if (!validated) {
+      reply.status(401)
+        .header("WWW-Authenticate", 'Bearer error="invalid_token"')
+        .send({ error: "invalid_token" });
+      return;
+    }
+
+    if (requiredScopes.length > 0) {
+      const hasScopes = requiredScopes.every(s => validated.scopes.includes(s));
+      if (!hasScopes) {
+        reply.status(403)
+          .header("WWW-Authenticate", `Bearer error="insufficient_scope"`)
+          .send({ error: "insufficient_scope" });
+        return;
+      }
+    }
+
+    request.accessToken = validated;
+  };
+}
+```
+
+  </TabItem>
+</Tabs>
+
+### Step 4: Protect Your Routes
+
+```typescript
+const authConfig: TokenValidationConfig = {
+  jwtService,
+  tokenRepository,
+  expectedIssuer: "https://auth.example.com",
+  expectedAudience: "https://api.example.com",
+};
+
+// Require valid token only
+app.get("/api/profile", requireAuth(authConfig), (req, res) => {
+  const userId = req.accessToken!.payload.sub;
+  res.json({ userId });
+});
+
+// Require specific scope
+app.get("/api/admin", requireAuth(authConfig, ["admin:read"]), (req, res) => {
+  res.json({ admin: true });
+});
+
+// Require multiple scopes
+app.delete(
+  "/api/users/:id",
+  requireAuth(authConfig, ["admin:read", "admin:write"]),
+  (req, res) => {
+    res.json({ deleted: req.params.id });
+  }
+);
+```
+
+## Security Considerations
+
+### Always Validate Issuer and Audience
+
+If your authorization server sets `iss` and `aud` claims, always validate them:
+
+```typescript
+const authorizationServer = new AuthorizationServer(
+  // ...
+  {
+    issuer: "https://auth.example.com", // Sets iss claim
+  }
+);
+
+// In your middleware config
+const authConfig: TokenValidationConfig = {
+  jwtService,
+  tokenRepository,
+  expectedIssuer: "https://auth.example.com",
+  expectedAudience: "https://api.example.com",
+};
+```
+
+This prevents:
+- **Token substitution attacks** - Using a token from a different issuer
+- **Token confusion** - Using a token meant for a different API
+
+### Check Revocation Status
+
+Even though JWTs contain expiration info, you should check the database for revocation:
+
+```typescript
+// Token may be revoked before expiration (user logout, password change, etc.)
+const storedToken = await tokenRepository.getByAccessToken(payload.jti);
+```
+
+### Use Short Token Lifetimes
+
+Configure short access token TTLs and use refresh tokens:
+
+```typescript
+authorizationServer.enableGrantTypes(
+  ["client_credentials", new DateInterval("15m")],  // 15 minute access tokens
+  ["refresh_token", new DateInterval("7d")],        // 7 day refresh tokens
+);
+```
+
+### Implement Rate Limiting
+
+Protect your token validation endpoint from brute force:
+
+```typescript
+import rateLimit from "express-rate-limit";
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
+app.use("/api", apiLimiter);
+```
+
+## Alternative: Token Introspection
+
+If your resource server is separate from your authorization server, or you need RFC 7662 compliance, use the [introspection endpoint](/docs/endpoints/introspect) instead.
+
+The introspection endpoint:
+- Handles all validation logic server-side
+- Returns a standardized response format
+- Can be called over HTTP from separate services
+
+```typescript
+// Resource server calls authorization server
+const response = await fetch("https://auth.example.com/token/introspect", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+  },
+  body: `token=${accessToken}`,
+});
+
+const { active, scope, client_id, sub } = await response.json();
+```
+
+## Complete Example
+
+See the [example project](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) for a complete working implementation including:
+
+- `example/src/middleware/auth.ts` - Full middleware implementation
+- `example/src/main.ts` - Protected route examples
+- `example/src/repositories/token_repository.ts` - Repository with `getByAccessToken`
+
+## Security Test Cases
+
+When implementing token validation, ensure you test these scenarios:
+
+```typescript
+describe("Token Validation", () => {
+  it("rejects requests without Authorization header");
+  it("rejects malformed Authorization header");
+  it("rejects expired tokens");
+  it("rejects tokens with invalid signature");
+  it("rejects revoked tokens");
+  it("rejects tokens with wrong issuer");
+  it("rejects tokens with wrong audience");
+  it("rejects tokens with insufficient scopes");
+  it("accepts valid tokens with correct scopes");
+});
+```
