@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { requestFromVanilla, responseFromVanilla, responseToVanilla, handleVanillaError } from "../../../src/adapters/vanilla.js";
+import {
+  requestFromVanilla,
+  responseFromVanilla,
+  responseToVanilla,
+  handleVanillaError,
+} from "../../../src/adapters/vanilla.js";
 import { ErrorType, OAuthException, OAuthRequest, OAuthResponse } from "../../../src/index.js";
 import { RedirectResponse } from "../../../src/responses/redirect.response.js";
 

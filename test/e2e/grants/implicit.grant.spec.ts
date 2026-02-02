@@ -189,9 +189,7 @@ describe("implicit grant", () => {
       const authorizationRequest = grant.validateAuthorizationRequest(request);
 
       // assert
-      await expect(authorizationRequest).rejects.toThrowError(
-        /Unauthorized scope requested by the client: scope-2/,
-      );
+      await expect(authorizationRequest).rejects.toThrowError(/Unauthorized scope requested by the client: scope-2/);
     });
   });
 

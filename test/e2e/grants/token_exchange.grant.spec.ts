@@ -209,9 +209,7 @@ describe("token_exchange grant", () => {
     const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
 
     // assert
-    await expect(tokenResponse).rejects.toThrowError(
-      /Unauthorized scope requested by the client: scope-2/,
-    );
+    await expect(tokenResponse).rejects.toThrowError(/Unauthorized scope requested by the client: scope-2/);
   });
 
   it("throws if missing subject_token", async () => {

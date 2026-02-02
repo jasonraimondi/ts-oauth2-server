@@ -79,12 +79,7 @@ export class TokenExchangeGrant extends AbstractGrant {
 
     // Finalize scopes with user_id to validate client authorization
     // and allow user-specific scope restrictions
-    const finalizedScopes = await this.scopeRepository.finalize(
-      validScopes,
-      this.identifier,
-      client,
-      user?.id,
-    );
+    const finalizedScopes = await this.scopeRepository.finalize(validScopes, this.identifier, client, user?.id);
 
     const accessToken = await this.issueAccessToken(accessTokenTTL, client, user, finalizedScopes);
 

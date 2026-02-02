@@ -90,7 +90,7 @@ export function handleExpressError(e: unknown | OAuthException, res: Response): 
   }
 
   // Convert generic errors to OAuthException
-  const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred';
+  const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred";
   const oauthError = OAuthException.internalServerError(errorMessage);
 
   res.status(oauthError.status);
