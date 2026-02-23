@@ -8,7 +8,7 @@ import {
   PasswordGrant,
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
-import { expectTokenResponse } from "./client_credentials.grant.spec.js";
+import { expectTokenResponse } from "../_helpers/assertions.js";
 import { JwtService } from "../../../src/utils/jwt.js";
 import {
   inMemoryAccessTokenRepository,

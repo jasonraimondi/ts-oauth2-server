@@ -17,7 +17,7 @@ import {
   RefreshTokenGrant,
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
-import { expectTokenResponse } from "./client_credentials.grant.spec.js";
+import { expectTokenResponse } from "../_helpers/assertions.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
 
 function createGrant(options?: Partial<AuthorizationServerOptions>) {
