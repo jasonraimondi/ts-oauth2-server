@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { H3Event } from "h3";
-import { requestFromH3, responseToH3, handleH3Error } from "../../../src/adapters/h3.js";
+import { requestFromH3, responseFromH3, handleH3Response, handleH3Error } from "../../../src/adapters/h3.js";
 import { ErrorType, OAuthException, OAuthRequest, OAuthResponse } from "../../../src/index.js";
 
 // Mock h3 module
@@ -29,7 +29,6 @@ describe("adapters/h3.js", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Get mocked h3 functions
     const h3 = await import("h3");
     h3Mocks = {
       getQuery: h3.getQuery as ReturnType<typeof vi.fn>,
@@ -41,10 +40,18 @@ describe("adapters/h3.js", () => {
       send: h3.send as ReturnType<typeof vi.fn>,
     };
 
-    mockEvent = {
-      method: "GET",
-      node: { req: { method: "GET" } },
-    } as unknown as H3Event;
+    mockEvent = { method: "GET" } as unknown as H3Event;
+  });
+
+  describe("responseFromH3", () => {
+    it("should create an OAuthResponse from an H3Event", () => {
+      h3Mocks.getHeaders.mockReturnValue({ "content-type": "application/json" });
+
+      const result = responseFromH3(mockEvent);
+
+      expect(result).toBeInstanceOf(OAuthResponse);
+      expect(result.headers).toEqual({ "content-type": "application/json" });
+    });
   });
 
   describe("requestFromH3", () => {
@@ -62,10 +69,7 @@ describe("adapters/h3.js", () => {
     });
 
     it("should read body for POST requests", async () => {
-      mockEvent = {
-        method: "POST",
-        node: { req: { method: "POST" } },
-      } as unknown as H3Event;
+      mockEvent = { method: "POST" } as unknown as H3Event;
 
       h3Mocks.getQuery.mockReturnValue({});
       h3Mocks.getHeaders.mockReturnValue({ "content-type": "application/x-www-form-urlencoded" });
@@ -79,10 +83,7 @@ describe("adapters/h3.js", () => {
     });
 
     it("should handle undefined body gracefully", async () => {
-      mockEvent = {
-        method: "POST",
-        node: { req: { method: "POST" } },
-      } as unknown as H3Event;
+      mockEvent = { method: "POST" } as unknown as H3Event;
 
       h3Mocks.getQuery.mockReturnValue({});
       h3Mocks.getHeaders.mockReturnValue({});
@@ -93,27 +94,9 @@ describe("adapters/h3.js", () => {
       expect(result.body).toEqual({});
     });
 
-    it("should handle readBody errors gracefully", async () => {
-      mockEvent = {
-        method: "POST",
-        node: { req: { method: "POST" } },
-      } as unknown as H3Event;
-
-      h3Mocks.getQuery.mockReturnValue({});
-      h3Mocks.getHeaders.mockReturnValue({});
-      h3Mocks.readBody.mockRejectedValue(new Error("Parse error"));
-
-      const result = await requestFromH3(mockEvent);
-
-      expect(result.body).toEqual({});
-    });
-
     it("should handle PUT and PATCH methods", async () => {
       for (const method of ["PUT", "PATCH"]) {
-        mockEvent = {
-          method,
-          node: { req: { method } },
-        } as unknown as H3Event;
+        mockEvent = { method } as unknown as H3Event;
 
         h3Mocks.getQuery.mockReturnValue({});
         h3Mocks.getHeaders.mockReturnValue({});
@@ -126,45 +109,33 @@ describe("adapters/h3.js", () => {
     });
   });
 
-  describe("responseToH3", () => {
-    it("should handle redirect responses", async () => {
-      const mockOAuthResponse = new OAuthResponse({
+  describe("handleH3Response", () => {
+    it("should handle redirect responses", () => {
+      const oauthResponse = new OAuthResponse({
         status: 302,
         headers: { location: "https://example.com/callback" },
       });
 
-      await responseToH3(mockEvent, mockOAuthResponse);
+      handleH3Response(mockEvent, oauthResponse);
 
       expect(h3Mocks.sendRedirect).toHaveBeenCalledWith(mockEvent, "https://example.com/callback", 302);
       expect(h3Mocks.send).not.toHaveBeenCalled();
     });
 
-    it("should throw error for redirect without location", async () => {
-      const mockOAuthResponse = new OAuthResponse({
-        status: 302,
-        headers: {},
-      });
+    it("should throw error for redirect without location", () => {
+      const oauthResponse = new OAuthResponse({ status: 302, headers: {} });
 
-      await expect(responseToH3(mockEvent, mockOAuthResponse)).rejects.toThrow("missing redirect location");
+      expect(() => handleH3Response(mockEvent, oauthResponse)).toThrow("missing redirect location");
     });
 
-    it("should throw error for redirect with empty location", async () => {
-      const mockOAuthResponse = new OAuthResponse({
-        status: 302,
-        headers: { location: "" },
-      });
-
-      await expect(responseToH3(mockEvent, mockOAuthResponse)).rejects.toThrow("missing redirect location");
-    });
-
-    it("should handle non-redirect responses", async () => {
-      const mockOAuthResponse = new OAuthResponse({
+    it("should handle non-redirect responses", () => {
+      const oauthResponse = new OAuthResponse({
         status: 200,
         headers: { "cache-control": "no-store" },
         body: { access_token: "token123", token_type: "Bearer" },
       });
 
-      await responseToH3(mockEvent, mockOAuthResponse);
+      handleH3Response(mockEvent, oauthResponse);
 
       expect(h3Mocks.setResponseStatus).toHaveBeenCalledWith(mockEvent, 200);
       expect(h3Mocks.setHeaders).toHaveBeenCalledWith(mockEvent, { "cache-control": "no-store" });
@@ -174,41 +145,13 @@ describe("adapters/h3.js", () => {
         "application/json",
       );
     });
-
-    it("should convert header values to strings", async () => {
-      const mockOAuthResponse = new OAuthResponse({
-        status: 200,
-        headers: { "x-custom": 123 as unknown as string },
-        body: {},
-      });
-
-      await responseToH3(mockEvent, mockOAuthResponse);
-
-      expect(h3Mocks.setHeaders).toHaveBeenCalledWith(mockEvent, { "x-custom": "123" });
-    });
-
-    it("should filter out null and undefined header values", async () => {
-      const mockOAuthResponse = new OAuthResponse({
-        status: 200,
-        headers: {
-          "x-valid": "value",
-          "x-null": null as unknown as string,
-          "x-undefined": undefined as unknown as string,
-        },
-        body: {},
-      });
-
-      await responseToH3(mockEvent, mockOAuthResponse);
-
-      expect(h3Mocks.setHeaders).toHaveBeenCalledWith(mockEvent, { "x-valid": "value" });
-    });
   });
 
   describe("handleH3Error", () => {
-    it("should handle OAuthException", async () => {
+    it("should handle OAuthException", () => {
       const oauthError = new OAuthException("Invalid client", ErrorType.InvalidClient, undefined, undefined, 401);
 
-      await handleH3Error(mockEvent, oauthError);
+      handleH3Error(oauthError, mockEvent);
 
       expect(h3Mocks.setResponseStatus).toHaveBeenCalledWith(mockEvent, 401);
       expect(h3Mocks.setHeaders).toHaveBeenCalledWith(mockEvent, { "content-type": "application/json" });
@@ -224,10 +167,10 @@ describe("adapters/h3.js", () => {
       );
     });
 
-    it("should convert non-OAuthException errors to internal server error", async () => {
+    it("should convert non-OAuthException errors to internal server error", () => {
       const error = new Error("Database connection failed");
 
-      await handleH3Error(mockEvent, error);
+      handleH3Error(error, mockEvent);
 
       expect(h3Mocks.setResponseStatus).toHaveBeenCalledWith(mockEvent, 500);
       expect(h3Mocks.send).toHaveBeenCalledWith(
@@ -237,8 +180,8 @@ describe("adapters/h3.js", () => {
       );
     });
 
-    it("should handle unknown error types gracefully", async () => {
-      await handleH3Error(mockEvent, "string error");
+    it("should handle unknown error types gracefully", () => {
+      handleH3Error("string error", mockEvent);
 
       expect(h3Mocks.setResponseStatus).toHaveBeenCalledWith(mockEvent, 500);
       expect(h3Mocks.send).toHaveBeenCalledWith(
@@ -248,8 +191,8 @@ describe("adapters/h3.js", () => {
       );
     });
 
-    it("should handle null/undefined errors", async () => {
-      await handleH3Error(mockEvent, null);
+    it("should handle null/undefined errors", () => {
+      handleH3Error(null, mockEvent);
 
       expect(h3Mocks.setResponseStatus).toHaveBeenCalledWith(mockEvent, 500);
     });

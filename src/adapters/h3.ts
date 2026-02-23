@@ -1,3 +1,4 @@
+import { getQuery, getHeaders, readBody, sendRedirect, setResponseStatus, setHeaders, send } from "h3";
 import type { H3Event } from "h3";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 
@@ -6,7 +7,19 @@ import { OAuthResponse } from "../responses/response.js";
 import { isOAuthError } from "../utils/errors.js";
 
 /**
- * Converts an H3Event to an OAuthRequest.
+ * Converts an H3 Event to an OAuthResponse.
+ *
+ * @param event - H3 Event object
+ * @returns OAuthResponse instance
+ */
+export function responseFromH3(event: H3Event): OAuthResponse {
+  return new OAuthResponse({
+    headers: getHeaders(event) as Record<string, unknown>,
+  });
+}
+
+/**
+ * Converts an H3 Event to an OAuthRequest.
  * Handles extracting query params, body, and headers from the H3 event.
  *
  * @param event - H3 Event object
@@ -24,28 +37,16 @@ import { isOAuthError } from "../utils/errors.js";
  * ```
  */
 export async function requestFromH3(event: H3Event): Promise<OAuthRequest> {
-  // Dynamic import to avoid requiring h3 as a dependency
-  const { getQuery, getHeaders, readBody } = await import("h3");
-
   const query = getQuery(event) as Record<string, unknown>;
   const headers = getHeaders(event) as Record<string, unknown>;
 
   let body: Record<string, unknown> = {};
-  const method = event.method?.toUpperCase() ?? event.node.req.method?.toUpperCase();
 
-  if (method === "POST" || method === "PUT" || method === "PATCH") {
-    try {
-      body = (await readBody(event)) ?? {};
-    } catch {
-      body = {};
-    }
+  if (event.method === "POST" || event.method === "PUT" || event.method === "PATCH") {
+    body = (await readBody(event)) ?? {};
   }
 
-  return new OAuthRequest({
-    query,
-    body,
-    headers,
-  });
+  return new OAuthRequest({ query, body, headers });
 }
 
 /**
@@ -54,42 +55,29 @@ export async function requestFromH3(event: H3Event): Promise<OAuthRequest> {
  *
  * @param event - H3 Event object
  * @param oauthResponse - OAuth response to send
- * @returns Promise that resolves when response is sent
  *
  * @example
  * ```ts
- * import { requestFromH3, responseToH3 } from "@jmondi/oauth2-server/h3";
+ * import { requestFromH3, handleH3Response } from "@jmondi/oauth2-server/h3";
  *
  * export default defineEventHandler(async (event) => {
  *   const oauthResponse = await authorizationServer.respondToAccessTokenRequest(
  *     await requestFromH3(event)
  *   );
- *   return responseToH3(event, oauthResponse);
+ *   return handleH3Response(event, oauthResponse);
  * });
  * ```
  */
-export async function responseToH3(event: H3Event, oauthResponse: OAuthResponse): Promise<void> {
-  const { sendRedirect, setResponseStatus, setHeaders, send } = await import("h3");
-
+export function handleH3Response(event: H3Event, oauthResponse: OAuthResponse): void {
   if (oauthResponse.status === 302) {
-    if (typeof oauthResponse.headers.location !== "string" || oauthResponse.headers.location === "") {
-      throw new Error("missing redirect location");
-    }
-    return sendRedirect(event, oauthResponse.headers.location, 302);
+    if (!oauthResponse.headers.location) throw new Error("missing redirect location");
+    sendRedirect(event, oauthResponse.headers.location, 302);
+    return;
   }
 
   setResponseStatus(event, oauthResponse.status);
-
-  // Convert headers to string values for H3
-  const headers: Record<string, string> = {};
-  for (const [key, value] of Object.entries(oauthResponse.headers)) {
-    if (value !== undefined && value !== null) {
-      headers[key] = String(value);
-    }
-  }
-  setHeaders(event, headers);
-
-  return send(event, JSON.stringify(oauthResponse.body), "application/json");
+  setHeaders(event, oauthResponse.headers);
+  send(event, JSON.stringify(oauthResponse.body), "application/json");
 }
 
 /**
@@ -97,33 +85,30 @@ export async function responseToH3(event: H3Event, oauthResponse: OAuthResponse)
  * Converts OAuthExceptions to appropriate HTTP responses.
  * Generic errors are automatically converted to 500 Internal Server Error.
  *
- * @param event - H3 Event object
  * @param e - Error object, typically an OAuthException
- * @returns Promise that resolves when error response is sent
+ * @param event - H3 Event object
  *
  * @example
  * ```ts
- * import { requestFromH3, responseToH3, handleH3Error } from "@jmondi/oauth2-server/h3";
+ * import { requestFromH3, handleH3Response, handleH3Error } from "@jmondi/oauth2-server/h3";
  *
  * export default defineEventHandler(async (event) => {
  *   try {
  *     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(
  *       await requestFromH3(event)
  *     );
- *     return responseToH3(event, oauthResponse);
+ *     return handleH3Response(event, oauthResponse);
  *   } catch (e) {
- *     return handleH3Error(event, e);
+ *     return handleH3Error(e, event);
  *   }
  * });
  * ```
  */
-export async function handleH3Error(event: H3Event, e: unknown | OAuthException): Promise<void> {
-  const { setResponseStatus, setHeaders, send } = await import("h3");
-
+export function handleH3Error(e: unknown | OAuthException, event: H3Event): void {
   if (isOAuthError(e)) {
     setResponseStatus(event, e.status);
     setHeaders(event, { "content-type": "application/json" });
-    return send(
+    send(
       event,
       JSON.stringify({
         status: e.status,
@@ -133,15 +118,15 @@ export async function handleH3Error(event: H3Event, e: unknown | OAuthException)
       }),
       "application/json",
     );
+    return;
   }
 
-  // Convert generic errors to OAuthException
   const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred";
   const oauthError = OAuthException.internalServerError(errorMessage);
 
   setResponseStatus(event, oauthError.status);
   setHeaders(event, { "content-type": "application/json" });
-  return send(
+  send(
     event,
     JSON.stringify({
       status: oauthError.status,

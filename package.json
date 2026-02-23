@@ -79,10 +79,11 @@
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "fastify": "^4.28.1",
+    "h3": "1.15.5",
     "prettier": "^3.3.2",
     "supertest": "^7.0.0",
-    "tslib": "^2.6.3",
     "tsdown": "^0.20.3",
+    "tslib": "^2.6.3",
     "typescript": "^5.5.3",
     "vite": "^5.4.21",
     "vitest": "^1.6.1"
