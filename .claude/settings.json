@@ -5,5 +5,19 @@
       "WebFetch(domain:datatracker.ietf.org)"
     ]
   },
-  "enableAllProjectMcpServers": false
+  "enableAllProjectMcpServers": false,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/check-docs-updated.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
 }
