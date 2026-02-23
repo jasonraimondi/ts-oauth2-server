@@ -34,7 +34,8 @@ The included adapters are just helper functions, any framework should be support
 
 - [VanillaJS](https://tsoauth2server.com/docs/adapters/vanilla)
 - [Express](https://tsoauth2server.com/docs/adapters/express)
-- [Fastify](https://tsoauth2server.com/docs/adapters/fastify). 
+- [Fastify](https://tsoauth2server.com/docs/adapters/fastify)
+- [H3](https://tsoauth2server.com/docs/adapters/h3)
 
 ### Usage
 

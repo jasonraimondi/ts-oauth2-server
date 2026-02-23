@@ -18,7 +18,8 @@
     ".": "./src/index.ts",
     "./vanilla": "./src/adapters/vanilla.ts",
     "./express": "./src/adapters/express.ts",
-    "./fastify": "./src/adapters/fastify.ts"
+    "./fastify": "./src/adapters/fastify.ts",
+    "./h3": "./src/adapters/h3.ts"
   },
   "publishConfig": {
     "main": "./dist/index.js",
@@ -44,6 +45,11 @@
         "import": "./dist/fastify.js",
         "require": "./dist/fastify.cjs",
         "types": "./dist/fastify.d.ts"
+      },
+      "./h3": {
+        "import": "./dist/h3.js",
+        "require": "./dist/h3.cjs",
+        "types": "./dist/h3.d.ts"
       }
     },
     "typesVersions": {
