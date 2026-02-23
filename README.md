@@ -28,6 +28,8 @@ Out of the box it supports the following grants:
 - [Implicit grant](https://tsoauth2server.com/docs/grants/implicit) // not recommended 
 - [Resource owner password credentials grant](https://tsoauth2server.com/docs/grants/password) // not recommended
 
+> Note: For backwards compatibility, the `implicit` grant appends tokens with query params by default. Set `implicitRedirectMode: "fragment"` in `AuthorizationServer` options to use URI fragments.
+
 Framework support:
 
 The included adapters are just helper functions, any framework should be supported. Take a look at the adapter implementations to learn how you can create custom adapters for your favorite tool!

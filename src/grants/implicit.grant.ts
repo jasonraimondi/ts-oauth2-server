@@ -116,6 +116,8 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
 
     if (authorizationRequest.state) params.state = authorizationRequest.state.toString();
 
-    return new RedirectResponse(this.makeRedirectUrl(finalRedirectUri, params));
+    const queryDelimiter = this.options.implicitRedirectMode === "fragment" ? "#" : "?";
+
+    return new RedirectResponse(this.makeRedirectUrl(finalRedirectUri, params, queryDelimiter));
   }
 }
