@@ -52,7 +52,7 @@ The `/token` endpoint supports the following grant types:
   - `grant_type=client_credentials`
   - `scope` (optional): The scope of the access request
 
-### [Resource Owner Password Credentials Grant](/docs/grants/authorization_code) (RFC6749 Section 4.3)
+### [Resource Owner Password Credentials Grant](/docs/grants/password) (RFC6749 Section 4.3)
 - Used to exchange the resource owner's credentials for an access token
 - Request parameters:
   - `grant_type=password`
