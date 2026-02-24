@@ -28,14 +28,13 @@ import {
   RequestInterface,
   ResponseInterface,
 } from "../../src/index.js";
-import { expectTokenResponse } from "./grants/client_credentials.grant.spec.js";
+import { expectTokenResponse } from "./_helpers/assertions.js";
 import { CustomGrant } from "../../src/grants/abstract/custom.grant.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../src/options.js";
 import { OAuthAuthCode } from "@jmondi/oauth2-server";
 import { testingJwtService } from "./_helpers/in_memory/oauth_authorization_server.js";
 
-// const codeVerifier = "qqVDyvlSezXc64NY5Rx3BbL_aT7c2xEBgoJP9domepFZLEjo9ln8EA"; // base64urlencode(crypto.randomBytes(40));
-const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws"; // base64urlencode(crypto.createHash("sha256").update(codeVerifier).digest());
+const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws";
 
 export class MyCustomGrant extends CustomGrant {
   readonly identifier = "custom:my_custom_grant";

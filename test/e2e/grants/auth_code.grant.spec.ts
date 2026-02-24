@@ -26,7 +26,7 @@ import {
   OAuthUser,
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
-import { expectTokenResponse } from "./client_credentials.grant.spec.js";
+import { expectTokenResponse } from "../_helpers/assertions.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
 
 export class CustomJwtService extends JwtService {
@@ -322,24 +322,6 @@ describe("authorization_code grant", () => {
       await expect(authorizationRequest).rejects.toThrowError(/Must be `S256`/);
     });
 
-    it.skip("throws for invalid code_challenge pkce format regex", async () => {
-      request = new OAuthRequest({
-        query: {
-          response_type: "code",
-          client_id: client.id,
-          redirect_uri: "http://example.com",
-          state: "state-is-a-secret",
-          code_challenge: "invalid-format(with!Invalid~characters",
-          code_challenge_method: "S256",
-        },
-      });
-      const authorizationRequest = grant.validateAuthorizationRequest(request);
-
-      await expect(authorizationRequest).rejects.toThrowError(
-        /Code challenge must follow the specifications of RFC-7636 and match/,
-      );
-    });
-
     it("throws for relative redirect_uri", async () => {
       request = new OAuthRequest({
         query: {
@@ -425,8 +407,6 @@ describe("authorization_code grant", () => {
       expect(decodedCode.redirect_uri).toBe("http://example.com?this_should_work=true");
       expect(decodedCode.audience).toBe("EvenIfItKillsMe");
     });
-
-    // it("uses clients redirect url if request ", async () => {});
 
     it("is successful without pkce flow", async () => {
       grant.options.requiresPKCE = false;

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { decode } from "jsonwebtoken";
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
   AuthorizationServerOptions,
@@ -11,8 +10,6 @@ import {
   OAuthClient,
   OAuthRequest,
   OAuthScope,
-  REGEX_ACCESS_TOKEN,
-  ResponseInterface,
 } from "../../../src/index.js";
 import {
   inMemoryAccessTokenRepository,
@@ -20,22 +17,7 @@ import {
   inMemoryScopeRepository,
 } from "../_helpers/in_memory/repository.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
-
-export function expectTokenResponse(tokenResponse: ResponseInterface) {
-  const decodedToken: any = decode(tokenResponse.body.access_token);
-
-  expect(tokenResponse.status).toBe(200);
-  expect(tokenResponse.headers["cache-control"]).toBe("no-store");
-  expect(tokenResponse.headers["pragma"]).toBe("no-cache");
-  expect(tokenResponse.body.token_type).toBe("Bearer");
-  expect(tokenResponse.body.expires_in).toBe(3600);
-  expect(tokenResponse.body.access_token).toMatch(REGEX_ACCESS_TOKEN);
-
-  expect(decodedToken.exp).toBeTruthy();
-  expect(decodedToken.jti).toBeTruthy();
-
-  return decodedToken;
-}
+import { expectTokenResponse } from "../_helpers/assertions.js";
 
 class ClientCredentialsJwtService extends JwtService {
   async extraTokenFields({ client }: ExtraAccessTokenFieldArgs) {
