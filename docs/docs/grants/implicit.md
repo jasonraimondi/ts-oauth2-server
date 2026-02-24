@@ -1,7 +1,3 @@
----
-sidebar_position: 8
----
-
 # Implicit Grant ⚠️ ⚠️
 
 :::warning Not Recommended

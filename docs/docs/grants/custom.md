@@ -1,7 +1,3 @@
----
-sidebar_position: 7
----
-
 # Custom Grant ⚠️
 
 To implement a custom grant, you may extend the `AbstractGrant` class.

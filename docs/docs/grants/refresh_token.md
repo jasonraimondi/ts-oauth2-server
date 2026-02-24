@@ -1,7 +1,3 @@
----
-sidebar_position: 3
----
-
 
 # Refresh Token Grant
 
@@ -23,8 +19,7 @@ A complete refresh token request will include the following parameters:
 - **refresh_token** must be the signed token previously issued to the client
 - **scope** (optional) the requested scope must not include any additional scopes that were not previously issued to the original token
 
-<details>
-  <summary>View sample refresh_token request</summary>
+:::: details View sample refresh_token request
 
 ::: code-group
 
@@ -52,7 +47,7 @@ grant_type=refresh_token
 ```
 
 :::
-</details>
+::::
 
 The authorization server will respond with the following response
 
@@ -62,37 +57,34 @@ The authorization server will respond with the following response
 - **refresh_token** is a JWT signed token and can be used in with the refresh grant (this one)
 - **scope** is a space delimited list of scopes the token has access to
 
-<details>
-  <summary>View sample refresh_token response</summary>
-  ```http
-  HTTP/1.1 200 OK
-  Content-Type: application/json; charset=UTF-8
-  Cache-Control: no-store
-  Pragma: no-cache
+::: details View sample refresh_token response
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+Cache-Control: no-store
+Pragma: no-cache
 
 {
-token_type: 'Bearer',
-expires_in: 3600,
-access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1MTJhYjlhNC1jNzg2LTQ4YTYtOGFkNi05NGM1M2E4ZGM2NTEiLCJleHAiOjE2MDE3NjcyMTIsIm5iZiI6MTYwMTc2MzYxMiwiaWF0IjoxNjAxNzYzNjEyLCJqdGkiOiJuZXcgdG9rZW4iLCJjaWQiOiJ0ZXN0IGNsaWVudCIsInNjb3BlIjoiIn0.PO4eKSDVsFuKvebEXndWbZsprgzjkzEfHI7cl4N0YpM',
-refresh_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIzNTYxNWYyZi0xM2ZhLTQ3MzEtODNhMS05ZTM0NTU2YWIzOTAiLCJhY2Nlc3NfdG9rZW5faWQiOiJuZXcgdG9rZW4iLCJyZWZyZXNoX3Rva2VuX2lkIjoidGhpcy1pcy1teS1zdXBlci1zZWNyZXQtcmVmcmVzaC10b2tlbiIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjUxMmFiOWE0LWM3ODYtNDhhNi04YWQ2LTk0YzUzYThkYzY1MSIsImV4cGlyZV90aW1lIjoxNjAxNzY3MjEyLCJpYXQiOjE2MDE3NjM2MTF9.du4KfAzelSA8hzBaqGlrSvPtH-BxOcoUBXW4HS3pJkM',
-scope: 'contacts.read contacts.write'
+  token_type: 'Bearer',
+  expires_in: 3600,
+  access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1MTJhYjlhNC1jNzg2LTQ4YTYtOGFkNi05NGM1M2E4ZGM2NTEiLCJleHAiOjE2MDE3NjcyMTIsIm5iZiI6MTYwMTc2MzYxMiwiaWF0IjoxNjAxNzYzNjEyLCJqdGkiOiJuZXcgdG9rZW4iLCJjaWQiOiJ0ZXN0IGNsaWVudCIsInNjb3BlIjoiIn0.PO4eKSDVsFuKvebEXndWbZsprgzjkzEfHI7cl4N0YpM',
+  refresh_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIzNTYxNWYyZi0xM2ZhLTQ3MzEtODNhMS05ZTM0NTU2YWIzOTAiLCJhY2Nlc3NfdG9rZW5faWQiOiJuZXcgdG9rZW4iLCJyZWZyZXNoX3Rva2VuX2lkIjoidGhpcy1pcy1teS1zdXBlci1zZWNyZXQtcmVmcmVzaC10b2tlbiIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjUxMmFiOWE0LWM3ODYtNDhhNi04YWQ2LTk0YzUzYThkYzY1MSIsImV4cGlyZV90aW1lIjoxNjAxNzY3MjEyLCJpYXQiOjE2MDE3NjM2MTF9.du4KfAzelSA8hzBaqGlrSvPtH-BxOcoUBXW4HS3pJkM',
+  scope: 'contacts.read contacts.write'
 }
-
-````
-</details>
+```
+:::
 
 ### Revocation
 
 Refresh tokens are only valid for a single use. In addition, they can be explicitly revoked on a server that supports
-[RFC7009 “OAuth 2.0 Token Revocation”](https://tools.ietf.org/html/rfc7009).
+[RFC7009 "OAuth 2.0 Token Revocation"](https://tools.ietf.org/html/rfc7009).
 
 A refresh token revocation request will include the following parameters:
 
 - **token** is the signed token previously issued to the client
 - **token_type_hint** MUST be set to `refresh_token`
 
-<details>
-<summary>View sample revoke refresh_token request</summary>
+::: details View sample revoke refresh_token request
 ```http
 POST /token HTTP/1.1
 Host: example.com
@@ -100,13 +92,15 @@ Content-Type: application/x-www-form-urlencoded
 
 token_type_hint=refresh_token
 &refresh_token=xxxxxxxxx
-````
-
-</details>
+```
+:::
 
 The authorization server will respond with the following response
 
-<details>
-  <summary>View sample revoke refresh_token response</summary>
-  ```http HTTP/1.1 200 OK Cache-Control: no-store Pragma: no-cache ```
-</details>
+::: details View sample revoke refresh_token response
+```http
+HTTP/1.1 200 OK
+Cache-Control: no-store
+Pragma: no-cache
+```
+:::

@@ -1,5 +1,4 @@
 ---
-sidebar_position: 2
 title: /token
 ---
 
@@ -70,6 +69,6 @@ The `/token` endpoint supports the following grant types:
   - `requested_token_type` (optional): An identifier for the type of the requested security token
   - `audience` (optional): The logical name of the target service where the client intends to use the requested security token
 
-:::info Supports the following RFC\'S
+:::info Supports the following RFCs
 [RFC6749 (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc6749), [RFC6750 (Bearer Token Usage)](https://datatracker.ietf.org/doc/html/rfc6750), [RFC8693 (Token Exchange)](https://datatracker.ietf.org/doc/html/rfc8693)
 :::

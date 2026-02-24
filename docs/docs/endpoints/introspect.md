@@ -1,5 +1,4 @@
 ---
-sidebar_position: 4
 title: /token/introspect
 ---
 
@@ -46,10 +45,10 @@ A complete token introspection request will include the following parameters:
 
 The request must be authenticated using the client credentials method.
 
-<details>
-<summary>View sample introspect request</summary>
+:::: details View sample introspect request
 
 You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+
 ::: code-group
 
 ```http [Query String]
@@ -91,7 +90,7 @@ Content-Type: application/x-www-form-urlencoded
 token=xxxxxxxxxx
 &token_type_hint=refresh_token
 ```
-</details>
+::::
 
 ### Response
 
@@ -146,6 +145,6 @@ await response.json()
 
 :::
 
-:::info Supports the following RFC\'S
+:::info Supports the following RFCs
 [RFC7662 (OAuth 2.0 Token Introspection)](https://datatracker.ietf.org/doc/html/rfc7662)
 :::

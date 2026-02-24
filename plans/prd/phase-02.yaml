@@ -40,7 +40,7 @@ tasks:
 
 - track: data
   description: Replace RequiredForGrants React component with inline markdown badges
-  status: pending
+  status: done
   steps:
     - In docs/docs/getting_started/repositories.md — find each `<RequiredForGrants grants={[...]} />` usage
     - Replace with inline markdown badge links, e.g., "**Used in Grants:** [Authorization Code](/docs/grants/authorization_code) | [Client Credentials](/docs/grants/client_credentials) | ..."
@@ -49,7 +49,7 @@ tasks:
 
 - track: data
   description: Clean up frontmatter for VitePress compatibility
-  status: pending
+  status: done
   steps:
     - Keep `title` frontmatter where present — VitePress uses it
     - Remove `sidebar_position` from all files — sidebar ordering is handled in config.mts
@@ -59,7 +59,7 @@ tasks:
 
 - track: resilience
   description: Verify all internal links resolve after migration
-  status: pending
+  status: done
   steps:
     - Run VitePress build (pnpm build) and check for dead link warnings
     - Fix any broken internal links — paths should remain /docs/getting_started/, /docs/grants/authorization_code, etc.

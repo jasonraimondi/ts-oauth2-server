@@ -1,6 +1,5 @@
 ---
 title: Adapters
-sidebar_position: 5
 ---
 
 # Adapters

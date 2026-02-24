@@ -1,7 +1,3 @@
----
-sidebar_position: 6
----
-
 # Token Exchange Grant
 
 The [RFC 8693 - OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693) facilitates the secure exchange of tokens for accessing different resources or services. This documentation guides you through enabling this grant type on your authorization server, detailing request and response handling to ensure robust and secure token management.
@@ -56,9 +52,8 @@ The client sends a **POST** to the `/token` endpoint with the following body:
 - **requested_token_type** (_optional_) is an identifier for the type of the requested security token [See more info](https://datatracker.ietf.org/doc/html/rfc8693#TokenTypeIdentifiers)
 - **scope** (_optional_) is a string with a space delimited list of requested scopes. The requested scopes must be valid for the client.
 
-<details>
-  <summary>View sample request</summary>
-  _Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+::: details View sample request
+_Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
 
 ```http
 POST /token HTTP/1.1
@@ -72,8 +67,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token_type=urn:ietf:oauth:token-type:steam_session_ticket
 &scope="contacts.read contacts.write"
 ```
-
-</details>
+:::
 
 The authorization server will respond with the following response.
 
@@ -82,21 +76,18 @@ The authorization server will respond with the following response.
 - **access_token** is a JWT signed token and can be used to authenticate into the resource server
 - **scope** is a space delimited list of scopes the token has access to
 
-<details>
-  <summary>View sample response</summary>
-  ```http
-  HTTP/1.1 200 OK
-  Content-Type: application/json; charset=UTF-8
-  Cache-Control: no-store
-  Pragma: no-cache
+::: details View sample response
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+Cache-Control: no-store
+Pragma: no-cache
 
 {
-token_type: 'Bearer',
-expires_in: 3600,
-access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDE3MDY0NjYsIm5iZiI6MTYwMTcwMjg2NiwiaWF0IjoxNjAxNzAyODY2LCJqdGkiOiJuZXcgdG9rZW4iLCJjaWQiOiJ0ZXN0IGNsaWVudCIsInNjb3BlIjoiIn0.KcXoCP6u9uhvtOoistLBskESA0tyT2I1SDe5Yn9iM4I',
-scope: 'contacts.create contacts.read'
+  token_type: 'Bearer',
+  expires_in: 3600,
+  access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDE3MDY0NjYsIm5iZiI6MTYwMTcwMjg2NiwiaWF0IjoxNjAxNzAyODY2LCJqdGkiOiJuZXcgdG9rZW4iLCJjaWQiOiJ0ZXN0IGNsaWVudCIsInNjb3BlIjoiIn0.KcXoCP6u9uhvtOoistLBskESA0tyT2I1SDe5Yn9iM4I',
+  scope: 'contacts.create contacts.read'
 }
-
 ```
-</details>
-```
+:::

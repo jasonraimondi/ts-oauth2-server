@@ -1,7 +1,3 @@
----
-sidebar_position: 9
----
-
 # References
 
 - https://github.com/thephpleague/oauth2-server - This project was influenced by the [PHP League OAuth2 Server](https://oauth2.thephpleague.com/) and shares a lot of the same ideas.

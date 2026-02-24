@@ -1,5 +1,4 @@
 ---
-sidebar_position: 3
 title: /token/revoke
 ---
 
@@ -46,10 +45,10 @@ A complete token revocation request will include the following parameters:
 
 The request must be authenticated using client_credentials.
 
-<details>
-<summary>View sample introspect request</summary>
+:::: details View sample revoke request
 
 You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+
 ::: code-group
 
 ```http [Query String]
@@ -91,7 +90,7 @@ Content-Type: application/x-www-form-urlencoded
 token=xxxxxxxxxx
 &token_type_hint=refresh_token
 ```
-</details>
+::::
 
 
 ### Response
@@ -104,6 +103,6 @@ The authorization server will respond with:
 
 The response body will be empty for successful revocations. For error responses, the server may include additional error information as specified in the OAuth 2.0 specification
 
-:::info Supports the following RFC\'S
+:::info Supports the following RFCs
 [RFC7009 (OAuth 2.0 Token Revocation)](https://datatracker.ietf.org/doc/html/rfc7009)
 :::

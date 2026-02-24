@@ -1,7 +1,3 @@
----
-sidebar_position: 3
----
-
 
 # Repository Interfaces
 
@@ -15,7 +11,7 @@ For SQL schema examples to back these repositories, see the [Database Schema Ref
 
 OAuthAuthCodeRepository interface is utilized for managing OAuth authorization codes. It contains methods for retrieving an authorization code entity by its identifier, issuing a new authorization code, persisting an authorization code in the storage, checking if an authorization code has been revoked, and revoking an authorization code.
 
-<RequiredForGrants grants={["authorization_code"]} />
+> **Used in Grants:** [Authorization Code](/docs/grants/authorization_code)
 
 ```ts
 interface OAuthAuthCodeRepository {
@@ -48,7 +44,7 @@ interface OAuthAuthCodeRepository {
 
 OAuthClientRepository interface is used for managing OAuth clients. It includes methods for fetching a client entity from storage by the client ID and for validating the client using the grant type and client secret.
 
-<RequiredForGrants grants={["authorization_code", "client_credentials", "refresh_token", "password", "implicit", "custom",]} />
+> **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Client Credentials](/docs/grants/client_credentials) · [Refresh Token](/docs/grants/refresh_token) · [Password](/docs/grants/password) · [Implicit](/docs/grants/implicit) · [Custom](/docs/grants/custom)
 
 ```ts
 interface OAuthClientRepository {
@@ -68,7 +64,7 @@ interface OAuthClientRepository {
 
 The OAuthScopeRepository interface handles scope management. It defines methods for finding all scopes by their names and for finalizing the scopes. In the finalization, additional scopes can be added or removed after they've been validated against the client scopes.
 
-<RequiredForGrants grants={["authorization_code", "client_credentials", "refresh_token", "password", "implicit", "custom",]} />
+> **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Client Credentials](/docs/grants/client_credentials) · [Refresh Token](/docs/grants/refresh_token) · [Password](/docs/grants/password) · [Implicit](/docs/grants/implicit) · [Custom](/docs/grants/custom)
 
 ```ts
 interface OAuthScopeRepository {
@@ -91,7 +87,7 @@ interface OAuthScopeRepository {
 
 OAuthTokenRepository interface manages OAuth tokens. It contains methods for issuing a new token, persisting a token in the storage, issuing a refresh token, revoking tokens, and fetching a refresh token entity by the refresh token.
 
-<RequiredForGrants grants={["authorization_code", "client_credentials", "refresh_token", "password", "implicit", "custom",]} />
+> **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Client Credentials](/docs/grants/client_credentials) · [Refresh Token](/docs/grants/refresh_token) · [Password](/docs/grants/password) · [Implicit](/docs/grants/implicit) · [Custom](/docs/grants/custom)
 
 ```ts
 interface OAuthTokenRepository {
@@ -141,7 +137,7 @@ interface OAuthTokenRepository {
 
 The OAuthUserRepository interface handles user management. It defines methods for fetching a user entity from storage by their credentials and optional grant type and client. This may involve validating the user's credentials.
 
-<RequiredForGrants grants={["authorization_code", "password"]} />
+> **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Password](/docs/grants/password)
 
 ```ts
 interface OAuthUserRepository {

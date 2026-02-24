@@ -1,7 +1,3 @@
----
-sidebar_position: 1
----
-
 
 # Client Credentials Grant
 
@@ -24,8 +20,7 @@ The client sends a **POST** to the `/token` endpoint with the following body:
 - **client_secret** is the client secret
 - **scope** is a string with a space delimited list of requested scopes. The requested scopes must be valid for the client.
 
-<details>
-<summary>View sample client_credentials request</summary>
+:::: details View sample client_credentials request
 
 _Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
 
@@ -52,7 +47,7 @@ grant_type=client_credentials
 ```
 
 :::
-</details>
+::::
 
 The authorization server will respond with the following response.
 
@@ -61,14 +56,13 @@ The authorization server will respond with the following response.
 - **access_token** is a JWT signed token and can be used to authenticate into the resource server
 - **scope** is a space delimited list of scopes the token has access to
 
-<details>
-<summary>View sample client_credentials response</summary>
+::: details View sample client_credentials response
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=UTF-8
 Cache-Control: no-store
 Pragma: no-cache
- 
+
 {
   token_type: 'Bearer',
   expires_in: 3600,
@@ -76,4 +70,4 @@ Pragma: no-cache
   scope: 'contacts.create contacts.read'
 }
 ```
-</details>
+:::

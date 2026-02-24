@@ -1,7 +1,3 @@
----
-sidebar_position: 4
----
-
 # The Authorization Server
 
 The `AuthorizationServer` is a core component of the OAuth 2.0 framework, responsible for authenticating resource owners and issuing access tokens to clients. This class provides a flexible and customizable implementation of an authorization server.

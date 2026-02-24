@@ -1,6 +1,5 @@
 ---
 title: OAuth 2.0 Grants
-sidebar_position: 3
 ---
 
 
