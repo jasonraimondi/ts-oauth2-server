@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-02-23
+
+### Added
+- Add `implicitRedirectMode` option for fragment-based redirects
+- Add h3 adapter entrypoint and tests
+
+### Changed
+- Migrate bundler from tsup to tsdown
+
+### Fixed
+- Use finalized scopes when encrypting implicit grant access token
+
 ## [4.2.2] - 2025-12-04
 
 ### Fixed
