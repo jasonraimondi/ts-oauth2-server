@@ -6,7 +6,7 @@ tasks:
 
 - track: intent
   description: Remove all Docusaurus files and dependencies from docs/
-  status: pending
+  status: done
   steps:
     - Delete docs/src/ directory entirely (React components, pages, theme overrides, CSS)
     - Delete docs/docusaurus.config.ts, docs/sidebars.ts, docs/babel.config.js
