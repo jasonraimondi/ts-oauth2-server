@@ -1,0 +1,43 @@
+# Shared constraints and decisions for Docusaurus → VitePress migration
+
+project: ts-oauth2-server docs site
+url: https://tsoauth2server.com
+
+decisions:
+  framework: VitePress (replace Docusaurus 3.5.1)
+  styling: VitePress default theme with CSS custom property overrides (green #2e8555 primary, purple #966cf7 dark accent)
+  search: Algolia DocSearch (appId: JP2YS2S0EQ, indexName: tsoauth2server, apiKey: bf2bc45ac2821dba462ee887527c1816)
+  analytics: None (Plausible removed)
+  homepage: None — site root lands on Getting Started (guide/)
+  url_structure: Preserve current snake_case paths (e.g., /getting_started/, /authorization_code)
+  tabs: VitePress native code groups for code tabs; headings/sections for non-code variants
+  react_components: All removed — RequiredForGrants replaced with inline markdown badge links
+  mdx: All .mdx converted to .md
+  tailwind: Removed entirely
+  edit_links: Preserve GitHub edit links pointing to docs/ in main branch
+
+removed:
+  - React, ReactDOM, @mdx-js/react, prism-react-renderer
+  - @docusaurus/core, @docusaurus/preset-classic, @docusaurus/types, @docusaurus/tsconfig, @docusaurus/module-type-aliases
+  - @jmondi/github-ui, lucide-react, clsx
+  - tailwindcss, autoprefixer, postcss
+  - babel.config.js, tailwind.config.js, tailwind-config.cjs
+  - src/ directory (React components, pages, theme overrides, CSS)
+  - Custom homepage (src/pages/index.tsx and partials)
+
+content_files: 30 markdown/MDX files across 6 sections + 2 standalone pages
+
+admonition_mapping:
+  ":::note":    ":::info"
+  ":::info":    ":::info"
+  ":::tip":     ":::tip"
+  ":::warning": ":::warning"
+  ":::danger":  ":::danger"
+  ":::caution": ":::warning"
+
+file_structure:
+  docs_root: docs/           # VitePress project root (replaces current Docusaurus docs/)
+  content: docs/docs/        # Markdown content (preserves /docs/ URL prefix)
+  config: docs/.vitepress/   # VitePress config directory
+  public: docs/public/       # Static assets (favicons, images)
+  theme: docs/.vitepress/theme/  # Custom theme overrides (if any)

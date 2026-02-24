@@ -1,0 +1,70 @@
+# See ./shared.yaml for global constraints and decisions.
+phase: 1
+title: "Scaffold VitePress project and remove Docusaurus"
+
+tasks:
+
+- track: intent
+  description: Remove all Docusaurus files and dependencies from docs/
+  status: pending
+  steps:
+    - Delete docs/src/ directory entirely (React components, pages, theme overrides, CSS)
+    - Delete docs/docusaurus.config.ts, docs/sidebars.ts, docs/babel.config.js
+    - Delete docs/tailwind.config.js, docs/tailwind-config.cjs
+    - Delete docs/.docusaurus/ cache directory
+    - Delete docs/build/ output directory
+    - Delete docs/tsconfig.json (will be replaced by VitePress config)
+    - Preserve docs/docs/ content directory (markdown files) — these are migrated in phase 2
+    - Preserve docs/static/ assets — moved to docs/public/ in a later task
+
+- track: data
+  description: Initialize VitePress project in docs/ directory
+  status: pending
+  steps:
+    - Create docs/package.json with name "ts-oauth2-server-docs", scripts (dev, build, preview), vitepress dependency
+    - Run pnpm install to set up VitePress
+    - Create docs/.vitepress/config.mts with base VitePress config
+    - Set title to "@jmondi/oauth2-server", description to current tagline
+    - Configure head — favicon link tags only (no analytics scripts)
+
+- track: experience
+  description: Configure VitePress navigation and sidebar
+  status: pending
+  steps:
+    - Configure nav bar — "Guide" → /docs/getting_started/, "Config" → /docs/authorization_server/configuration, "GitHub" → repo link, "Sponsor" → sponsor link
+    - Configure sidebar with sections matching current structure — Getting Started (5 items), Authorization Server (2 items), Endpoints (5 items), Grants (8 items), Adapters (5 items), Extras (3 items), FAQ, Upgrade Guide
+    - Preserve sidebar_position ordering from current frontmatter in the sidebar config array order
+    - Configure editLink pointing to https://github.com/jasonraimondi/ts-oauth2-server/edit/main/docs/
+    - Set site root (index) to redirect or rewrite to /docs/getting_started/ so landing goes straight to guide
+
+- track: data
+  description: Migrate static assets to VitePress public/ directory
+  status: pending
+  steps:
+    - Create docs/public/ directory
+    - Move docs/static/favicon.ico, favicon-16x16.png, favicon-32x32.png → docs/public/
+    - Move docs/static/img/logo.svg → docs/public/img/logo.svg
+    - Move docs/static/img/oauth2-server-social-card.jpg → docs/public/img/oauth2-server-social-card.jpg
+    - Move docs/static/robots.txt → docs/public/robots.txt
+    - Delete docs/static/ after migration
+    - Configure logo in VitePress themeConfig (img/logo.svg)
+    - Configure socialLinks in themeConfig with GitHub repo URL
+
+- track: experience
+  description: Configure VitePress theme colors to match current brand
+  status: pending
+  steps:
+    - Create docs/.vitepress/theme/index.ts extending default theme
+    - Create docs/.vitepress/theme/custom.css with CSS custom property overrides
+    - Set --vp-c-brand-1 through --vp-c-brand-3 to green palette (#2e8555 base)
+    - Set dark mode accent to purple palette (#966cf7 base)
+    - Configure Prism/Shiki syntax highlighting — use github-light and dracula themes to match current
+    - Verify light/dark mode toggle works with brand colors
+
+- track: resilience
+  description: Update gitignore and verify clean build
+  status: pending
+  steps:
+    - Update docs/.gitignore — ignore node_modules/, .vitepress/dist/, .vitepress/cache/
+    - Run pnpm build in docs/ to verify VitePress compiles with no errors (content migration not yet done, expect warnings)
+    - Verify pnpm dev starts dev server successfully

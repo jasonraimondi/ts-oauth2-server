@@ -1,0 +1,67 @@
+# See ./shared.yaml for global constraints and decisions.
+phase: 2
+title: "Migrate documentation content from MDX/Docusaurus to VitePress markdown"
+
+tasks:
+
+- track: data
+  description: Convert all .mdx files to .md and strip Docusaurus imports
+  status: pending
+  steps:
+    - Rename all 19 .mdx files in docs/docs/ to .md extension
+    - Remove all `import` statements from every file — covers Tabs, TabItem, CodeBlock, RequiredForGrants, @theme/*, @site/*
+    - Remove any `export` statements from markdown files
+    - Preserve all frontmatter blocks (title, sidebar_position, etc.)
+    - Verify no JSX/TSX syntax remains in any .md file after stripping
+
+- track: experience
+  description: Convert Docusaurus admonitions to VitePress custom containers
+  status: pending
+  steps:
+    - Convert `:::note` → `:::info` in all files (VitePress has no "note" type)
+    - Preserve `:::info`, `:::tip`, `:::warning`, `:::danger` as-is (compatible syntax)
+    - Convert `:::caution` → `:::warning` in all files
+    - Ensure admonition titles are preserved — Docusaurus `:::info Important` becomes `::: info Important` in VitePress
+    - Verify closing `:::` markers are present for every admonition block
+    - Files affected: protecting_resources.mdx, database_schema.md, authorization_code.mdx, client_credentials.mdx, endpoints/revoke.mdx, entities.md, implicit.mdx, endpoints/index.mdx, token_exchange.mdx, configuration.mdx, custom.mdx, repositories.mdx, express.md, refresh_token.mdx, password.mdx, fastify.md, h3.md, token.mdx, introspect.mdx, authorize.mdx, vanilla.md
+
+- track: experience
+  description: Convert Docusaurus Tabs/TabItem to VitePress code groups
+  status: pending
+  steps:
+    - getting_started/protecting_resources — Express vs Fastify middleware example → code group with `[Express]` and `[Fastify]` labels
+    - grants/client_credentials — Query String vs Basic Auth request → code group with `[Query String]` and `[Basic Auth]` labels
+    - grants/refresh_token — Query String vs Basic Auth request → code group
+    - grants/password — Query String vs Basic Auth request → code group
+    - endpoints/revoke — Query String vs Basic Auth vs authenticateRevoke=false → code group (3 tabs)
+    - endpoints/introspect — Query String vs Basic Auth vs authenticateIntrospect=false → code group (3 tabs); also Auth Using Headers vs Auth Using Body → second code group
+    - Remove all `<Tabs>`, `</Tabs>`, `<TabItem ...>`, `</TabItem>` JSX tags
+    - Use VitePress code group syntax: consecutive fenced code blocks wrapped in `::: code-group` container
+
+- track: data
+  description: Replace RequiredForGrants React component with inline markdown badges
+  status: pending
+  steps:
+    - In docs/docs/getting_started/repositories.md — find each `<RequiredForGrants grants={[...]} />` usage
+    - Replace with inline markdown badge links, e.g., "**Used in Grants:** [Authorization Code](/docs/grants/authorization_code) | [Client Credentials](/docs/grants/client_credentials) | ..."
+    - Match the grant names and links from the original component's allGrants array
+    - Verify all grant links resolve to correct paths
+
+- track: data
+  description: Clean up frontmatter for VitePress compatibility
+  status: pending
+  steps:
+    - Keep `title` frontmatter where present — VitePress uses it
+    - Remove `sidebar_position` from all files — sidebar ordering is handled in config.mts
+    - Add `outline: deep` to files with deep heading structures if needed
+    - Ensure every index.md has a `title` in frontmatter for sidebar display
+    - Files with explicit titles to preserve — Glossary, Adapters, OAuth 2.0 Grants, /authorize, /token, /token/revoke, /token/introspect, Protecting Resources
+
+- track: resilience
+  description: Verify all internal links resolve after migration
+  status: pending
+  steps:
+    - Run VitePress build (pnpm build) and check for dead link warnings
+    - Fix any broken internal links — paths should remain /docs/getting_started/, /docs/grants/authorization_code, etc.
+    - Verify cross-references between sections work (grants referencing endpoints, getting_started referencing grants)
+    - Ensure all code block syntax highlighting language tags are valid Shiki languages (typescript, bash, sql, http, json)
