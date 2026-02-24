@@ -18,7 +18,8 @@
     ".": "./src/index.ts",
     "./vanilla": "./src/adapters/vanilla.ts",
     "./express": "./src/adapters/express.ts",
-    "./fastify": "./src/adapters/fastify.ts"
+    "./fastify": "./src/adapters/fastify.ts",
+    "./h3": "./src/adapters/h3.ts"
   },
   "publishConfig": {
     "main": "./dist/index.js",
@@ -44,6 +45,11 @@
         "import": "./dist/fastify.js",
         "require": "./dist/fastify.cjs",
         "types": "./dist/fastify.d.ts"
+      },
+      "./h3": {
+        "import": "./dist/h3.js",
+        "require": "./dist/h3.cjs",
+        "types": "./dist/h3.d.ts"
       }
     },
     "typesVersions": {
@@ -73,10 +79,11 @@
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "fastify": "^4.28.1",
+    "h3": "1.15.5",
     "prettier": "^3.3.2",
     "supertest": "^7.0.0",
-    "tslib": "^2.6.3",
     "tsdown": "^0.20.3",
+    "tslib": "^2.6.3",
     "typescript": "^5.5.3",
     "vite": "^5.4.21",
     "vitest": "^1.6.1"

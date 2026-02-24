@@ -6,6 +6,7 @@ export default defineConfig({
     vanilla: "./src/adapters/vanilla.ts",
     express: "./src/adapters/express.ts",
     fastify: "./src/adapters/fastify.ts",
+    h3: "./src/adapters/h3.ts",
   },
   format: ["esm", "cjs"],
   dts: true,
