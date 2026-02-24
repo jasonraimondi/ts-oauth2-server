@@ -33,6 +33,12 @@ export interface AuthorizationServerOptions {
   scopeDelimiter: string;
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
+  /**
+   * Controls how `implicit` grant responses append tokens to the redirect URI.
+   * OAuth 2.0 recommends `fragment`; `query` is preserved for backwards compatibility.
+   * The default will change to `fragment` in the next major version.
+   */
+  implicitRedirectMode: "query" | "fragment";
   logger?: LoggerService;
   /**
    * If enabled opaque codes are used instead of JWT-based authorization codes.

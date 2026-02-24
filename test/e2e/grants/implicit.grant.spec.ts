@@ -22,13 +22,13 @@ import {
 } from "../../../src/index.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../../src/options.js";
 
-function createGrant() {
+function createGrant(options?: Partial<typeof DEFAULT_AUTHORIZATION_SERVER_OPTIONS>) {
   return new ImplicitGrant(
     inMemoryClientRepository,
     inMemoryAccessTokenRepository,
     inMemoryScopeRepository,
     new JwtService("secret-key"),
-    DEFAULT_AUTHORIZATION_SERVER_OPTIONS,
+    { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
   );
 }
 
@@ -213,6 +213,27 @@ describe("implicit grant", () => {
       expect(decodedCode.jti).toMatch(REGEX_ACCESS_TOKEN);
       expect(decodedCode.exp).toBeGreaterThan(now);
       expect(decodedCode.iat).toBe(now);
+    });
+
+    it("can append tokens in URI fragment mode", async () => {
+      // arrange
+      grant = createGrant({ implicitRedirectMode: "fragment" });
+      const authorizationRequest = new AuthorizationRequest("implicit", client, "http://example.com/callback");
+      authorizationRequest.user = user;
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.state = "abc123-state";
+
+      // act
+      const response = await grant.completeAuthorizationRequest(authorizationRequest);
+      const location = response.headers.location;
+
+      // assert
+      expect(location).toContain("#");
+      expect(location).not.toContain("?access_token=");
+      const fragment = location.split("#")[1];
+      const authorizeResponseParams = new URLSearchParams(fragment);
+      expect(authorizeResponseParams.get("access_token")).toMatch(REGEX_ACCESS_TOKEN);
+      expect(authorizeResponseParams.get("state")).toBe("abc123-state");
     });
 
     it("will not complete if isAuthorizationApproved=false", async () => {

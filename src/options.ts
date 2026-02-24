@@ -9,4 +9,5 @@ export const DEFAULT_AUTHORIZATION_SERVER_OPTIONS: AuthorizationServerOptions = 
   scopeDelimiter: " ",
   authenticateIntrospect: true,
   authenticateRevoke: true,
+  implicitRedirectMode: "query",
 };

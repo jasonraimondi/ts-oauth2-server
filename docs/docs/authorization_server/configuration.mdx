@@ -20,6 +20,7 @@ The authorization server has a few optional settings with the following default 
 | `logger`                 | LoggerService \| undefined | undefined | Optional logger service to capture debugging information, particularly useful for tracking token operations like revocations. |
 | `useOpaqueAuthorizationCodes` | boolean        | false     | When enabled, authorization codes are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
 | `useOpaqueRefreshTokens` | boolean        | false     | When enabled, refresh tokens are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
+| `implicitRedirectMode`   | "query" \| "fragment" | "query" | Controls how the [implicit grant](../grants/implicit.mdx) appends tokens to the redirect URI. OAuth 2.0 ([RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2)) recommends `"fragment"`; `"query"` is the default for backwards compatibility. <br /><br />In the next major version, the default will change to **"fragment"**. |
 
 ```ts
 type AuthorizationServerOptions = {
@@ -33,6 +34,7 @@ type AuthorizationServerOptions = {
   logger?: LoggerService;
   useOpaqueAuthorizationCodes?: boolean;
   useOpaqueRefreshTokens?: boolean;
+  implicitRedirectMode: "query" | "fragment";
 };
 ```
 
