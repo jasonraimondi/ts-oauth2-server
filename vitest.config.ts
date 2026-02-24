@@ -8,6 +8,6 @@ export default defineConfig({
       exclude: [".github/**", ".idea/**", "docs/**", "example/**", "test/**"],
     },
     setupFiles: ["test/setup.ts"],
-    exclude: ["docs/**", "example/**", "node_modules/**", "version-check.ts"],
+    exclude: ["docs/**", "example/**", "node_modules/**", "version-check.ts", ".claude/worktrees/**"],
   },
 });
