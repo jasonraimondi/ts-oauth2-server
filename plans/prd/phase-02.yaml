@@ -6,7 +6,7 @@ tasks:
 
 - track: data
   description: Convert all .mdx files to .md and strip Docusaurus imports
-  status: pending
+  status: done
   steps:
     - Rename all 19 .mdx files in docs/docs/ to .md extension
     - Remove all `import` statements from every file — covers Tabs, TabItem, CodeBlock, RequiredForGrants, @theme/*, @site/*

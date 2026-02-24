@@ -3,7 +3,6 @@ title: OAuth 2.0 Grants
 sidebar_position: 3
 ---
 
-import WhichGrant from "../../src/pages/_which_grant.mdx";
 
 # Grants
 

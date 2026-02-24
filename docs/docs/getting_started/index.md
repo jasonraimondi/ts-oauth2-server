@@ -2,10 +2,6 @@
 sidebar_position: 1
 ---
 
-import Installation from "../../src/pages/_index_install.mdx";
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
-import CodeBlock from "@theme/CodeBlock";
 
 # Getting Started
 

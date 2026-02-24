@@ -2,7 +2,6 @@
 sidebar_position: 3
 ---
 
-import RequiredForGrants from "@site/src/components/grants/RequiredForGrants";
 
 # Repository Interfaces
 

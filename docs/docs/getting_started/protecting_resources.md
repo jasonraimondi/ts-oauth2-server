@@ -3,8 +3,6 @@ sidebar_position: 5
 title: Protecting Resources
 ---
 
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 
 # Protecting Resources with Access Tokens
 
