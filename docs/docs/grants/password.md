@@ -7,7 +7,7 @@ sidebar_position: 4
 
 The Password Grant is for first party clients that are able to hold secrets (ie not Browser or Native Mobile Apps)
 
-:::note Enable this grant
+:::info Enable this grant
 
 ```ts
 authorizationServer.enableGrantType({

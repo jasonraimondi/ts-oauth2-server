@@ -147,6 +147,6 @@ Host: server.example.com
 4. Use short-lived sessions and secure session management
 5. Implement rate limiting to prevent brute-force attacks
 
-:::note Supports the following RFC\'S
+:::info Supports the following RFC\'S
 [RFC6749 (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc6749), [RFC7636 (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636)
 :::

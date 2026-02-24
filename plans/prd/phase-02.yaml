@@ -16,7 +16,7 @@ tasks:
 
 - track: experience
   description: Convert Docusaurus admonitions to VitePress custom containers
-  status: pending
+  status: done
   steps:
     - Convert `:::note` → `:::info` in all files (VitePress has no "note" type)
     - Preserve `:::info`, `:::tip`, `:::warning`, `:::danger` as-is (compatible syntax)

@@ -18,7 +18,7 @@ If you're developing a web application with a backend, consider using the standa
 
 By default, the implicit grant appends tokens to the redirect URI using query parameters for backwards compatibility. [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2) recommends using URI fragments instead.
 
-:::caution
+:::warning
 
 In the next major version, the default will change from `"query"` to `"fragment"` to align with RFC 6749. To prepare, explicitly set `implicitRedirectMode: "query"` if you depend on the current behavior.
 

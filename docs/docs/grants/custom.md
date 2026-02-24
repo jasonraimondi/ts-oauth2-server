@@ -12,7 +12,7 @@ This is advanced usage. Make sure you understand the OAuth2.0 specification befo
 
 :::
 
-:::note Enable this grant
+:::info Enable this grant
 
 ```ts
 const customGrant = new MyCustomGrant(...);

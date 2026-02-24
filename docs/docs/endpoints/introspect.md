@@ -148,6 +148,6 @@ A client credentials grant can be used to authenticate the client.
   </TabItem>
 </Tabs>
 
-:::note Supports the following RFC\'S
+:::info Supports the following RFC\'S
 [RFC7662 (OAuth 2.0 Token Introspection)](https://datatracker.ietf.org/doc/html/rfc7662)
 :::

@@ -16,6 +16,6 @@ This server implements the following OAuth 2.0 endpoints, each supporting specif
 - [The `/token/introspect` Endpoint](./introspect.mdx)
 - [The `/token/revoke` Endpoint](./revoke.mdx)
 
-:::note
+:::info
 All endpoints should be accessed over HTTPS to ensure secure communication.
 :::

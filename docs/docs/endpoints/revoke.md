@@ -106,6 +106,6 @@ The authorization server will respond with:
 
 The response body will be empty for successful revocations. For error responses, the server may include additional error information as specified in the OAuth 2.0 specification
 
-:::note Supports the following RFC\'S
+:::info Supports the following RFC\'S
 [RFC7009 (OAuth 2.0 Token Revocation)](https://datatracker.ietf.org/doc/html/rfc7009)
 :::

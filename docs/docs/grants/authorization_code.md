@@ -6,7 +6,7 @@ sidebar_position: 2
 
 A temporary code that the client will exchange for an access token. The user authorizes the application, they are redirected back to the application with a temporary code in the URL. The application exchanges that code for the access token.
 
-:::note Enable this grant
+:::info Enable this grant
 
 ```ts
 authorizationServer.enableGrantType({
