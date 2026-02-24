@@ -10,4 +10,4 @@ Adapters are a set of helper functions to provide framework specific integration
 - [Express](./express.md) - If you're using Express, you can use the `@jmondi/oauth2-server/express` adapter.
 - [Fastify](./fastify.md) - If you're using Fastify, you can use the `@jmondi/oauth2-server/fastify` adapter.
 - [VanillaJS](./vanilla.md) - Adapts the Fetch [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) so you can use Honojs, Sveltekit, Nextjs or whatever tool your using that uses the native [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) `@jmondi/oauth2-server/vanilla` adapter.
-- [Nuxt](./nuxt.md) -  If you are using Nuxt, you can directly copy this code and use it as is.
+- [h3](./h3.md) - If you're using [h3](https://h3.dev/), Nuxt, or Nitro, you can use the `@jmondi/oauth2-server/h3` adapter.
