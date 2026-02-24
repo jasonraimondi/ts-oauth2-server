@@ -28,7 +28,7 @@ Out of the box it supports the following grants:
 - [Implicit grant](https://tsoauth2server.com/docs/grants/implicit) // not recommended 
 - [Resource owner password credentials grant](https://tsoauth2server.com/docs/grants/password) // not recommended
 
-> Note: For backwards compatibility, the `implicit` grant appends tokens with query params by default. Set `implicitRedirectMode: "fragment"` in `AuthorizationServer` options to use URI fragments.
+> Note: For backwards compatibility, the `implicit` grant appends tokens with query params by default. Set `implicitRedirectMode: "fragment"` in `AuthorizationServer` options to use URI fragments per [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2). In the next major version, `"fragment"` will become the default.
 
 Framework support:
 
