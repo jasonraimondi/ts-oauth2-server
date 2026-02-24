@@ -29,31 +29,29 @@ The client sends a **POST** to the `/token` endpoint with the following body:
 
 _Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
 
-  <Tabs>
-    <TabItem value="query-string" label="Query String">
-      ```http request
-      POST /token HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
+::: code-group
 
-      grant_type=client_credentials
-      &client_id=xxxxxxxxxx
-      &client_secret=xxxxxxxxxx
-      &scope="contacts.read contacts.write"
-      ```
-    </TabItem>
-    <TabItem value="basic-auth" label="Basic Auth">
-      ```http request []
-      POST /token HTTP/1.1
-      Host: example.com
-      Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
+```http [Query String]
+POST /token HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
 
-      grant_type=client_credentials
-      &scope="contacts.read contacts.write"
-      ```
-    </TabItem>
+grant_type=client_credentials
+&client_id=xxxxxxxxxx
+&client_secret=xxxxxxxxxx
+&scope="contacts.read contacts.write"
+```
 
-  </Tabs>
+```http [Basic Auth]
+POST /token HTTP/1.1
+Host: example.com
+Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
+
+grant_type=client_credentials
+&scope="contacts.read contacts.write"
+```
+
+:::
 </details>
 
 The authorization server will respond with the following response.
@@ -65,7 +63,7 @@ The authorization server will respond with the following response.
 
 <details>
 <summary>View sample client_credentials response</summary>
-```http request
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=UTF-8
 Cache-Control: no-store

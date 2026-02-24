@@ -50,49 +50,47 @@ The request must be authenticated using client_credentials.
 <summary>View sample introspect request</summary>
 
 You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
-  <Tabs>
-    <TabItem value="query-string" label="Query String">
-      ```http request
-      POST /token/revoke HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
+::: code-group
 
-      token=xxxxxxxxxx
-      &token_type_hint=refresh_token
-      &client_id=xxxxxxxxxx
-      &client_secret=xxxxxxxxxx
-      ```
-    </TabItem>
-    <TabItem value="basic-auth" label="Basic Auth">
-      ```http request []
-      POST /token/revoke HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
-      Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
+```http [Query String]
+POST /token/revoke HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
 
-      token=xxxxxxxxxx
-      &token_type_hint=refresh_token
-      ```
-    </TabItem>
+token=xxxxxxxxxx
+&token_type_hint=refresh_token
+&client_id=xxxxxxxxxx
+&client_secret=xxxxxxxxxx
+```
 
-    <TabItem value="authenticateRevoke" label="authenticateRevoke = false">
-      ```ts
-      new AuthorizationServer(..., {
-        authenticateRevoke: false,
-      })
-      ```
+```http [Basic Auth]
+POST /token/revoke HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
 
-      ```http request []
-      POST /token/revoke HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
+token=xxxxxxxxxx
+&token_type_hint=refresh_token
+```
 
-      token=xxxxxxxxxx
-      &token_type_hint=refresh_token
-      ```
-    </TabItem>
+:::
 
-  </Tabs>
+When `authenticateRevoke = false`:
+
+```ts
+new AuthorizationServer(..., {
+  authenticateRevoke: false,
+})
+```
+
+```http
+POST /token/revoke HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+
+token=xxxxxxxxxx
+&token_type_hint=refresh_token
+```
 </details>
 
 

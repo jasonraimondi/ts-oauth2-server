@@ -27,7 +27,7 @@ tasks:
 
 - track: experience
   description: Convert Docusaurus Tabs/TabItem to VitePress code groups
-  status: pending
+  status: done
   steps:
     - getting_started/protecting_resources — Express vs Fastify middleware example → code group with `[Express]` and `[Fastify]` labels
     - grants/client_credentials — Query String vs Basic Auth request → code group with `[Query String]` and `[Basic Auth]` labels

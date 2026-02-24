@@ -165,10 +165,9 @@ async function validateAccessToken(
 
 ### Step 3: Create the Middleware
 
-<Tabs>
-  <TabItem value="express" label="Express" default>
+::: code-group
 
-```typescript
+```typescript [Express]
 import { Request, Response, NextFunction } from "express";
 
 // Extend Express types
@@ -231,10 +230,7 @@ function requireAuth(config: TokenValidationConfig, requiredScopes: string[] = [
 }
 ```
 
-  </TabItem>
-  <TabItem value="fastify" label="Fastify">
-
-```typescript
+```typescript [Fastify]
 import { FastifyRequest, FastifyReply } from "fastify";
 
 declare module "fastify" {
@@ -279,8 +275,7 @@ function requireAuth(config: TokenValidationConfig, requiredScopes: string[] = [
 }
 ```
 
-  </TabItem>
-</Tabs>
+:::
 
 ### Step 4: Protect Your Routes
 

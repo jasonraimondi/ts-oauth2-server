@@ -50,48 +50,47 @@ The request must be authenticated using the client credentials method.
 <summary>View sample introspect request</summary>
 
 You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
-  <Tabs>
-    <TabItem value="query-string" label="Query String">
-      ```http request
-      POST /token/introspect HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
+::: code-group
 
-      token=xxxxxxxxxx
-      &token_type_hint=refresh_token
-      &client_id=xxxxxxxxxx
-      &client_secret=xxxxxxxxxx
-      ```
-    </TabItem>
-    <TabItem value="basic-auth" label="Basic Auth">
-      ```http request []
-      POST /token/introspect HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
-      Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
+```http [Query String]
+POST /token/introspect HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
 
-      token=xxxxxxxxxx
-      &token_type_hint=refresh_token
-      ```
-    </TabItem>
+token=xxxxxxxxxx
+&token_type_hint=refresh_token
+&client_id=xxxxxxxxxx
+&client_secret=xxxxxxxxxx
+```
 
-    <TabItem value="authenticateIntrospect" label="authenticateIntrospect = false">
-      ```ts
-      new AuthorizationServer(..., {
-        authenticateIntrospect: false,
-      })
-      ```
+```http [Basic Auth]
+POST /token/introspect HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic MTpzdXBlci1zZWNyZXQtc2VjcmV0
 
-      ```http request []
-      POST /token/introspect HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
+token=xxxxxxxxxx
+&token_type_hint=refresh_token
+```
 
-      token=xxxxxxxxxx
-      &token_type_hint=refresh_token
-      ```
-    </TabItem>
-  </Tabs>
+:::
+
+When `authenticateIntrospect = false`:
+
+```ts
+new AuthorizationServer(..., {
+  authenticateIntrospect: false,
+})
+```
+
+```http
+POST /token/introspect HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+
+token=xxxxxxxxxx
+&token_type_hint=refresh_token
+```
 </details>
 
 ### Response
@@ -115,38 +114,37 @@ Additional fields may be included in the response.
 
 A client credentials grant can be used to authenticate the client.
 
-<Tabs>
-  <TabItem value="header" label="Auth Using Headers">
-    ```ts
-    import { base64encode } from "@jmondi/oauth2-server";
+::: code-group
 
-    const basicAuth = "Basic " + base64encode(`${clientId}:${clientSecret}`);
-    const response = await fetch("/token/introspect", {
-      method: "POST",
-      headers: {
-        Authorization: basicAuth,
-      },
-      body: JSON.stringify({
-        token: token,
-      }),
-    });
-    await response.json()
-    ```
-  </TabItem>
-  <TabItem value="body" label="Auth Using Body">
-    ```ts
-    const response = await fetch("/token/introspect", {
-      method: "POST",
-      body: JSON.stringify({
-        token: token,
-        client_id: clientId,
-        client_secret: clientSecret,
-      }),
-    });
-    await response.json()
-    ```
-  </TabItem>
-</Tabs>
+```ts [Auth Using Headers]
+import { base64encode } from "@jmondi/oauth2-server";
+
+const basicAuth = "Basic " + base64encode(`${clientId}:${clientSecret}`);
+const response = await fetch("/token/introspect", {
+  method: "POST",
+  headers: {
+    Authorization: basicAuth,
+  },
+  body: JSON.stringify({
+    token: token,
+  }),
+});
+await response.json()
+```
+
+```ts [Auth Using Body]
+const response = await fetch("/token/introspect", {
+  method: "POST",
+  body: JSON.stringify({
+    token: token,
+    client_id: clientId,
+    client_secret: clientSecret,
+  }),
+});
+await response.json()
+```
+
+:::
 
 :::info Supports the following RFC\'S
 [RFC7662 (OAuth 2.0 Token Introspection)](https://datatracker.ietf.org/doc/html/rfc7662)

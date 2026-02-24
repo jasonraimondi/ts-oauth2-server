@@ -32,35 +32,33 @@ A complete refresh token request will include the following parameters:
 <details>
   <summary>View sample password grant request</summary>
 
-  <Tabs>
-    <TabItem value="query-string" label="Query String">
-      ```http request
-      POST /token HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
+::: code-group
 
-      grant_type=password
-      &client_id=xxxxxxxxx
-      &client_secret=xxxxxxxxx
-      &username=xxxxxxxxx
-      &password=xxxxxxxxx
-      &scope="contacts.read contacts.write"
-      ```
-    </TabItem>
-    <TabItem value="basic-auth" label="Basic Auth">
-      ```http request
-      POST /token HTTP/1.1
-      Host: example.com
-      Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
+```http [Query String]
+POST /token HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
 
-      grant_type=password
-      &username=xxxxxxxxx
-      &password=xxxxxxxxx
-      &scope="contacts.read contacts.write"
-      ```
-    </TabItem>
+grant_type=password
+&client_id=xxxxxxxxx
+&client_secret=xxxxxxxxx
+&username=xxxxxxxxx
+&password=xxxxxxxxx
+&scope="contacts.read contacts.write"
+```
 
-  </Tabs>
+```http [Basic Auth]
+POST /token HTTP/1.1
+Host: example.com
+Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
+
+grant_type=password
+&username=xxxxxxxxx
+&password=xxxxxxxxx
+&scope="contacts.read contacts.write"
+```
+
+:::
 </details>
 
 The authorization server will respond with the following response
@@ -68,12 +66,12 @@ The authorization server will respond with the following response
 - **token_type** will always be `Bearer`
 - **expires_in** is the time the token will live in seconds
 - **access_token** is a JWT signed token and is used to authenticate into the resource server
-- **refresh_token** is a JWT signed token and can be used in with the [refresh grant](./refresh_token.mdx)
+- **refresh_token** is a JWT signed token and can be used in with the [refresh grant](./refresh_token.md)
 - **scope** is a space delimited list of scopes the token has access to
 
 <details>
   <summary>View sample password grant response</summary>
-  ```http request
+  ```http
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
   Cache-Control: no-store

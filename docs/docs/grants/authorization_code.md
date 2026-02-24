@@ -37,7 +37,7 @@ The client secret **should never** be used during the Part One of the authorizat
 
 <details>
 <summary>View sample authorization_code (part 1) request</summary>
-```http request
+```http
 GET /authorize HTTP/1.1
 Host: example.com
 
@@ -61,7 +61,7 @@ If the user approves the client, they will be redirected from the authorization 
 
 <details>
 <summary>View sample authorization_code (part 1) response</summary>
-```http request
+```http
 HTTP/1.1 302 Found
 Location: http://localhost&code=eyJhbGciOiJIUzI1NiJ9.eyJjbGllbnRfaWQiOiJhdXRoY29kZWNsaWVudCIsInJlZGlyZWN0X3VyaSI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdXRoX2NvZGVfaWQiOiJteS1zdXBlci1zZWNyZXQtYXV0aC1jb2RlIiwic2NvcGVzIjpbXSwiZXhwaXJlX3RpbWUiOjE2MDE3NTM3MzMsImNvZGVfY2hhbGxlbmdlIjoiT0RRd1pHTTRZelpsTnpNeU1qUXlaREF4WWpFNU1XWmtZMlJrTmpKbU1UbGxNbUkwTnpJMFpEbGtNR0psWWpGbE1tTXhPV1kyWkRJMVpEZGpNak13WWciLCJjb2RlX2NoYWxsZW5nZV9tZXRob2QiOiJTMjU2In0.OIEtZN5BHNaB4Mz0plUpGAP93EHyoil2smJiG3S_2BM&state=abcdefghijklmnopqrstuvwxyz123456789
 ````
@@ -85,7 +85,7 @@ Clients such as Browser Based Apps and Native Mobile Apps should **NEVER** have 
 
 <details>
   <summary>View sample authorization_code (part 2) request</summary>
-  ```http request
+  ```http
   POST /token HTTP/1.1
   Host: example.com
   Content-Type: application/x-www-form-urlencoded
@@ -110,7 +110,7 @@ The authorization server will respond with the following response
 
 <details>
 <summary>View sample authorization_code (part 2) response</summary>
-```http request
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=UTF-8
 Cache-Control: no-store
@@ -191,7 +191,7 @@ An authorization code revocation request will include the following parameters:
 
 <details>
   <summary>View sample revoke authorization_code request</summary>
-  ```http request
+  ```http
   POST /token HTTP/1.1
   Host: example.com
   Content-Type: application/x-www-form-urlencoded
@@ -206,7 +206,7 @@ The authorization server will respond with the following response
 
 <details>
 <summary>View sample revoke authorization_code response</summary>
-```http request
+```http
 HTTP/1.1 200 OK
 Cache-Control: no-store
 Pragma: no-cache

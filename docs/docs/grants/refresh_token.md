@@ -26,34 +26,32 @@ A complete refresh token request will include the following parameters:
 <details>
   <summary>View sample refresh_token request</summary>
 
-  <Tabs>
-    <TabItem value="query-string" label="Query String">
-      ```http request
-      POST /token HTTP/1.1
-      Host: example.com
-      Content-Type: application/x-www-form-urlencoded
+::: code-group
 
-      grant_type=refresh_token
-      &refresh_token=xxxxxxxxx
-      &client_id=xxxxxxxxx
-      &client_secret=xxxxxxxxx
-      &scope="contacts.read contacts.write"
-      ```
-    </TabItem>
-    <TabItem value="basic-auth" label="Basic Auth">
-      ```http request
-      POST /token HTTP/1.1
-      Host: example.com
-      Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
-      Content-Type: application/x-www-form-urlencoded
+```http [Query String]
+POST /token HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
 
-      grant_type=refresh_token
-      &refresh_token=xxxxxxxxx
-      &scope="contacts.read contacts.write"
-      ```
-    </TabItem>
+grant_type=refresh_token
+&refresh_token=xxxxxxxxx
+&client_id=xxxxxxxxx
+&client_secret=xxxxxxxxx
+&scope="contacts.read contacts.write"
+```
 
-  </Tabs>
+```http [Basic Auth]
+POST /token HTTP/1.1
+Host: example.com
+Authorization: Basic Y4NmE4MzFhZGFkNzU2YWRhN
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token
+&refresh_token=xxxxxxxxx
+&scope="contacts.read contacts.write"
+```
+
+:::
 </details>
 
 The authorization server will respond with the following response
@@ -66,7 +64,7 @@ The authorization server will respond with the following response
 
 <details>
   <summary>View sample refresh_token response</summary>
-  ```http request
+  ```http
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
   Cache-Control: no-store
@@ -95,7 +93,7 @@ A refresh token revocation request will include the following parameters:
 
 <details>
 <summary>View sample revoke refresh_token request</summary>
-```http request
+```http
 POST /token HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -110,5 +108,5 @@ The authorization server will respond with the following response
 
 <details>
   <summary>View sample revoke refresh_token response</summary>
-  ```http request HTTP/1.1 200 OK Cache-Control: no-store Pragma: no-cache ```
+  ```http HTTP/1.1 200 OK Cache-Control: no-store Pragma: no-cache ```
 </details>

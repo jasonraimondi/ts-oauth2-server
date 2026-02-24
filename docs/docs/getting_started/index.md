@@ -22,15 +22,41 @@ This section provides a high-level overview of setting up the OAuth2 server.
 1. Install the package
 1. Implement [Entities](./entities.md)
 1. Set up your [Database Schema](./database_schema.md) (see SQL examples)
-1. Implement [Repositories](./repositories.mdx)
+1. Implement [Repositories](./repositories.md)
 1. Set up the [AuthorizationServer](#setup-the-authorization-server) with desired grant types
-1. Implement the [Endpoints](../endpoints/index.mdx)
+1. Implement the [Endpoints](../endpoints/index.md)
 
 ### Installation
 
 Choose your preferred package manager to install @jmondi/oauth2-server:
 
-<Installation />
+::: code-group
+
+```bash [pnpm]
+pnpm add @jmondi/oauth2-server
+```
+
+```bash [npm]
+npm install --save @jmondi/oauth2-server
+```
+
+```bash [yarn]
+yarn add @jmondi/oauth2-server
+```
+
+```bash [jsr]
+npx jsr add @jmondi/oauth2-server
+```
+
+```bash [deno]
+deno add @jmondi/oauth2-server
+```
+
+```bash [bun]
+bunx jsr add @jmondi/oauth2-server
+```
+
+:::
 
 ### Implement Entities
 
@@ -55,7 +81,7 @@ authorizationServer.enableGrantType("client_credentials");
 // other grant types you want to enable
 ```
 
-For a complete list of configuration options, refer to the [configuration documentation](../authorization_server/configuration.mdx).
+For a complete list of configuration options, refer to the [configuration documentation](../authorization_server/configuration.md).
 
 ## Endpoints
 

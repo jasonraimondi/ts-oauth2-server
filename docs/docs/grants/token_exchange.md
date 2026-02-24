@@ -60,7 +60,7 @@ The client sends a **POST** to the `/token` endpoint with the following body:
   <summary>View sample request</summary>
   _Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
 
-```http request [Query String]
+```http
 POST /token HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -84,7 +84,7 @@ The authorization server will respond with the following response.
 
 <details>
   <summary>View sample response</summary>
-  ```http request
+  ```http
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
   Cache-Control: no-store
