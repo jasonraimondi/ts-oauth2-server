@@ -6,16 +6,13 @@
   "funding": "https://github.com/sponsors/jasonraimondi",
   "license": "MIT",
   "scripts": {
-    "clean": "rimraf dist",
-    "prebuild": "run-s clean",
-    "bundle": "tsup",
-    "build": "run-s clean bundle",
+    "build": "tsdown",
     "start": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "format": "prettier --write \"**/*.{ts,js,tsx,md,mdx}\"",
-    "prepublishOnly": "run-s build test"
+    "prepublishOnly": "pnpm build && pnpm test"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -76,12 +73,10 @@
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "fastify": "^4.28.1",
-    "npm-run-all": "^4.1.5",
     "prettier": "^3.3.2",
-    "rimraf": "^5.0.7",
     "supertest": "^7.0.0",
     "tslib": "^2.6.3",
-    "tsup": "^8.1.0",
+    "tsdown": "^0.20.3",
     "typescript": "^5.5.3",
     "vite": "^5.4.21",
     "vitest": "^1.6.1"
@@ -90,28 +85,5 @@
     "jsonwebtoken": "^9.0.2",
     "ms": "^2.1.3",
     "uri-js": "^4.4.1"
-  },
-  "tsup": {
-    "entry": {
-      "index": "./src/index.ts",
-      "vanilla": "./src/adapters/vanilla.ts",
-      "express": "./src/adapters/express.ts",
-      "fastify": "./src/adapters/fastify.ts"
-    },
-    "format": [
-      "cjs",
-      "esm"
-    ],
-    "target": "node16",
-    "clean": true,
-    "splitting": false,
-    "sourcemap": true,
-    "minify": false,
-    "keepNames": true,
-    "dts": {
-      "compilerOptions": {
-        "removeComments": false
-      }
-    }
   }
 }
