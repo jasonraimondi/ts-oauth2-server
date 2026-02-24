@@ -19,7 +19,7 @@ tasks:
 
 - track: data
   description: Initialize VitePress project in docs/ directory
-  status: pending
+  status: done
   steps:
     - Create docs/package.json with name "ts-oauth2-server-docs", scripts (dev, build, preview), vitepress dependency
     - Run pnpm install to set up VitePress
@@ -29,7 +29,7 @@ tasks:
 
 - track: experience
   description: Configure VitePress navigation and sidebar
-  status: pending
+  status: done
   steps:
     - Configure nav bar — "Guide" → /docs/getting_started/, "Config" → /docs/authorization_server/configuration, "GitHub" → repo link, "Sponsor" → sponsor link
     - Configure sidebar with sections matching current structure — Getting Started (5 items), Authorization Server (2 items), Endpoints (5 items), Grants (8 items), Adapters (5 items), Extras (3 items), FAQ, Upgrade Guide
@@ -39,7 +39,7 @@ tasks:
 
 - track: data
   description: Migrate static assets to VitePress public/ directory
-  status: pending
+  status: done
   steps:
     - Create docs/public/ directory
     - Move docs/static/favicon.ico, favicon-16x16.png, favicon-32x32.png → docs/public/
@@ -52,7 +52,7 @@ tasks:
 
 - track: experience
   description: Configure VitePress theme colors to match current brand
-  status: pending
+  status: done
   steps:
     - Create docs/.vitepress/theme/index.ts extending default theme
     - Create docs/.vitepress/theme/custom.css with CSS custom property overrides
@@ -63,7 +63,7 @@ tasks:
 
 - track: resilience
   description: Update gitignore and verify clean build
-  status: pending
+  status: done
   steps:
     - Update docs/.gitignore — ignore node_modules/, .vitepress/dist/, .vitepress/cache/
     - Run pnpm build in docs/ to verify VitePress compiles with no errors (content migration not yet done, expect warnings)

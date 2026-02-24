@@ -1,19 +1,24 @@
 # Progress Log
 
-## Phase 1, Task 1: Remove all Docusaurus files and dependencies — DONE
+## Phase 1 — COMPLETE
 
-Deleted:
-- `docs/src/` — React components, pages, theme overrides, CSS (22 files)
-- `docs/docusaurus.config.ts`, `docs/sidebars.ts`, `docs/babel.config.js`
-- `docs/tailwind.config.js`, `docs/tailwind-config.cjs`, `docs/tsconfig.json`
-- `docs/.docusaurus/` cache directory
-- `docs/build/` output directory
-- `docs/node_modules/`, `docs/pnpm-lock.yaml`, `docs/package.json`
-- `docs/.idea/`, `docs/.DS_Store`
+### Task 1: Remove all Docusaurus files and dependencies — DONE
+Deleted docs/src/, all Docusaurus config files, .docusaurus/, build/, node_modules/, old package.json.
+Preserved docs/docs/ content and docs/static/ assets.
 
-Preserved:
-- `docs/docs/` — all 30 markdown/MDX content files across 6 sections + 2 standalone
-- `docs/static/` — favicons, logo.svg, social card images, robots.txt
-- `docs/.gitignore`, `docs/.prettierrc`, `docs/.prettierignore`, `docs/README.md`
+### Task 2: Initialize VitePress project — DONE
+Created docs/package.json, installed VitePress 1.6.4, created .vitepress/config.mts with full config.
 
-Next: Initialize VitePress project in docs/ (Phase 1, Task 2).
+### Task 3: Configure navigation and sidebar — DONE
+Nav: Guide + Config links. Sidebar: 6 sections (Getting Started, Authorization Server, Endpoints, Grants, Adapters, Extras) + FAQ + Upgrade Guide. Edit links configured. Root index.md with hero landing page created.
+
+### Task 4: Migrate static assets — DONE
+Moved docs/static/ → docs/public/ (favicons, logo.svg, social card, robots.txt). Deleted docs/static/.
+
+### Task 5: Configure theme colors — DONE
+Created .vitepress/theme/ with custom.css (green #2e8555 light, purple #966cf7 dark brand colors).
+
+### Task 6: Update gitignore and verify build — DONE
+Updated .gitignore for VitePress (.vitepress/dist/, .vitepress/cache/). Dev server starts successfully. Build has expected dead link errors from .mdx files not yet renamed (Phase 2).
+
+Next: Phase 2 — Migrate documentation content from MDX/Docusaurus to VitePress markdown.

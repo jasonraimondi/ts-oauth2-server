@@ -2,6 +2,6 @@ title: "Migrate documentation site from Docusaurus to VitePress"
 shared: "./plans/prd/shared.yaml"
 
 toc:
-  - "[ ] Phase 1 — Scaffold VitePress project and remove Docusaurus (plans/prd/phase-01.yaml)"
+  - "[x] Phase 1 — Scaffold VitePress project and remove Docusaurus (plans/prd/phase-01.yaml)"
   - "[ ] Phase 2 — Migrate documentation content from MDX/Docusaurus to VitePress markdown (plans/prd/phase-02.yaml)"
   - "[ ] Phase 3 — Algolia search, final polish, and cleanup (plans/prd/phase-03.yaml)"
