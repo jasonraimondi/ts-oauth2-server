@@ -1,25 +1,22 @@
-# Website
+# Documentation Site
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+Built with [VitePress](https://vitepress.dev/).
 
-### Installation
-
-```
-$ pnpm i
-```
-
-### Local Development
+### Development
 
 ```
-$ pnpm start
+pnpm install
+pnpm dev
 ```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
 
 ### Build
 
 ```
-$ pnpm build
+pnpm build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+### Preview
+
+```
+pnpm preview
+```

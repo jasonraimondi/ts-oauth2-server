@@ -6,7 +6,7 @@ tasks:
 
 - track: experience
   description: Configure Algolia DocSearch in VitePress
-  status: pending
+  status: done
   steps:
     - Install vitepress-plugin-search or use VitePress built-in Algolia config in .vitepress/config.mts
     - Set algolia themeConfig — appId "JP2YS2S0EQ", apiKey "bf2bc45ac2821dba462ee887527c1816", indexName "tsoauth2server"
@@ -15,7 +15,7 @@ tasks:
 
 - track: experience
   description: Configure social card and meta tags
-  status: pending
+  status: done
   steps:
     - Set head meta tags in config.mts — og:image pointing to /img/oauth2-server-social-card.jpg
     - Set og:title, og:description, twitter:card meta tags
@@ -23,7 +23,7 @@ tasks:
 
 - track: resilience
   description: Clean up remaining Docusaurus artifacts and validate final build
-  status: pending
+  status: done
   steps:
     - Remove docs/.prettierrc and docs/.prettierignore if not needed (root project likely has its own)
     - Remove docs/README.md or update it with VitePress dev instructions (pnpm dev, pnpm build, pnpm preview)
@@ -34,7 +34,7 @@ tasks:
 
 - track: intent
   description: Update project-level references to documentation site
-  status: pending
+  status: done
   steps:
     - Update root CLAUDE.md docs commands section — replace "docusaurus start/build" references with VitePress equivalents (pnpm dev, pnpm build, pnpm preview)
     - Check root package.json for any docs-related scripts and update if present

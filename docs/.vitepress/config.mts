@@ -25,6 +25,29 @@ export default defineConfig({
         href: "/favicon-16x16.png",
       },
     ],
+    [
+      "meta",
+      {
+        property: "og:image",
+        content: "/img/oauth2-server-social-card.jpg",
+      },
+    ],
+    [
+      "meta",
+      {
+        property: "og:title",
+        content: "@jmondi/oauth2-server",
+      },
+    ],
+    [
+      "meta",
+      {
+        property: "og:description",
+        content:
+          "A standards compliant implementation of an OAuth 2.0 authorization server for Node.js",
+      },
+    ],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
   ],
 
   themeConfig: {
@@ -146,6 +169,15 @@ export default defineConfig({
     editLink: {
       pattern:
         "https://github.com/jasonraimondi/ts-oauth2-server/edit/main/docs/:path",
+    },
+
+    search: {
+      provider: "algolia",
+      options: {
+        appId: "JP2YS2S0EQ",
+        apiKey: "bf2bc45ac2821dba462ee887527c1816",
+        indexName: "tsoauth2server",
+      },
     },
 
     footer: {

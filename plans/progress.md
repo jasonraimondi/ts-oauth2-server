@@ -1,44 +1,24 @@
 # Progress Log
 
 ## Phase 1 — COMPLETE
-
-### Task 1: Remove all Docusaurus files and dependencies — DONE
-Deleted docs/src/, all Docusaurus config files, .docusaurus/, build/, node_modules/, old package.json.
-Preserved docs/docs/ content and docs/static/ assets.
-
-### Task 2: Initialize VitePress project — DONE
-Created docs/package.json, installed VitePress 1.6.4, created .vitepress/config.mts with full config.
-
-### Task 3: Configure navigation and sidebar — DONE
-Nav: Guide + Config links. Sidebar: 6 sections (Getting Started, Authorization Server, Endpoints, Grants, Adapters, Extras) + FAQ + Upgrade Guide. Edit links configured. Root index.md with hero landing page created.
-
-### Task 4: Migrate static assets — DONE
-Moved docs/static/ → docs/public/ (favicons, logo.svg, social card, robots.txt). Deleted docs/static/.
-
-### Task 5: Configure theme colors — DONE
-Created .vitepress/theme/ with custom.css (green #2e8555 light, purple #966cf7 dark brand colors).
-
-### Task 6: Update gitignore and verify build — DONE
-Updated .gitignore for VitePress. Dev server starts successfully.
+Scaffolded VitePress project: removed Docusaurus, initialized VitePress 1.6.4, configured sidebar/nav/theme/assets.
 
 ## Phase 2 — COMPLETE
+Migrated all content: .mdx→.md, stripped imports, converted admonitions/tabs/details, replaced React components, fixed links. Build passes clean.
 
-### Task 1: Convert .mdx to .md and strip imports — DONE
-Renamed 18 .mdx files to .md. Stripped all Docusaurus imports (@theme/*, @site/*, partial MDX).
+## Phase 3 — COMPLETE
 
-### Task 2: Convert admonitions — DONE
-Converted :::note → :::info and :::caution → :::warning across all files.
+### Task 1: Algolia DocSearch — DONE
+Added search config to .vitepress/config.mts (appId: JP2YS2S0EQ, indexName: tsoauth2server). Note: Algolia crawler may need re-indexing after deploy.
 
-### Task 3: Convert Tabs/TabItem to code groups — DONE
-Replaced all Docusaurus Tabs/TabItem with ::: code-group syntax. Inlined Installation partial (6 pkg managers). Inlined WhichGrant partial (ASCII decision tree). Fixed http request language tags to http.
+### Task 2: Social card and meta tags — DONE
+Added og:image, og:title, og:description, twitter:card meta tags to config.mts head.
 
-### Task 4: Replace RequiredForGrants — DONE
-Replaced 5 usages in repositories.md with inline markdown badge links.
+### Task 3: Clean up and validate build — DONE
+Removed docs/.prettierrc, docs/.prettierignore. Updated README.md with VitePress instructions. Build passes clean, output 4.2MB.
 
-### Task 5: Clean up frontmatter — DONE
-Removed sidebar_position from all files. Removed empty frontmatter blocks. Fixed all .mdx link references to .md. Fixed escaped apostrophes in RFC titles.
+### Task 4: Update project-level references — DONE
+No Docusaurus references found in root CLAUDE.md or package.json. No changes needed.
 
-### Task 6: Verify all internal links — DONE
-Converted all <details>/<summary> HTML to VitePress ::: details containers. Build passes with zero errors and zero dead link warnings.
-
-Next: Phase 3 — Algolia search, final polish, and cleanup.
+## Migration Complete
+All 3 phases done. VitePress documentation site builds successfully with zero errors and zero dead links.
