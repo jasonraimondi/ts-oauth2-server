@@ -113,6 +113,22 @@ export abstract class AbstractGrant implements GrantInterface {
     return bearerTokenResponse;
   }
 
+  /**
+   * @deprecated Use `this.refreshTokenEncoder.issue(...)` instead. Retained for backwards
+   * compatibility with subclasses that override or invoke this hook directly.
+   */
+  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthToken, scopes: OAuthScope[]): Promise<string> {
+    const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime() ?? refreshToken.accessTokenExpiresAt.getTime();
+    return this.encrypt({
+      client_id: client.id,
+      access_token_id: refreshToken.accessToken,
+      refresh_token_id: refreshToken.refreshToken,
+      scope: scopes.map(scope => scope.name).join(this.scopeDelimiter),
+      user_id: refreshToken.user?.id,
+      expire_time: Math.ceil(expiresAtMs / 1000),
+    });
+  }
+
   protected encryptAccessToken(
     client: OAuthClient,
     accessToken: OAuthToken,
