@@ -57,10 +57,11 @@ export class RefreshTokenGrant extends AbstractGrant {
 
     if (this.options.useOpaqueRefreshTokens) {
       refreshToken = await this.tokenRepository.getByRefreshToken(providedRefreshToken);
+      const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime();
       refreshTokenData = {
         refresh_token_id: refreshToken.refreshToken,
         client_id: refreshToken.client.id,
-        expire_time: refreshToken.refreshTokenExpiresAt,
+        expire_time: expiresAtMs != null ? Math.ceil(expiresAtMs / 1000) : null,
       };
     } else {
       try {
@@ -81,7 +82,7 @@ export class RefreshTokenGrant extends AbstractGrant {
       throw OAuthException.invalidParameter("refresh_token", "Token is not linked to client");
     }
 
-    if (Date.now() / 1000 > refreshTokenData?.expire_time) {
+    if (refreshTokenData?.expire_time != null && Date.now() / 1000 > refreshTokenData.expire_time) {
       throw OAuthException.invalidParameter("refresh_token", "Token has expired");
     }
 
