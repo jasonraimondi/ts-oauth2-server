@@ -1,0 +1,34 @@
+# Custom Grant ⚠️
+
+To implement a custom grant, you may extend the `AbstractGrant` class.
+
+:::warning
+
+This is advanced usage. Make sure you understand the OAuth2.0 specification before implementing a custom grant.
+
+:::
+
+:::info Enable this grant
+
+```ts
+const customGrant = new MyCustomGrant(...);
+
+authorizationServer.enableGrantTypes(
+  [customGrant, new DateInterval("1d")],
+);
+```
+
+:::
+
+## Extending the CustomGrant class
+
+Once you've implemented your custom grant you need to enable it in your `AuthorizationServer`.
+
+```ts
+export class MyCustomGrant extends CustomGrant {
+  readonly identifier = "custom:my_custom_grant";
+
+  ... // Implement required methods
+}
+```
+

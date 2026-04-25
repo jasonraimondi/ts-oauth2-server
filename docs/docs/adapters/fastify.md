@@ -42,7 +42,7 @@ app.post('/oauth2/token', async (request: fastify.Request, reply: fastify.Reply)
 
     handleFastifyReply(reply, oauthResponse);
   } catch (e) {
-    handleFastifyError(reply, e);
+    handleFastifyError(e, reply);
   }
 });
 ```

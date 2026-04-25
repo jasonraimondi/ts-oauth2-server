@@ -41,7 +41,7 @@ app.post('/oauth2/token', async (req: express.Request, res: express.Response) =>
 
     handleExpressResponse(res, oauthResponse);
   } catch (e) {
-    handleExpressError(res, e);
+    handleExpressError(e, res);
   }
 });
 ```

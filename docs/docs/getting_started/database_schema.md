@@ -1,7 +1,3 @@
----
-sidebar_position: 4
----
-
 # Database Schema Reference
 
 This page provides SQL schema examples for implementing the required entities. The library is database-agnostic, but most implementations use a relational database.

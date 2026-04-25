@@ -1,0 +1,112 @@
+# Configuration
+
+:::info
+
+The default configuration is great for most users. You might not need to tweak anything here.
+
+:::
+
+The authorization server has a few optional settings with the following default values;
+
+| Option                   | Type                | Default   | Details                                                                                                                                                                                                                                                                   |
+| ------------------------ | ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `requiresPKCE`           | boolean             | true      | PKCE is enabled by default and recommended for all users. To support a legacy client without PKCE, disable this option. [[Learn more]][requires-pkce]                                                                                                                     |
+| `requiresS256`           | boolean             | true      | Disabled by default. If you want to require all clients to use S256, you can enable that here. [[Learn more]][requires-s256]                                                                                                                                              |
+| `notBeforeLeeway`        | number              | 0         | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. Its value MUST be a number containing a NumericDate value.                                                                                                 |
+| `tokenCID`               | "id" or "name"      | "id"      | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`.<br /><br />In 3.x the default is **"id"**, in v2.x the default was **"name"**. [[Learn more]][token-cid]                                                                                       |
+| `issuer`                 | string \| undefined | undefined | Sets the JWT `accessToken.iss` to this value.                                                                                                                                                                                                                             |
+| `authenticateIntrospect` | boolean             | true      | Authorize the [/introspect](../endpoints/introspect.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) <br /><br />In 4.x the default is **true**, in v3.x the default was **false**. |
+| `authenticateRevoke`     | boolean             | true      | Authorize the [/revoke](../endpoints/revoke.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) <br /><br />In 4.x the default is **true**, in v3.x the default was **false**.                             |
+| `logger`                 | LoggerService \| undefined | undefined | Optional logger service to capture debugging information, particularly useful for tracking token operations like revocations. |
+| `useOpaqueAuthorizationCodes` | boolean        | false     | When enabled, authorization codes are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
+| `useOpaqueRefreshTokens` | boolean        | false     | When enabled, refresh tokens are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
+| `implicitRedirectMode`   | "query" \| "fragment" | "query" | Controls how the [implicit grant](../grants/implicit.md) appends tokens to the redirect URI. OAuth 2.0 ([RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2)) recommends `"fragment"`; `"query"` is the default for backwards compatibility. <br /><br />In the next major version, the default will change to **"fragment"**. |
+
+```ts
+type AuthorizationServerOptions = {
+  requiresPKCE: true;
+  requiresS256: false;
+  notBeforeLeeway: 0;
+  tokenCID: "id" | "name";
+  issuer: undefined;
+  authenticateIntrospect: boolean;
+  authenticateRevoke: boolean;
+  logger?: LoggerService;
+  useOpaqueAuthorizationCodes?: boolean;
+  useOpaqueRefreshTokens?: boolean;
+  implicitRedirectMode: "query" | "fragment";
+};
+```
+
+To configure these options, pass the value in as the last argument:
+
+```ts
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  new JwtService("secret-key"),
+  {
+    issuer: "auth.example.com",
+  },
+);
+```
+
+## Logger Configuration
+
+The authorization server supports optional logging for debugging purposes, particularly useful for tracking token operations. You can provide either a custom logger implementation or use the built-in console logger.
+
+### Using the Built-in Console Logger
+
+```ts
+import { ConsoleLoggerService } from "@jmondi/oauth2-server";
+
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  new JwtService("secret-key"),
+  {
+    logger: new ConsoleLoggerService(),
+  },
+);
+```
+
+### Custom Logger Implementation
+
+Implement the `LoggerService` interface to integrate with your preferred logging library:
+
+```ts
+import { LoggerService } from "@jmondi/oauth2-server";
+
+class MyCustomLogger implements LoggerService {
+  log(message?: any, ...optionalParams: any[]): void {
+    // Integration with your logging library (Winston, Pino, etc.)
+    console.log('[OAuth2]', message, ...optionalParams);
+  }
+}
+
+const authorizationServer = new AuthorizationServer(
+  clientRepository,
+  accessTokenRepository,
+  scopeRepository,
+  new JwtService("secret-key"),
+  {
+    logger: new MyCustomLogger(),
+  },
+);
+```
+
+### What Gets Logged
+
+The logger captures debugging information including:
+- Token validation errors
+- Client authentication failures
+- Token revocation attempts
+- General grant processing errors
+
+This is particularly useful for debugging token-related operations and understanding OAuth flow issues in development and production environments.
+
+[requires-pkce]: https://datatracker.ietf.org/doc/html/rfc7636
+[requires-s256]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+[token-cid]: https://github.com/jasonraimondi/ts-oauth2-server/blob/e7a31b207701f90552abc82d82c72b143bc15130/src/grants/abstract/abstract.grant.ts#L123
