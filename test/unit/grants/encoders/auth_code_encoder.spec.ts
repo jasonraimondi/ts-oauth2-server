@@ -51,8 +51,9 @@ describe("JwtAuthCodeEncoder", () => {
     request.codeChallenge = authCode.codeChallenge ?? undefined;
     request.codeChallengeMethod = authCode.codeChallengeMethod ?? undefined;
     request.audience = "test-audience";
+    const expireSeconds = Math.ceil(authCode.expiresAt.getTime() / 1000);
 
-    const wireCode = await encoder.issue(authCode, request);
+    const wireCode = await encoder.issue(authCode, request, expireSeconds);
     expect(typeof wireCode).toBe("string");
     expect(wireCode.length).toBeGreaterThan(0);
 
@@ -65,7 +66,7 @@ describe("JwtAuthCodeEncoder", () => {
     expect(payload.code_challenge_method).toBe(authCode.codeChallengeMethod);
     expect(payload.user_id).toBe("user-id-1");
     expect(payload.audience).toBe("test-audience");
-    expect(payload.expire_time).toBe(Math.ceil(authCode.expiresAt.getTime() / 1000));
+    expect(payload.expire_time).toBe(expireSeconds);
   });
 
   it("throws OAuthException when the wire-form code is malformed", async () => {
@@ -78,7 +79,7 @@ describe("JwtAuthCodeEncoder", () => {
     const authCode = buildAuthCode();
     const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
 
-    const wireCode = await otherEncoder.issue(authCode, request);
+    const wireCode = await otherEncoder.issue(authCode, request, Math.ceil(authCode.expiresAt.getTime() / 1000));
 
     await expect(encoder.resolve(wireCode)).rejects.toBeInstanceOf(OAuthException);
   });
@@ -89,7 +90,7 @@ describe("JwtAuthCodeEncoder", () => {
     const authCode = buildAuthCode();
     const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
 
-    const wireCode = await otherEncoder.issue(authCode, request);
+    const wireCode = await otherEncoder.issue(authCode, request, Math.ceil(authCode.expiresAt.getTime() / 1000));
 
     const decoded = await encoder.unverifiedDecode(wireCode);
     expect(decoded.auth_code_id).toBe(authCode.code);
@@ -114,7 +115,7 @@ describe("JwtAuthCodeEncoder", () => {
     const authCode = buildAuthCode();
     const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
 
-    const wireCode = await trackingEncoder.issue(authCode, request);
+    const wireCode = await trackingEncoder.issue(authCode, request, Math.ceil(authCode.expiresAt.getTime() / 1000));
 
     expect(wireCode).toBe("stubbed-wire-code");
     expect(calls).toHaveLength(1);
@@ -152,7 +153,7 @@ describe("OpaqueAuthCodeEncoder", () => {
     const authCode = buildAuthCode();
     const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
 
-    const wireCode = await encoder.issue(authCode, request);
+    const wireCode = await encoder.issue(authCode, request, Math.ceil(authCode.expiresAt.getTime() / 1000));
 
     expect(wireCode).toBe(authCode.code);
   });

@@ -12,9 +12,12 @@ export interface AuthCodeEncoderResolved {
 export interface AuthCodeEncoder {
   /**
    * Convert an issued OAuthAuthCode into the wire-form string returned to the
-   * client (either the opaque identifier or a signed JWT).
+   * client (either the opaque identifier or a signed JWT). `expireSeconds` is
+   * the unix-epoch second the JWT-mode payload should claim as `expire_time`;
+   * computed by the grant from `authCodeTTL` so it matches the value the
+   * pre-refactor implementation wrote.
    */
-  issue(authCode: OAuthAuthCode, request: AuthorizationRequest): Promise<string>;
+  issue(authCode: OAuthAuthCode, request: AuthorizationRequest, expireSeconds: number): Promise<string>;
 
   /**
    * Resolve a wire-form auth code back to its payload and (when available) the
@@ -59,14 +62,14 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
     private readonly decodeFn: AuthCodeDecodeFn,
   ) {}
 
-  async issue(authCode: OAuthAuthCode, request: AuthorizationRequest): Promise<string> {
+  async issue(authCode: OAuthAuthCode, request: AuthorizationRequest, expireSeconds: number): Promise<string> {
     const payload: PayloadAuthCode = {
       client_id: authCode.client.id,
       redirect_uri: authCode.redirectUri,
       auth_code_id: authCode.code,
       scopes: authCode.scopes.map(scope => scope.name),
       user_id: authCode.user?.id,
-      expire_time: Math.ceil(authCode.expiresAt.getTime() / 1000),
+      expire_time: expireSeconds,
       code_challenge: request.codeChallenge,
       code_challenge_method: request.codeChallengeMethod,
       audience: request.audience,
@@ -101,7 +104,7 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
 export class OpaqueAuthCodeEncoder implements AuthCodeEncoder {
   constructor(private readonly authCodeRepository: OAuthAuthCodeRepository) {}
 
-  async issue(authCode: OAuthAuthCode, _request: AuthorizationRequest): Promise<string> {
+  async issue(authCode: OAuthAuthCode, _request: AuthorizationRequest, _expireSeconds: number): Promise<string> {
     return authCode.code;
   }
 

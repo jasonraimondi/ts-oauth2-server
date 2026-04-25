@@ -243,7 +243,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       authorizationRequest.scopes,
     );
 
-    const code = await this.authCodeEncoder.issue(authCode, authorizationRequest);
+    const code = await this.authCodeEncoder.issue(authCode, authorizationRequest, this.authCodeTTL.getEndTimeSeconds());
 
     const params: Record<string, string> = { code };
 
