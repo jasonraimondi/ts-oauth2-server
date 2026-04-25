@@ -2,14 +2,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { OAuthAuthCode } from "../../../../src/entities/auth_code.entity.js";
 import { OAuthClient } from "../../../../src/entities/client.entity.js";
 import { OAuthException } from "../../../../src/exceptions/oauth.exception.js";
-import {
-  JwtAuthCodeEncoder,
-  OpaqueAuthCodeEncoder,
-} from "../../../../src/grants/encoders/auth_code_encoder.js";
+import { JwtAuthCodeEncoder, OpaqueAuthCodeEncoder } from "../../../../src/grants/encoders/auth_code_encoder.js";
 import { OAuthAuthCodeRepository } from "../../../../src/repositories/auth_code.repository.js";
 import { AuthorizationRequest } from "../../../../src/requests/authorization.request.js";
 import { DateInterval } from "../../../../src/utils/date_interval.js";
-import { JwtService } from "../../../../src/utils/jwt.js";
+import { JwtInterface, JwtService } from "../../../../src/utils/jwt.js";
 
 const buildClient = (): OAuthClient => ({
   id: "test-client",
@@ -32,13 +29,20 @@ const buildAuthCode = (overrides: Partial<OAuthAuthCode> = {}): OAuthAuthCode =>
   ...overrides,
 });
 
+const buildJwtEncoder = (jwt: JwtInterface) =>
+  new JwtAuthCodeEncoder(
+    payload => jwt.sign(payload),
+    rawCode => jwt.verify(rawCode),
+    rawCode => jwt.decode(rawCode),
+  );
+
 describe("JwtAuthCodeEncoder", () => {
   let encoder: JwtAuthCodeEncoder;
   let jwt: JwtService;
 
   beforeEach(() => {
     jwt = new JwtService("super-secret-test-key");
-    encoder = new JwtAuthCodeEncoder(jwt);
+    encoder = buildJwtEncoder(jwt);
   });
 
   it("issues a wire-form code that round-trips through resolve()", async () => {
@@ -69,8 +73,7 @@ describe("JwtAuthCodeEncoder", () => {
   });
 
   it("throws OAuthException when the JWT signature is signed with a different key", async () => {
-    const otherJwt = new JwtService("different-key");
-    const otherEncoder = new JwtAuthCodeEncoder(otherJwt);
+    const otherEncoder = buildJwtEncoder(new JwtService("different-key"));
 
     const authCode = buildAuthCode();
     const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
@@ -81,8 +84,7 @@ describe("JwtAuthCodeEncoder", () => {
   });
 
   it("unverifiedDecode() returns auth_code_id and client_id without verifying the signature", async () => {
-    const otherJwt = new JwtService("different-key");
-    const otherEncoder = new JwtAuthCodeEncoder(otherJwt);
+    const otherEncoder = buildJwtEncoder(new JwtService("different-key"));
 
     const authCode = buildAuthCode();
     const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
@@ -92,6 +94,30 @@ describe("JwtAuthCodeEncoder", () => {
     const decoded = await encoder.unverifiedDecode(wireCode);
     expect(decoded.auth_code_id).toBe(authCode.code);
     expect(decoded.client_id).toBe(authCode.client.id);
+  });
+
+  it("unverifiedDecode() throws OAuthException for non-JWT garbage input", async () => {
+    await expect(encoder.unverifiedDecode("totally-not-a-jwt-at-all")).rejects.toBeInstanceOf(OAuthException);
+  });
+
+  it("dispatches issue through the supplied encryptFn", async () => {
+    const calls: Array<string | Buffer | Record<string, unknown>> = [];
+    const trackingEncoder = new JwtAuthCodeEncoder(
+      async payload => {
+        calls.push(payload);
+        return "stubbed-wire-code";
+      },
+      rawCode => jwt.verify(rawCode),
+      rawCode => jwt.decode(rawCode),
+    );
+
+    const authCode = buildAuthCode();
+    const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
+
+    const wireCode = await trackingEncoder.issue(authCode, request);
+
+    expect(wireCode).toBe("stubbed-wire-code");
+    expect(calls).toHaveLength(1);
   });
 });
 
@@ -145,6 +171,16 @@ describe("OpaqueAuthCodeEncoder", () => {
     expect(payload.code_challenge_method).toBe(authCode.codeChallengeMethod);
     expect(payload.user_id).toBe("user-id-1");
     expect(payload.expire_time).toBe(Math.ceil(authCode.expiresAt.getTime() / 1000));
+  });
+
+  it("resolve() returns the persisted entity with no PKCE challenge", async () => {
+    const authCode = buildAuthCode({ codeChallenge: undefined, codeChallengeMethod: undefined });
+    await repository.persist(authCode);
+
+    const { payload } = await encoder.resolve(authCode.code);
+
+    expect(payload.code_challenge).toBeUndefined();
+    expect(payload.code_challenge_method).toBeUndefined();
   });
 
   it("resolve() throws OAuthException when the identifier is unknown", async () => {

@@ -3,10 +3,16 @@ import { OAuthScope } from "../../entities/scope.entity.js";
 import { OAuthToken } from "../../entities/token.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { OAuthTokenRepository } from "../../repositories/access_token.repository.js";
-import { JwtInterface } from "../../utils/jwt.js";
+
+export interface RefreshTokenResolutionPayload {
+  client_id?: string;
+  refresh_token_id?: string;
+  expire_time?: number | null;
+  [key: string]: unknown;
+}
 
 export interface RefreshTokenResolution {
-  payload: any;
+  payload: RefreshTokenResolutionPayload;
   token: OAuthToken | null;
 }
 
@@ -15,27 +21,32 @@ export interface RefreshTokenEncoder {
   resolve(rawToken: string): Promise<RefreshTokenResolution>;
 }
 
+export type RefreshTokenSignFn = (
+  client: OAuthClient,
+  accessToken: OAuthToken,
+  scopes: OAuthScope[],
+) => Promise<string>;
+
+export type RefreshTokenVerifyFn = (rawToken: string) => Promise<Record<string, unknown>>;
+
+/**
+ * JWT-mode refresh token encoder. Issue and resolve are dispatched through
+ * the grant's `encryptRefreshToken` and `decrypt` hooks (supplied as callbacks)
+ * so subclass overrides of either method continue to participate.
+ */
 export class JwtRefreshTokenEncoder implements RefreshTokenEncoder {
   constructor(
-    private readonly jwt: JwtInterface,
-    private readonly scopeDelimiter: string,
+    private readonly signFn: RefreshTokenSignFn,
+    private readonly verifyFn: RefreshTokenVerifyFn,
   ) {}
 
   async issue(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[]): Promise<string> {
-    const expiresAtMs = accessToken.refreshTokenExpiresAt?.getTime() ?? accessToken.accessTokenExpiresAt.getTime();
-    return this.jwt.sign({
-      client_id: client.id,
-      access_token_id: accessToken.accessToken,
-      refresh_token_id: accessToken.refreshToken,
-      scope: scopes.map(scope => scope.name).join(this.scopeDelimiter),
-      user_id: accessToken.user?.id,
-      expire_time: Math.ceil(expiresAtMs / 1000),
-    });
+    return this.signFn(client, accessToken, scopes);
   }
 
   async resolve(rawToken: string): Promise<RefreshTokenResolution> {
     try {
-      const payload = await this.jwt.verify(rawToken);
+      const payload = await this.verifyFn(rawToken);
       return { payload, token: null };
     } catch (e) {
       if (e instanceof Error && e.message === "invalid signature") {
@@ -50,13 +61,16 @@ export class OpaqueRefreshTokenEncoder implements RefreshTokenEncoder {
   constructor(private readonly tokenRepository: OAuthTokenRepository) {}
 
   async issue(_client: OAuthClient, accessToken: OAuthToken, _scopes: OAuthScope[]): Promise<string> {
-    return accessToken.refreshToken as string;
+    if (accessToken.refreshToken == null) {
+      throw new Error("OpaqueRefreshTokenEncoder.issue called without a refresh token on the access token");
+    }
+    return accessToken.refreshToken;
   }
 
   async resolve(rawToken: string): Promise<RefreshTokenResolution> {
     const token = await this.tokenRepository.getByRefreshToken(rawToken);
     const expiresAtMs = token.refreshTokenExpiresAt?.getTime();
-    const payload = {
+    const payload: RefreshTokenResolutionPayload = {
       refresh_token_id: token.refreshToken,
       client_id: token.client.id,
       expire_time: expiresAtMs != null ? Math.ceil(expiresAtMs / 1000) : null,

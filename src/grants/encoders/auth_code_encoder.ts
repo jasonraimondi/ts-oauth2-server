@@ -2,7 +2,6 @@ import { OAuthAuthCode } from "../../entities/auth_code.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { OAuthAuthCodeRepository } from "../../repositories/auth_code.repository.js";
 import { AuthorizationRequest } from "../../requests/authorization.request.js";
-import { JwtInterface } from "../../utils/jwt.js";
 import type { PayloadAuthCode } from "../auth_code.grant.js";
 
 export interface AuthCodeEncoderResolved {
@@ -33,18 +32,32 @@ export interface AuthCodeEncoder {
    * even when the signature is no longer trusted (e.g. the signing key has
    * since rotated).
    *
-   * For opaque codes this is identical to `resolve`. For JWTs the signature
-   * is intentionally not checked.
+   * The return shape is intentionally narrower than `resolve` — only the
+   * fields the revoke handler needs to look up the persisted code.
    */
   unverifiedDecode(rawCode: string): Promise<{ auth_code_id: string; client_id: string }>;
 }
+
+export type AuthCodeEncryptFn = (payload: string | Buffer | Record<string, unknown>) => Promise<string>;
+export type AuthCodeDecryptFn = (rawCode: string) => Promise<Record<string, unknown>>;
+export type AuthCodeDecodeFn = (rawCode: string) => null | Record<string, any> | string;
 
 function isAuthCodePayload(code: unknown): code is PayloadAuthCode {
   return typeof code === "object" && code !== null && "auth_code_id" in code;
 }
 
+/**
+ * JWT-mode auth code encoder. Issue and resolve dispatch through the grant's
+ * `encrypt` and `decrypt` hooks (supplied as callbacks) so subclass overrides
+ * continue to participate. `unverifiedDecode` calls `jwt.decode` directly —
+ * no override hook for unverified decoding has ever existed on the grant.
+ */
 export class JwtAuthCodeEncoder implements AuthCodeEncoder {
-  constructor(private readonly jwt: JwtInterface) {}
+  constructor(
+    private readonly encryptFn: AuthCodeEncryptFn,
+    private readonly decryptFn: AuthCodeDecryptFn,
+    private readonly decodeFn: AuthCodeDecodeFn,
+  ) {}
 
   async issue(authCode: OAuthAuthCode, request: AuthorizationRequest): Promise<string> {
     const payload: PayloadAuthCode = {
@@ -61,11 +74,11 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
 
     const jsonPayload = JSON.stringify(payload);
 
-    return this.jwt.sign(jsonPayload);
+    return this.encryptFn(jsonPayload);
   }
 
   async resolve(rawCode: string): Promise<AuthCodeEncoderResolved> {
-    const properties = await this.jwt.verify(rawCode).catch(e => {
+    const properties = await this.decryptFn(rawCode).catch(e => {
       throw OAuthException.badRequest(e?.message ?? "malformed jwt");
     });
 
@@ -77,9 +90,9 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
   }
 
   async unverifiedDecode(rawCode: string): Promise<{ auth_code_id: string; client_id: string }> {
-    const parsed = this.jwt.decode(rawCode);
+    const parsed = this.decodeFn(rawCode);
     if (!isAuthCodePayload(parsed)) {
-      throw new Error("Malformed auth code payload");
+      throw OAuthException.invalidParameter("code", "Malformed auth code payload");
     }
     return { auth_code_id: parsed.auth_code_id, client_id: parsed.client_id };
   }

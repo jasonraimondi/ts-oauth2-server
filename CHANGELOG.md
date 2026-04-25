@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Internal: extract opaque-vs-JWT branching in `AuthorizationCodeGrant` into an `AuthCodeEncoder` strategy selected once in the constructor. No public API change.
-- Internal: extract opaque-vs-JWT branching in `AbstractGrant.makeBearerTokenResponse` and `RefreshTokenGrant.validateOldRefreshToken` into a `RefreshTokenEncoder` strategy held on `AbstractGrant`. No public API change. The `protected encryptRefreshToken` hook is retained as a deprecated shim for subclass backwards compatibility.
+- Internal: extract opaque-vs-JWT branching in `AuthorizationCodeGrant` into an `AuthCodeEncoder` strategy selected once in the constructor. No public API change. JWT-mode issue and resolve continue to dispatch through the existing `protected encrypt`/`decrypt` hooks on `AbstractGrant`, so subclass overrides of those methods participate as before.
+- Internal: extract opaque-vs-JWT branching in `AbstractGrant.makeBearerTokenResponse` and `RefreshTokenGrant.validateOldRefreshToken` into a `RefreshTokenEncoder` strategy held on `AbstractGrant`. No public API change. JWT-mode issue and resolve continue to dispatch through `protected encryptRefreshToken` and `protected decrypt`, so subclass overrides of either hook participate as before.
 
 ### Fixed
 - Opaque refresh token expiration check no longer compares seconds against a `Date` object, which always evaluated false and let expired tokens through. Non-expiring opaque refresh tokens (`refreshTokenExpiresAt: null`) are also no longer incorrectly rejected as expired ([#212](https://github.com/jasonraimondi/ts-oauth2-server/issues/212))

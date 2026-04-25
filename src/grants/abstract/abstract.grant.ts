@@ -66,7 +66,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
   abstract readonly identifier: GrantIdentifier;
 
-  protected readonly refreshTokenEncoder: RefreshTokenEncoder;
+  private readonly refreshTokenEncoder: RefreshTokenEncoder;
 
   constructor(
     protected readonly clientRepository: OAuthClientRepository,
@@ -77,7 +77,10 @@ export abstract class AbstractGrant implements GrantInterface {
   ) {
     this.refreshTokenEncoder = this.options.useOpaqueRefreshTokens
       ? new OpaqueRefreshTokenEncoder(this.tokenRepository)
-      : new JwtRefreshTokenEncoder(this.jwt, this.options.scopeDelimiter);
+      : new JwtRefreshTokenEncoder(
+          (client, accessToken, scopes) => this.encryptRefreshToken(client, accessToken, scopes),
+          rawToken => this.decrypt(rawToken),
+        );
   }
 
   get scopeDelimiter(): string {
@@ -114,8 +117,10 @@ export abstract class AbstractGrant implements GrantInterface {
   }
 
   /**
-   * @deprecated Use `this.refreshTokenEncoder.issue(...)` instead. Retained for backwards
-   * compatibility with subclasses that override or invoke this hook directly.
+   * Override hook for the JWT refresh token wire form. Called from
+   * `makeBearerTokenResponse` (via the encoder strategy) when refresh tokens
+   * are JWT-mode; opaque refresh tokens never reach this method. Override to
+   * customize the JWT payload, claims, or signing pathway.
    */
   protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthToken, scopes: OAuthScope[]): Promise<string> {
     const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime() ?? refreshToken.accessTokenExpiresAt.getTime();

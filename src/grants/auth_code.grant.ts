@@ -20,11 +20,7 @@ import { JwtInterface } from "../utils/jwt.js";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant.js";
 import { GrantIdentifier } from "./abstract/grant.interface.js";
 import { AuthorizationServerOptions } from "../authorization_server.js";
-import {
-  AuthCodeEncoder,
-  JwtAuthCodeEncoder,
-  OpaqueAuthCodeEncoder,
-} from "./encoders/auth_code_encoder.js";
+import { AuthCodeEncoder, JwtAuthCodeEncoder, OpaqueAuthCodeEncoder } from "./encoders/auth_code_encoder.js";
 
 export interface PayloadAuthCode {
   client_id: string;
@@ -68,7 +64,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     super(clientRepository, tokenRepository, scopeRepository, jwt, options);
     this.authCodeEncoder = this.options.useOpaqueAuthorizationCodes
       ? new OpaqueAuthCodeEncoder(this.authCodeRepository)
-      : new JwtAuthCodeEncoder(this.jwt);
+      : new JwtAuthCodeEncoder(
+          payload => this.encrypt(payload),
+          rawCode => this.decrypt(rawCode),
+          rawCode => this.jwt.decode(rawCode),
+        );
   }
 
   async respondToAccessTokenRequest(req: RequestInterface, accessTokenTTL: DateInterval): Promise<ResponseInterface> {
