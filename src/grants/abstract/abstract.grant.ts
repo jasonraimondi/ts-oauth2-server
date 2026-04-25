@@ -18,6 +18,11 @@ import { base64decode } from "../../utils/base64.js";
 import { DateInterval } from "../../utils/date_interval.js";
 import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt.js";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time.js";
+import {
+  JwtRefreshTokenEncoder,
+  OpaqueRefreshTokenEncoder,
+  RefreshTokenEncoder,
+} from "../encoders/refresh_token_encoder.js";
 import { GrantIdentifier, GrantInterface } from "./grant.interface.js";
 
 export interface JwtPayload {
@@ -61,13 +66,19 @@ export abstract class AbstractGrant implements GrantInterface {
 
   abstract readonly identifier: GrantIdentifier;
 
+  protected readonly refreshTokenEncoder: RefreshTokenEncoder;
+
   constructor(
     protected readonly clientRepository: OAuthClientRepository,
     protected readonly tokenRepository: OAuthTokenRepository,
     protected readonly scopeRepository: OAuthScopeRepository,
     protected readonly jwt: JwtInterface,
     public readonly options: AuthorizationServerOptions,
-  ) {}
+  ) {
+    this.refreshTokenEncoder = this.options.useOpaqueRefreshTokens
+      ? new OpaqueRefreshTokenEncoder(this.tokenRepository)
+      : new JwtRefreshTokenEncoder(this.jwt, this.options.scopeDelimiter);
+  }
 
   get scopeDelimiter(): string {
     return this.options.scopeDelimiter;
@@ -86,11 +97,7 @@ export abstract class AbstractGrant implements GrantInterface {
     let refreshToken: string | undefined = undefined;
 
     if (accessToken.refreshToken) {
-      if (this.options.useOpaqueRefreshTokens) {
-        refreshToken = accessToken.refreshToken;
-      } else {
-        refreshToken = await this.encryptRefreshToken(client, accessToken, scopes);
-      }
+      refreshToken = await this.refreshTokenEncoder.issue(client, accessToken, scopes);
     }
 
     const bearerTokenResponse = new BearerTokenResponse(accessToken);
@@ -104,18 +111,6 @@ export abstract class AbstractGrant implements GrantInterface {
     };
 
     return bearerTokenResponse;
-  }
-
-  protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthToken, scopes: OAuthScope[]): Promise<string> {
-    const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime() ?? refreshToken.accessTokenExpiresAt.getTime();
-    return this.encrypt({
-      client_id: client.id,
-      access_token_id: refreshToken.accessToken,
-      refresh_token_id: refreshToken.refreshToken,
-      scope: scopes.map(scope => scope.name).join(this.scopeDelimiter),
-      user_id: refreshToken.user?.id,
-      expire_time: Math.ceil(expiresAtMs / 1000),
-    });
   }
 
   protected encryptAccessToken(
