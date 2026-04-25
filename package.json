@@ -78,7 +78,7 @@
     "@vitest/coverage-istanbul": "^1.6.0",
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
-    "fastify": "^4.28.1",
+    "fastify": "^5.8.5",
     "h3": "1.15.5",
     "prettier": "^3.3.2",
     "supertest": "^7.0.0",
