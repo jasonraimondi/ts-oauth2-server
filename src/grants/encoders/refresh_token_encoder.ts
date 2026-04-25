@@ -71,7 +71,7 @@ export class OpaqueRefreshTokenEncoder implements RefreshTokenEncoder {
     const token = await this.tokenRepository.getByRefreshToken(rawToken);
     const expiresAtMs = token.refreshTokenExpiresAt?.getTime();
     const payload: RefreshTokenResolutionPayload = {
-      refresh_token_id: token.refreshToken,
+      refresh_token_id: token.refreshToken ?? undefined,
       client_id: token.client.id,
       expire_time: expiresAtMs != null ? Math.ceil(expiresAtMs / 1000) : null,
     };

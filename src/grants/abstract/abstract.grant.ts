@@ -66,7 +66,7 @@ export abstract class AbstractGrant implements GrantInterface {
 
   abstract readonly identifier: GrantIdentifier;
 
-  private readonly refreshTokenEncoder: RefreshTokenEncoder;
+  protected readonly refreshTokenEncoder: RefreshTokenEncoder;
 
   constructor(
     protected readonly clientRepository: OAuthClientRepository,
