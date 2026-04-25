@@ -181,7 +181,7 @@ export default defineConfig({
     },
 
     footer: {
-      copyright: "© 2024 Jason Raimondi",
+      copyright: `© ${new Date().getFullYear()} Jason Raimondi`,
     },
   },
 });
