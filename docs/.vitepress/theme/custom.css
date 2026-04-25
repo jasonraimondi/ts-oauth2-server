@@ -9,3 +9,16 @@
   --vp-c-brand-2: #b08df9;
   --vp-c-brand-3: #ded1fc;
 }
+
+.badges {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  align-items: center;
+  overflow-x: auto;
+}
+
+.badges img {
+  display: inline-block;
+  flex-shrink: 0;
+}

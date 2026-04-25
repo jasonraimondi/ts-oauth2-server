@@ -54,7 +54,7 @@ export default defineConfig({
     logo: "/img/logo.svg",
 
     nav: [
-      { text: "Guide", link: "/docs/getting_started/" },
+      { text: "Guide", link: "/" },
       {
         text: "Config",
         link: "/docs/authorization_server/configuration",
@@ -62,11 +62,11 @@ export default defineConfig({
     ],
 
     sidebar: {
-      "/docs/": [
+      "/": [
         {
           text: "Getting Started",
           items: [
-            { text: "Introduction", link: "/docs/getting_started/" },
+            { text: "Introduction", link: "/" },
             { text: "Entities", link: "/docs/getting_started/entities" },
             {
               text: "Repositories",
