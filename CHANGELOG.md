@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Opaque refresh token expiration check no longer compares seconds against a `Date` object, which always evaluated false and let expired tokens through. Non-expiring opaque refresh tokens (`refreshTokenExpiresAt: null`) are also no longer incorrectly rejected as expired ([#212](https://github.com/jasonraimondi/ts-oauth2-server/issues/212))
+
 ## [4.3.0] - 2026-02-23
 
 ### Added

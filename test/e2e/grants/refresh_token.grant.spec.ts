@@ -227,6 +227,53 @@ describe.each([true, false])("refresh_token grant (opaqueRefreshTokens: %s)", op
     await expect(tokenResponse).rejects.toThrowError(/Cannot verify the refresh token/);
   });
 
+  it("throws when refresh token is expired", async () => {
+    // arrange
+    accessToken.refreshTokenExpiresAt = new Date(Date.now() - 1000);
+    inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
+    request = new OAuthRequest({
+      body: {
+        grant_type: "refresh_token",
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: bearerResponse.body.refresh_token,
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = grant.respondToAccessTokenRequest(request, accessTokenTTL);
+
+    // assert
+    await expect(tokenResponse).rejects.toThrowError(/Token has expired/);
+  });
+
+  it.skipIf(!opaqueRefreshTokens)("accepts a non-expiring opaque refresh token", async () => {
+    // arrange
+    accessToken.refreshTokenExpiresAt = null;
+    inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+    vi.spyOn(inMemoryAccessTokenRepository, "isRefreshTokenRevoked").mockResolvedValue(false);
+
+    const bearerResponse = await grant.makeBearerTokenResponse(client, accessToken);
+    request = new OAuthRequest({
+      body: {
+        grant_type: "refresh_token",
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: bearerResponse.body.refresh_token,
+      },
+    });
+    const accessTokenTTL = new DateInterval("1h");
+
+    // act
+    const tokenResponse = await grant.respondToAccessTokenRequest(request, accessTokenTTL);
+
+    // assert
+    expectTokenResponse(tokenResponse);
+  });
+
   it("throws for invalid refresh token format", async () => {
     // arrange
     request = new OAuthRequest({
