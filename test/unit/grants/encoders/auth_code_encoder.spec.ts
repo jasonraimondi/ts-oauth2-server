@@ -101,6 +101,102 @@ describe("JwtAuthCodeEncoder", () => {
     await expect(encoder.unverifiedDecode("totally-not-a-jwt-at-all")).rejects.toBeInstanceOf(OAuthException);
   });
 
+  describe("payload validation (isAuthCodePayload)", () => {
+    const buildEncoderReturning = (payload: unknown) =>
+      new JwtAuthCodeEncoder(
+        async () => "wire-code",
+        async () => payload as Record<string, unknown>,
+        () => payload as null | Record<string, any> | string,
+      );
+
+    const validBase = {
+      auth_code_id: "id-1",
+      client_id: "client-1",
+      scopes: ["read"],
+      expire_time: 1_700_000_000,
+    };
+
+    it("resolve() rejects payloads missing expire_time", async () => {
+      const { expire_time, ...withoutExpire } = validBase;
+      const enc = buildEncoderReturning(withoutExpire);
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() rejects payloads with NaN expire_time", async () => {
+      const enc = buildEncoderReturning({ ...validBase, expire_time: NaN });
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() rejects payloads with Infinity expire_time", async () => {
+      const enc = buildEncoderReturning({ ...validBase, expire_time: Infinity });
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() rejects payloads with non-number expire_time", async () => {
+      const enc = buildEncoderReturning({ ...validBase, expire_time: "1700000000" });
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() rejects payloads missing client_id", async () => {
+      const { client_id, ...withoutClient } = validBase;
+      const enc = buildEncoderReturning(withoutClient);
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() rejects payloads missing auth_code_id", async () => {
+      const { auth_code_id, ...withoutCode } = validBase;
+      const enc = buildEncoderReturning(withoutCode);
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() rejects payloads with non-array scopes", async () => {
+      const enc = buildEncoderReturning({ ...validBase, scopes: "read write" });
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() rejects payloads with a non-string element in scopes", async () => {
+      const enc = buildEncoderReturning({ ...validBase, scopes: ["read", 42] });
+      await expect(enc.resolve("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    it("resolve() accepts payloads with null redirect_uri (opaque-mode projection shape)", async () => {
+      const enc = buildEncoderReturning({ ...validBase, redirect_uri: null });
+      const { payload } = await enc.resolve("any");
+      expect(payload.client_id).toBe("client-1");
+    });
+
+    it("resolve() accepts payloads with numeric user_id", async () => {
+      const enc = buildEncoderReturning({ ...validBase, user_id: 42 });
+      const { payload } = await enc.resolve("any");
+      expect(payload.user_id).toBe(42);
+    });
+
+    it("resolve() accepts payloads with null code_challenge and code_challenge_method", async () => {
+      const enc = buildEncoderReturning({
+        ...validBase,
+        code_challenge: null,
+        code_challenge_method: null,
+      });
+      const { payload } = await enc.resolve("any");
+      expect(payload.auth_code_id).toBe("id-1");
+    });
+
+    it("unverifiedDecode() rejects payloads missing client_id", async () => {
+      const { client_id, ...withoutClient } = validBase;
+      const enc = buildEncoderReturning(withoutClient);
+      await expect(enc.unverifiedDecode("any")).rejects.toBeInstanceOf(OAuthException);
+    });
+
+    // RFC 7009: the revoke endpoint must silently accept a token whose
+    // signature is no longer trusted. unverifiedDecode therefore stays lenient
+    // about everything except the two identifiers it returns.
+    it("unverifiedDecode() accepts payloads carrying only auth_code_id and client_id", async () => {
+      const enc = buildEncoderReturning({ auth_code_id: "id-1", client_id: "client-1" });
+      const decoded = await enc.unverifiedDecode("any");
+      expect(decoded).toEqual({ auth_code_id: "id-1", client_id: "client-1" });
+    });
+  });
+
   it("dispatches issue through the supplied encryptFn", async () => {
     const calls: Array<string | Buffer | Record<string, unknown>> = [];
     const trackingEncoder = new JwtAuthCodeEncoder(

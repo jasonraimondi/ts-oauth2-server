@@ -46,7 +46,25 @@ export type AuthCodeDecryptFn = (rawCode: string) => Promise<Record<string, unkn
 export type AuthCodeDecodeFn = (rawCode: string) => null | Record<string, any> | string;
 
 function isAuthCodePayload(code: unknown): code is PayloadAuthCode {
-  return typeof code === "object" && code !== null && "auth_code_id" in code;
+  if (typeof code !== "object" || code === null) return false;
+  const p = code as Record<string, unknown>;
+  return (
+    typeof p.auth_code_id === "string" &&
+    typeof p.client_id === "string" &&
+    typeof p.expire_time === "number" &&
+    Number.isFinite(p.expire_time) &&
+    Array.isArray(p.scopes) &&
+    p.scopes.every(scope => typeof scope === "string")
+  );
+}
+
+// Per RFC 7009 the revoke endpoint silently accepts requests for tokens whose
+// signature is no longer trusted, so unverifiedDecode validates only the two
+// identifiers it returns — not the full PayloadAuthCode shape.
+function hasAuthCodeIdentifiers(code: unknown): code is { auth_code_id: string; client_id: string } {
+  if (typeof code !== "object" || code === null) return false;
+  const p = code as Record<string, unknown>;
+  return typeof p.auth_code_id === "string" && typeof p.client_id === "string";
 }
 
 /**
@@ -94,7 +112,7 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
 
   async unverifiedDecode(rawCode: string): Promise<{ auth_code_id: string; client_id: string }> {
     const parsed = this.decodeFn(rawCode);
-    if (!isAuthCodePayload(parsed)) {
+    if (!hasAuthCodeIdentifiers(parsed)) {
       throw OAuthException.invalidParameter("code", "Malformed auth code payload");
     }
     return { auth_code_id: parsed.auth_code_id, client_id: parsed.client_id };
