@@ -32,5 +32,3 @@ authorizationServer.enableGrantType("client_credentials", new DateInterval("1m")
 authorizationServer.enableGrantType("refresh_token", new DateInterval("1m"));
 authorizationServer.enableGrantType("implicit", new DateInterval("1m"));
 authorizationServer.enableGrantType({ grant: "password", userRepository }, new DateInterval("1m"));
-
-export { authorizationServer as inMemoryAuthorizationServer };
