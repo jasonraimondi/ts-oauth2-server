@@ -11,8 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
-    "format": "prettier --write \"**/*.{ts,js,tsx,md,mdx}\"",
-    "prepublishOnly": "pnpm build && pnpm test"
+    "format": "prettier --write \"**/*.{ts,js,tsx,md,mdx}\""
   },
   "exports": {
     ".": "./src/index.ts",

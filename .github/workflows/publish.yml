@@ -7,8 +7,11 @@ on:
 jobs:
   publish_npm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -19,17 +22,18 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
           registry-url: "https://registry.npmjs.org"
       - run: pnpm i --frozen-lockfile --production false
-      - name: Check Release type and Publish
+      - run: pnpm build && pnpm test
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+      - name: Publish to npm
         run: |
           if ${{ github.event.release.prerelease }}; then
             echo "Publishing pre-release..."
-            pnpm publish --verbose --access=public --no-git-checks --tag next
+            npm publish --access=public --provenance --tag next
           else
             echo "Publishing release..."
-            pnpm publish --verbose --access=public --no-git-checks
+            npm publish --access=public --provenance
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
 
   publish_jsr:
     runs-on: ubuntu-latest
