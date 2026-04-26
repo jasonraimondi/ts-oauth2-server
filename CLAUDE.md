@@ -1,72 +1,33 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+TypeScript OAuth 2.0 authorization server library. Framework-agnostic core with adapters.
 
-## Commands and Guidelines for ts-oauth2-server
+## Commands
+- `pnpm build` / `pnpm test` / `pnpm test:watch` / `pnpm test:cov` / `pnpm format`
+- Single test: `pnpm vitest run path/to/file.spec.ts`
 
-### Build/Test/Format Commands
-- `pnpm build` - Clean and build the project
-- `pnpm test` - Run all tests with Vitest
-- `pnpm test:watch` - Run tests in watch mode
-- `pnpm test:cov` - Run tests with coverage
-- `pnpm vitest run path/to/test/file.spec.ts` - Run a single test file
-- `pnpm format` - Format code with Prettier
+## Code Style
+- TS strict mode; explicit param/return types; no `any`
+- Imports use `.js` extension; named imports/exports only (no default, no barrels)
+- Naming: files `snake_case.ts`, classes `PascalCase`, vars/fns `camelCase`
+- Errors: throw `OAuthException` with specific error types
+- Tests: Vitest `describe`/`it`
 
-### Code Style Guidelines
-- **TypeScript**: Use strict mode with no implicit any, strict null checks
-- **Imports**: Use `.js` extension in import paths
-- **Formatting**: Follow Prettier defaults (package uses Prettier v3.x)
-- **Naming**:
-  - Files: snake_case.ts
-  - Classes: PascalCase
-  - Functions/variables: camelCase
-- **Error Handling**: Use custom OAuthException with specific error types
-- **Types**:
-  - Always use explicit types for function parameters and returns
-  - Avoid `any` - use proper typing or generics
-- **Tests**: Write tests using Vitest with describe/it structure
-- **Architecture**: Follow repository pattern for data access
+## Breaking Changes (CRITICAL)
+Published library — never change public APIs/signatures/interfaces. Add new features as optional params with defaults. Extend, don't modify. Prefer keeping deprecated code over removal.
 
-### Breaking Changes Policy
-- **CRITICAL**: Avoid breaking changes at all costs - this is a published library used by many consumers
-- Never change existing public APIs, method signatures, or exported interfaces
-- Always add new functionality as optional parameters with sensible defaults
-- Use deprecation warnings for any planned removals (but prefer keeping deprecated code)
-- Consider backwards-compatible alternatives before making any interface changes
-- When in doubt, extend rather than modify existing functionality
+## Docs
+Update https://tsoauth2server.com/ and this file when behavior or architecture changes.
 
-### Documentation Requirements
-- **Always update documentation** when adding new functionality or changing behavior
-- Update the main documentation site at https://tsoauth2server.com/ for user-facing changes
-- Update this CLAUDE.md file if architectural patterns or development practices change
-- Ensure code examples in documentation remain current and functional
-- Document new configuration options, interfaces, or breaking changes thoroughly
+## Architecture
+- `AuthorizationServer` orchestrates flows
+- Grants (`AbstractGrant` subclasses): authorization_code, client_credentials, password, implicit, refresh_token, token_exchange
+- Repository pattern for all persistence (client, token, user, scope, auth_code) — implemented by consumers
+- Adapters: `./vanilla`, `./express`, `./fastify` (entry points in `package.json`)
+- PKCE verifiers: Plain, S256
+- Optional logger for token ops, revocations, grant errors
+- RFCs: 6749, 6750, 7009, 7519, 7636, 7662, 8693
 
-### Architecture Overview
-
-This is a TypeScript OAuth 2.0 authorization server library. The core architecture consists of:
-
-- **AuthorizationServer**: Main entry point that orchestrates OAuth flows
-- **Grants**: Implement specific OAuth grant types (auth_code, client_credentials, etc.)
-- **Repositories**: Abstract data access layer (client, token, user, scope, auth_code)
-- **Entities**: Core domain objects (OAuthClient, OAuthToken, OAuthUser, etc.)
-- **Adapters**: Framework-specific helpers (Express, Fastify, Vanilla)
-- **Code Verifiers**: PKCE implementation (Plain, S256)
-
-#### Key Components:
-- **Grant System**: Each grant type (authorization_code, client_credentials, password, implicit, refresh_token, token_exchange) is implemented as a separate class inheriting from AbstractGrant
-- **Repository Pattern**: All data persistence is abstracted through repository interfaces that must be implemented by consumers
-- **Framework Agnostic**: Core library is framework-independent with optional adapters for popular frameworks
-- **Standards Compliance**: Implements multiple OAuth 2.0 RFCs (6749, 6750, 7009, 7519, 7636, 7662, 8693)
-- **Logging Support**: Optional logger service for debugging token operations, revocations, and grant processing errors
-
-#### Module Exports:
-The library supports multiple entry points via package.json exports:
-- Main: `./src/index.ts` (all exports)
-- Framework adapters: `./vanilla`, `./express`, `./fastify`
-
-#### Testing Structure:
-- Unit tests: `test/unit/`
-- E2E tests: `test/e2e/` (organized by grants and adapters)
-- Test setup: `test/setup.ts`
+## Tests
+- Unit: `test/unit/` — E2E: `test/e2e/` (by grant + adapter) — Setup: `test/setup.ts`
 - Coverage excludes: `.github`, `.idea`, `docs`, `example`
