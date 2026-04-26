@@ -19,7 +19,7 @@ import { DateInterval } from "../utils/date_interval.js";
 import { JwtInterface } from "../utils/jwt.js";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant.js";
 import { GrantIdentifier } from "./abstract/grant.interface.js";
-import { AuthorizationServerOptions } from "../authorization_server.js";
+import { AuthorizationServerOptions } from "../options.js";
 import { AuthCodeEncoder, JwtAuthCodeEncoder, OpaqueAuthCodeEncoder } from "./encoders/auth_code_encoder.js";
 
 export interface PayloadAuthCode {

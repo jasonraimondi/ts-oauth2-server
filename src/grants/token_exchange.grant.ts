@@ -6,7 +6,7 @@ import { OAuthClientRepository } from "../repositories/client.repository.js";
 import { OAuthTokenRepository } from "../repositories/access_token.repository.js";
 import { OAuthScopeRepository } from "../repositories/scope.repository.js";
 import { JwtInterface } from "../utils/jwt.js";
-import { AuthorizationServerOptions } from "../authorization_server.js";
+import { AuthorizationServerOptions } from "../options.js";
 import { OAuthUser } from "../entities/user.entity.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthScope } from "../entities/scope.entity.js";

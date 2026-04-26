@@ -1,17 +1,11 @@
-import { AuthorizationServerOptions } from "../../authorization_server.js";
+import { AuthorizationServerOptions } from "../../options.js";
 import { AuthorizationRequest } from "../../requests/authorization.request.js";
 import { RequestInterface } from "../../requests/request.js";
 import { ResponseInterface } from "../../responses/response.js";
 import { DateInterval } from "../../utils/date_interval.js";
+import { GrantIdentifier } from "./grant_identifier.js";
 
-export type GrantIdentifier =
-  | "authorization_code"
-  | "client_credentials"
-  | "refresh_token"
-  | "password"
-  | "implicit"
-  | "urn:ietf:params:oauth:grant-type:token-exchange"
-  | `custom:${string}`;
+export { GrantIdentifier } from "./grant_identifier.js";
 
 export interface GrantInterface {
   readonly options: AuthorizationServerOptions;

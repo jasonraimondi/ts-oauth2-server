@@ -1,4 +1,4 @@
-import { AuthorizationServerOptions } from "../../authorization_server.js";
+import { AuthorizationServerOptions } from "../../options.js";
 import { isClientConfidential, OAuthClient } from "../../entities/client.entity.js";
 import { OAuthScope } from "../../entities/scope.entity.js";
 import { OAuthToken } from "../../entities/token.entity.js";

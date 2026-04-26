@@ -1,4 +1,4 @@
-import { GrantIdentifier } from "../grants/abstract/grant.interface.js";
+import { GrantIdentifier } from "../grants/abstract/grant_identifier.js";
 import { OAuthScope } from "./scope.entity.js";
 
 export interface OAuthClient {
