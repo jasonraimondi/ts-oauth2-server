@@ -10,7 +10,7 @@ import { ResponseInterface } from "../responses/response.js";
 import { DateInterval } from "../utils/date_interval.js";
 import { JwtInterface } from "../utils/jwt.js";
 import { AbstractGrant } from "./abstract/abstract.grant.js";
-import { AuthorizationServerOptions } from "../authorization_server.js";
+import { AuthorizationServerOptions } from "../options.js";
 
 export class PasswordGrant extends AbstractGrant {
   readonly identifier = "password";
