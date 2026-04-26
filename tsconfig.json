@@ -20,9 +20,9 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
 
-    "baseUrl": ".",
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,
 
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

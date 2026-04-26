@@ -16,4 +16,7 @@ export default defineConfig({
   outputOptions: {
     keepNames: true,
   },
+  deps: {
+    neverBundle: ["express", "fastify", "h3", /^@fastify\//, /^@types\//],
+  },
 });

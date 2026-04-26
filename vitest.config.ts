@@ -9,5 +9,7 @@ export default defineConfig({
     },
     setupFiles: ["test/setup.ts"],
     exclude: ["docs/**", "example/**", "node_modules/**", "version-check.ts", ".claude/worktrees/**"],
+    clearMocks: true,
+    restoreMocks: true,
   },
 });

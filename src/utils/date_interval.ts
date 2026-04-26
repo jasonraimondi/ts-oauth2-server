@@ -1,4 +1,4 @@
-import ms from "ms";
+import ms, { type StringValue } from "ms";
 
 export type DateIntervalType = string;
 
@@ -6,7 +6,7 @@ export class DateInterval {
   public readonly ms: number;
 
   constructor(interval: DateIntervalType) {
-    this.ms = ms(interval);
+    this.ms = ms(interval as StringValue);
   }
 
   getEndDate(): Date {
