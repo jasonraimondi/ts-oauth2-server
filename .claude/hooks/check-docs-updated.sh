@@ -42,7 +42,7 @@ if [ -z "$DOC_CHANGES" ]; then
     echo "  - CHANGELOG.md       (version history)"
     echo ""
     echo "If documentation updates are genuinely not needed for these changes, explain"
-    echo "why to the user and proceed."
+    echo "why to the user and proceed. Be more concise."
   } >&2
   exit 2
 fi
