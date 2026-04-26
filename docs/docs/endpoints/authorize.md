@@ -44,7 +44,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 
     // You will probably redirect the user to a login endpoint.
     if (!req.user) {
-      req.redirect("/login");
+      res.redirect("/login");
       return;
     }
     // After login, the user should be redirected back with user in the session.
@@ -63,7 +63,7 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
     if (!authRequest.isAuthorizationApproved) {
       // This form will ask the user to approve the client and the scopes requested.
       // "Do you authorize Jason to: read contacts? write contacts?"
-      req.redirect("/scopes");
+      res.redirect("/scopes");
       return;
     }
 

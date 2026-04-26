@@ -109,4 +109,4 @@ This is particularly useful for debugging token-related operations and understan
 
 [requires-pkce]: https://datatracker.ietf.org/doc/html/rfc7636
 [requires-s256]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
-[token-cid]: https://github.com/jasonraimondi/ts-oauth2-server/blob/e7a31b207701f90552abc82d82c72b143bc15130/src/grants/abstract/abstract.grant.ts#L123
+[token-cid]: https://github.com/jasonraimondi/ts-oauth2-server/blob/main/src/grants/abstract/abstract.grant.ts

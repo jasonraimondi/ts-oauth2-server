@@ -4,12 +4,12 @@ The [RFC 8693 - OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/
 
 :::info Enable this grant
 
-To enable the token exchange grant, you'll need to provide your own implementation of `processTokenExchangeFn`. This function should orchestrate the exchange with the required third-party services based on your specific needs.
+To enable the token exchange grant, you'll need to provide your own implementation of `processTokenExchange`. This function should orchestrate the exchange with the required third-party services based on your specific needs.
 
 ```ts
-authorizationServer.enableGrant({
-  grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-  processTokenExchangeFn: async (
+authorizationServer.enableGrantType({
+  grant: "urn:ietf:params:oauth:grant-type:token-exchange",
+  processTokenExchange: async (
     args: ProcessTokenExchangeArgs,
   ): Promise<OAuthUser | undefined> => {
     const {

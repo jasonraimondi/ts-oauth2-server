@@ -4,7 +4,7 @@ title: /token/introspect
 
 # The Introspect Endpoint
 
-The `/token/introspect` endpoint is a back channel endpoint that revokes an existing token. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect `token_type_hint=access_token`.
+The `/token/introspect` endpoint is a back channel endpoint that returns the active state and metadata of a given token (per [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). It does not revoke tokens — for revocation use the [`/token/revoke`](./revoke.md) endpoint. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect `token_type_hint=access_token`.
 
 :::info
 - Implementing this endpoint is optional
