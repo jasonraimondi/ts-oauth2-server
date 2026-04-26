@@ -1,5 +1,5 @@
 ---
-name: artifacts-builder
+name: update-release
 description: Automates the release process for the ts-oauth2-server project.
 license: Complete terms in LICENSE
 ---
