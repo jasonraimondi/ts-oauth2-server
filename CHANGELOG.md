@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Opaque refresh token expiration check no longer compares seconds against a `Date` object, which always evaluated false and let expired tokens through. Non-expiring opaque refresh tokens (`refreshTokenExpiresAt: null`) are also no longer incorrectly rejected as expired ([#212](https://github.com/jasonraimondi/ts-oauth2-server/issues/212))
+- JWT auth code resolve now rejects payloads missing required fields (`auth_code_id`, `client_id`, finite `expire_time`, string-array `scopes`) with a clear `OAuthException` instead of letting them flow into `validateAuthorizationCode`. Previously a verified payload missing `expire_time` would silently fail open at `Date.now() / 1000 > payload.expire_time` (comparison against `undefined` is always false), so an authorization code without that claim never expired. The revoke endpoint's `unverifiedDecode` path remains intentionally lenient per RFC 7009 — only the two identifiers it returns are validated.
 
 ## [4.3.0] - 2026-02-23
 
