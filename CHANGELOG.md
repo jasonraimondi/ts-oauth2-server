@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Re-export `LoggerService` and `ConsoleLoggerService` from the package entry so the `import { ConsoleLoggerService } from "@jmondi/oauth2-server"` example in the docs is actually resolvable. Adds JSDoc on both types describing how to wire a logger into `AuthorizationServer`.
+
 ### Changed
 - Internal: extract opaque-vs-JWT branching in `AuthCodeGrant` into an `AuthCodeEncoder` strategy selected once in the constructor. No public API change. JWT-mode issue and resolve continue to dispatch through the existing `protected encrypt`/`decrypt` hooks on `AbstractGrant`, so subclass overrides of those methods participate as before.
 - Internal: extract opaque-vs-JWT branching in `AbstractGrant.makeBearerTokenResponse` and `RefreshTokenGrant.validateOldRefreshToken` into a `RefreshTokenEncoder` strategy held on `AbstractGrant`. No public API change. JWT-mode issue and resolve continue to dispatch through `protected encryptRefreshToken` and `protected decrypt`, so subclass overrides of either hook participate as before.
