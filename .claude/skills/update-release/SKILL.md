@@ -12,6 +12,7 @@ Automates the release process for the ts-oauth2-server project by:
 2. Generating changelog entries based on git commits since the last tagged version
 3. Updating the CHANGELOG.md file with proper formatting
 4. Maintaining Keep a Changelog format and Semantic Versioning compliance
+5. Pausing for user confirmation, then committing, tagging, pushing, and creating the GitHub release (which triggers npm + JSR publish via `.github/workflows/publish.yml`)
 
 ## When to Use This Skill
 Use this skill when the user requests:
@@ -131,6 +132,31 @@ Follow Keep a Changelog format:
 #### 6. Update Files
 Update both `package.json` and `jsr.json` with the new version, and prepend the new changelog entry to CHANGELOG.md under the `## [Unreleased]` section.
 
+#### 7. Confirm With User, Then Commit + Tag + Push + GitHub Release
+After the file edits land, **stop and ask the user** for confirmation before any git mutation. Do NOT proceed automatically — the user may want to review the diff or hand-edit changelog wording first.
+
+Once confirmed, run these in order:
+
+```bash
+# 1. Commit the version bump + changelog
+git add CHANGELOG.md package.json jsr.json
+git commit -m "chore: release vX.Y.Z"
+
+# 2. Tag and push (tag push alone does NOT trigger publish)
+git tag vX.Y.Z
+git push && git push --tags
+
+# 3. Create GitHub release — THIS is what triggers .github/workflows/publish.yml
+#    (workflow listens on `release: [released, prereleased]`, not on tag push)
+gh release create vX.Y.Z --title "vX.Y.Z" --notes "<changelog body for this version>"
+```
+
+For the `--notes` body, pass the section content from CHANGELOG.md for the new version (everything between the `## [X.Y.Z]` header and the next `##` header), without the version header itself. Use a HEREDOC for multiline notes.
+
+For prereleases (e.g. `4.4.0-0`), add `--prerelease` to `gh release create` so the workflow's prerelease branch publishes to npm under the `next` dist-tag.
+
+After `gh release create` returns the release URL, share it with the user and note that npm + JSR publishing is now running in CI.
+
 ## Usage Examples
 
 ### Example 1: Patch Release
@@ -208,11 +234,8 @@ async function createRelease(bumpType: string): Promise<void> {
   await updateChangelog(changelogEntry);
   
   console.log(`✓ Successfully prepared release ${newVersion}`);
-  console.log('Next steps:');
-  console.log('  1. Review the changes');
-  console.log('  2. Commit: git add -A && git commit -m "chore: release v' + newVersion + '"');
-  console.log('  3. Tag: git tag v' + newVersion);
-  console.log('  4. Push: git push && git push --tags');
+  console.log('Next: ask user to confirm, then commit + tag + push + `gh release create`.');
+  console.log('The GitHub release event triggers .github/workflows/publish.yml (npm + JSR).');
 }
 
 function categorizeCommits(commits: string[]): ChangelogEntry {
@@ -324,26 +347,19 @@ function generateChangelogEntry(version: string, changelog: ChangelogEntry): str
 
 The skill should provide clear feedback:
 ```
-📦 Current version: 4.1.1
-🔼 Bumping version: patch
-📝 New version: 4.1.2
-🔍 Found 5 commits since v4.1.1
-📋 Categorized commits:
-   - Added: 2
-   - Fixed: 3
-✍️  Generated changelog entry
-✅ Updated package.json
-✅ Updated jsr.json
-✅ Updated CHANGELOG.md
+Current version: 4.1.1
+Bumping version: patch
+New version: 4.1.2
+Found 5 commits since v4.1.1
+Updated package.json, jsr.json, CHANGELOG.md
 
-✓ Successfully prepared release v4.1.2
+Files prepared for v4.1.2.
 
-Next steps:
-  1. Review the changes
-  2. Commit: git add -A && git commit -m "chore: release v4.1.2"
-  3. Tag: git tag v4.1.2
-  4. Push: git push && git push --tags
+Confirm to proceed with: commit + tag + push + GitHub release
+(GitHub release triggers npm + JSR publish via .github/workflows/publish.yml)
 ```
+
+After user confirmation, run the git+gh commands and report the release URL.
 
 ## Integration with Project
 
@@ -355,8 +371,7 @@ This skill respects the project's:
 
 ## Notes
 
-- The skill does NOT automatically commit, tag, or push changes
-- It prepares all files for review before manual commit
-- This allows the developer to review and adjust if needed
-- The skill is idempotent - can be run multiple times safely
-- ALWAYS Ensure package.json and jsr.json versions are in sync before and after bumping
+- The skill prepares the file edits, then **pauses for explicit user confirmation** before any git mutation
+- After confirmation, it runs commit + tag + push + `gh release create` in sequence — the GitHub release is what triggers `.github/workflows/publish.yml` to publish to npm and JSR (a tag push alone does NOT trigger publish)
+- The skill is idempotent up to the confirmation gate — re-running before confirming is safe; after the tag is pushed, version bumps require a new patch
+- ALWAYS ensure package.json and jsr.json versions are in sync before and after bumping
