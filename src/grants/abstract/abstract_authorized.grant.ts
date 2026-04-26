@@ -17,9 +17,9 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
       | ReadonlyArray<[string, string]>,
     queryDelimiter = "?",
   ): string {
-    params = new URLSearchParams(params);
+    const search = new URLSearchParams(params as ConstructorParameters<typeof URLSearchParams>[0]);
     const split = uri.includes(queryDelimiter) ? "&" : queryDelimiter;
-    return uri + split + params.toString();
+    return uri + split + search.toString();
   }
 
   protected getRedirectUri(request: RequestInterface, client: OAuthClient): string | undefined {
