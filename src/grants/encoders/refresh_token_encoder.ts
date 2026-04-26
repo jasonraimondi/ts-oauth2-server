@@ -4,14 +4,14 @@ import { OAuthToken } from "../../entities/token.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { OAuthTokenRepository } from "../../repositories/access_token.repository.js";
 
-export interface RefreshTokenResolutionPayload {
+interface RefreshTokenResolutionPayload {
   client_id?: string;
   refresh_token_id?: string;
   expire_time?: number | null;
   [key: string]: unknown;
 }
 
-export interface RefreshTokenResolution {
+interface RefreshTokenResolution {
   payload: RefreshTokenResolutionPayload;
   token: OAuthToken | null;
 }

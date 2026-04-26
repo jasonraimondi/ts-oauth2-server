@@ -4,7 +4,7 @@ import { OAuthAuthCodeRepository } from "../../repositories/auth_code.repository
 import { AuthorizationRequest } from "../../requests/authorization.request.js";
 import type { PayloadAuthCode } from "../auth_code.grant.js";
 
-export interface AuthCodeEncoderResolved {
+interface AuthCodeEncoderResolved {
   payload: PayloadAuthCode;
   authCode: OAuthAuthCode | null;
 }
@@ -41,9 +41,9 @@ export interface AuthCodeEncoder {
   unverifiedDecode(rawCode: string): Promise<{ auth_code_id: string; client_id: string }>;
 }
 
-export type AuthCodeEncryptFn = (payload: string | Buffer | Record<string, unknown>) => Promise<string>;
-export type AuthCodeDecryptFn = (rawCode: string) => Promise<Record<string, unknown>>;
-export type AuthCodeDecodeFn = (rawCode: string) => null | Record<string, any> | string;
+type AuthCodeEncryptFn = (payload: string | Buffer | Record<string, unknown>) => Promise<string>;
+type AuthCodeDecryptFn = (rawCode: string) => Promise<Record<string, unknown>>;
+type AuthCodeDecodeFn = (rawCode: string) => null | Record<string, any> | string;
 
 function isAuthCodePayload(code: unknown): code is PayloadAuthCode {
   if (typeof code !== "object" || code === null) return false;
