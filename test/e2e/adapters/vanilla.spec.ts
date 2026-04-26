@@ -28,7 +28,7 @@ describe("adapters/vanilla.js", () => {
   });
 
   describe("responseToVanilla", () => {
-    it("should create a vanilla Response from an OAuthResponse for non-redirect", () => {
+    it("should create a vanilla Response from an OAuthResponse for non-redirect", async () => {
       const oauthResponse = new OAuthResponse({
         status: 200,
         headers: { "content-type": "application/json" },
@@ -40,7 +40,7 @@ describe("adapters/vanilla.js", () => {
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(200);
       expect(result.headers.get("content-type")).toBe("application/json");
-      expect(result.json()).resolves.toEqual({ message: "Success" });
+      await expect(result.json()).resolves.toEqual({ message: "Success" });
     });
 
     it("should create a redirect Response for status 302", () => {
