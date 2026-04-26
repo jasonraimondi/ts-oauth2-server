@@ -5,6 +5,12 @@ export default defineConfig({
   description:
     "A standards compliant implementation of an OAuth 2.0 authorization server for Node.js",
 
+  cleanUrls: true,
+
+  sitemap: {
+    hostname: "https://tsoauth2server.com",
+  },
+
   head: [
     ["link", { rel: "icon", href: "/favicon.ico" }],
     [
