@@ -83,7 +83,7 @@ export interface TokenValidationConfig {
  * }
  * ```
  */
-export async function validateAccessToken(
+async function validateAccessToken(
   accessToken: string,
   config: TokenValidationConfig,
 ): Promise<ValidatedToken | null> {
@@ -157,7 +157,7 @@ export async function validateAccessToken(
  * }
  * ```
  */
-export function hasRequiredScopes(token: ValidatedToken, requiredScopes: string[]): boolean {
+function hasRequiredScopes(token: ValidatedToken, requiredScopes: string[]): boolean {
   return requiredScopes.every(scope => token.scopes.includes(scope));
 }
 

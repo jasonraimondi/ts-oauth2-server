@@ -4,7 +4,7 @@ import { DateInterval } from "../utils/date_interval.js";
 import { AbstractGrant, ParsedAccessToken, ParsedRefreshToken } from "./abstract/abstract.grant.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthToken } from "../entities/token.entity.js";
-import { OAuthTokenIntrospectionResponse } from "../authorization_server.js";
+import type { OAuthTokenIntrospectionResponse } from "../authorization_server.js";
 
 export class ClientCredentialsGrant extends AbstractGrant {
   readonly identifier = "client_credentials";

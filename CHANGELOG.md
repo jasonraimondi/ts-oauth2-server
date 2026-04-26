@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Internal: use `import type` for `OAuthTokenIntrospectionResponse` in `client_credentials.grant.ts` to keep it erased from the JS bundle.
+
 ## [4.3.4] - 2026-04-25
 
 ### Chore
