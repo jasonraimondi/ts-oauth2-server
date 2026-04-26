@@ -8,20 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Re-export `LoggerService` and `ConsoleLoggerService` from the package entry so the `import { ConsoleLoggerService } from "@jmondi/oauth2-server"` example in the docs is actually resolvable. Adds JSDoc on both types describing how to wire a logger into `AuthorizationServer`.
+- Re-export `LoggerService` and `ConsoleLoggerService` from the package entry with JSDoc on wiring into `AuthorizationServer`.
 
 ### Changed
-- Internal: extract opaque-vs-JWT branching in `AuthCodeGrant` into an `AuthCodeEncoder` strategy selected once in the constructor. No public API change. JWT-mode issue and resolve continue to dispatch through the existing `protected encrypt`/`decrypt` hooks on `AbstractGrant`, so subclass overrides of those methods participate as before.
-- Internal: extract opaque-vs-JWT branching in `AbstractGrant.makeBearerTokenResponse` and `RefreshTokenGrant.validateOldRefreshToken` into a `RefreshTokenEncoder` strategy held on `AbstractGrant`. No public API change. JWT-mode issue and resolve continue to dispatch through `protected encryptRefreshToken` and `protected decrypt`, so subclass overrides of either hook participate as before.
-- Internal: drop `export` from six encoder helper types (`AuthCodeEncoderResolved`, `AuthCodeEncryptFn`, `AuthCodeDecryptFn`, `AuthCodeDecodeFn`, `RefreshTokenResolutionPayload`, `RefreshTokenResolution`) that were never reachable through the package's public surface. Emitted `.d.ts` is byte-identical, so consumers see no change.
-- Internal: break circular type imports by moving the `AuthorizationServerOptions` interface to `src/options.ts` and extracting the `GrantIdentifier` type to its own leaf file (`src/grants/abstract/grant_identifier.ts`). Both symbols are still re-exported from their original locations, so the public API is unchanged. Reduces madge-detected circular dependencies from 10 to 2.
+- Internal: extract opaque-vs-JWT branching into `AuthCodeEncoder` and `RefreshTokenEncoder` strategies. Subclass overrides of `encrypt`/`decrypt`/`encryptRefreshToken` hooks still participate.
+- Internal: unexport six unreachable encoder helper types; emitted `.d.ts` unchanged.
+- Internal: move `AuthorizationServerOptions` to `src/options.ts` and `GrantIdentifier` to its own leaf file to break circular imports (10 → 2). Both still re-exported from original locations.
 
 ### Fixed
-- Opaque refresh token expiration check compared seconds to a `Date`, always evaluating false and letting expired tokens through; non-expiring tokens (`refreshTokenExpiresAt: null`) were also incorrectly rejected ([#212](https://github.com/jasonraimondi/ts-oauth2-server/issues/212))
-- JWT auth code resolve now rejects payloads missing required fields (`auth_code_id`, `client_id`, finite `expire_time`, string-array `scopes`) with an `OAuthException`. Previously a missing `expire_time` silently failed open, so the code never expired. The revoke endpoint's `unverifiedDecode` path remains lenient per RFC 7009.
+- Opaque refresh token expiration check compared seconds to a `Date`, letting expired tokens through and rejecting non-expiring tokens (`refreshTokenExpiresAt: null`) ([#212](https://github.com/jasonraimondi/ts-oauth2-server/issues/212)).
+- JWT auth code resolve now rejects payloads missing `auth_code_id`, `client_id`, finite `expire_time`, or string-array `scopes`. Previously missing `expire_time` silently failed open. Revoke's `unverifiedDecode` path stays lenient per RFC 7009.
 
 ### Chore
-- Bump dependencies to latest stable: TypeScript 6, Vitest 4, Vite 8, Express 5, Fastify 5, body-parser 2, plus current `@types/*`, `prettier`, and `tsdown` releases. Internal-only TS6 adjustments: drop deprecated `baseUrl`, enable `skipLibCheck`, and narrow two now-stricter call sites (`URLSearchParams` constructor and `ms()`) — no public API change. h3 stays on the latest 1.x stable (1.15.11) since 2.x is still RC.
+- Bump deps: TypeScript 6, Vitest 4, Vite 8, Express 5, Fastify 5, body-parser 2, plus `@types/*`, `prettier`, `tsdown`. TS6 adjustments: drop `baseUrl`, enable `skipLibCheck`, narrow `URLSearchParams` and `ms()` call sites. h3 stays on 1.15.11 (2.x still RC).
 
 ## [4.3.0] - 2026-02-23
 
