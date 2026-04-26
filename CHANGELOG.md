@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.2] - 2026-04-25
+
+### Fixed
+- Build: re-export `AuthorizationServerOptions` and `GrantIdentifier` with the `type` modifier. Rolldown rejects value re-exports for type-only symbols, which broke `pnpm build` (and the `prepublishOnly` hook on v4.3.1, blocking the npm + JSR publish).
+
+### Chore
+- CI: bump `.node-version` to 22.12.0 to satisfy rolldown's engine constraint (`^20.19.0 || >=22.12.0`); the previous 20.12.2 caused pnpm to skip the `@rolldown/binding-linux-x64-gnu` optional dep, breaking the publish workflow.
+
 ## [4.3.1] - 2026-04-25
 
 ### Added

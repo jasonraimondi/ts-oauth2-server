@@ -5,7 +5,7 @@ import { ResponseInterface } from "../../responses/response.js";
 import { DateInterval } from "../../utils/date_interval.js";
 import { GrantIdentifier } from "./grant_identifier.js";
 
-export { GrantIdentifier } from "./grant_identifier.js";
+export type { GrantIdentifier } from "./grant_identifier.js";
 
 export interface GrantInterface {
   readonly options: AuthorizationServerOptions;

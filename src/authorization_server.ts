@@ -19,7 +19,7 @@ import { AuthorizationServerOptions, DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from
 import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
 import { AbstractGrant } from "./grants/abstract/abstract.grant.js";
 
-export { AuthorizationServerOptions } from "./options.js";
+export type { AuthorizationServerOptions } from "./options.js";
 
 export type EnableableGrants =
   | "client_credentials"
