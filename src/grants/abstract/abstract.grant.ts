@@ -18,6 +18,11 @@ import { base64decode } from "../../utils/base64.js";
 import { DateInterval } from "../../utils/date_interval.js";
 import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt.js";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time.js";
+import {
+  JwtRefreshTokenEncoder,
+  OpaqueRefreshTokenEncoder,
+  RefreshTokenEncoder,
+} from "../encoders/refresh_token_encoder.js";
 import { GrantIdentifier, GrantInterface } from "./grant.interface.js";
 
 export interface JwtPayload {
@@ -61,13 +66,22 @@ export abstract class AbstractGrant implements GrantInterface {
 
   abstract readonly identifier: GrantIdentifier;
 
+  protected readonly refreshTokenEncoder: RefreshTokenEncoder;
+
   constructor(
     protected readonly clientRepository: OAuthClientRepository,
     protected readonly tokenRepository: OAuthTokenRepository,
     protected readonly scopeRepository: OAuthScopeRepository,
     protected readonly jwt: JwtInterface,
     public readonly options: AuthorizationServerOptions,
-  ) {}
+  ) {
+    this.refreshTokenEncoder = this.options.useOpaqueRefreshTokens
+      ? new OpaqueRefreshTokenEncoder(this.tokenRepository)
+      : new JwtRefreshTokenEncoder(
+          (client, accessToken, scopes) => this.encryptRefreshToken(client, accessToken, scopes),
+          rawToken => this.decrypt(rawToken),
+        );
+  }
 
   get scopeDelimiter(): string {
     return this.options.scopeDelimiter;
@@ -86,11 +100,7 @@ export abstract class AbstractGrant implements GrantInterface {
     let refreshToken: string | undefined = undefined;
 
     if (accessToken.refreshToken) {
-      if (this.options.useOpaqueRefreshTokens) {
-        refreshToken = accessToken.refreshToken;
-      } else {
-        refreshToken = await this.encryptRefreshToken(client, accessToken, scopes);
-      }
+      refreshToken = await this.refreshTokenEncoder.issue(client, accessToken, scopes);
     }
 
     const bearerTokenResponse = new BearerTokenResponse(accessToken);
@@ -106,6 +116,12 @@ export abstract class AbstractGrant implements GrantInterface {
     return bearerTokenResponse;
   }
 
+  /**
+   * Override hook for the JWT refresh token wire form. Called from
+   * `makeBearerTokenResponse` (via the encoder strategy) when refresh tokens
+   * are JWT-mode; opaque refresh tokens never reach this method. Override to
+   * customize the JWT payload, claims, or signing pathway.
+   */
   protected encryptRefreshToken(client: OAuthClient, refreshToken: OAuthToken, scopes: OAuthScope[]): Promise<string> {
     const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime() ?? refreshToken.accessTokenExpiresAt.getTime();
     return this.encrypt({

@@ -52,27 +52,8 @@ export class RefreshTokenGrant extends AbstractGrant {
       throw OAuthException.invalidParameter("refresh_token");
     }
 
-    let refreshTokenData: any;
-    let refreshToken: OAuthToken | null = null;
-
-    if (this.options.useOpaqueRefreshTokens) {
-      refreshToken = await this.tokenRepository.getByRefreshToken(providedRefreshToken);
-      const expiresAtMs = refreshToken.refreshTokenExpiresAt?.getTime();
-      refreshTokenData = {
-        refresh_token_id: refreshToken.refreshToken,
-        client_id: refreshToken.client.id,
-        expire_time: expiresAtMs != null ? Math.ceil(expiresAtMs / 1000) : null,
-      };
-    } else {
-      try {
-        refreshTokenData = await this.decrypt(providedRefreshToken);
-      } catch (e) {
-        if (e instanceof Error && e.message === "invalid signature") {
-          throw OAuthException.invalidParameter("refresh_token", "Cannot verify the refresh token");
-        }
-        throw OAuthException.invalidParameter("refresh_token", "Cannot decrypt the refresh token");
-      }
-    }
+    const { payload: refreshTokenData, token } = await this.refreshTokenEncoder.resolve(providedRefreshToken);
+    let refreshToken: OAuthToken | null = token;
 
     if (!refreshTokenData?.refresh_token_id) {
       throw OAuthException.invalidParameter("refresh_token", "Token missing");
