@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Published `exports` field pointed at `./src/*.ts` instead of compiled `./dist/*.js`, breaking every subpath import (root, `/vanilla`, `/express`, `/fastify`, `/h3`) for consumers of 4.3.3 and 4.3.4. Root cause: commit 197a400 switched the publish workflow from `pnpm publish` to `npm publish` to use OIDC trusted publishing, but npm ignores `publishConfig.exports`, so the development-time exports (pointing at `src` for vitest self-imports) leaked into the published artifact. Reverted to `pnpm publish` (pnpm 11.0.7+ supports OIDC trusted publishing). Reported by [@tobiasdcl](https://github.com/tobiasdcl) ([#228](https://github.com/jasonraimondi/ts-oauth2-server/issues/228)).
+
 ### Changed
 - Internal: use `import type` for `OAuthTokenIntrospectionResponse` in `client_credentials.grant.ts` to keep it erased from the JS bundle.
 
