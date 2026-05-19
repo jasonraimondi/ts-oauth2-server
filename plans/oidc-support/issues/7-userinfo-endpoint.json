@@ -1,0 +1,48 @@
+{
+  "id": 7,
+  "slug": "userinfo-endpoint",
+  "name": "UserInfo endpoint",
+  "track": "intent",
+  "status": "backlog",
+  "priority": "high",
+  "points": 3,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [
+    6,
+    4
+  ],
+  "blocking": [
+    9
+  ],
+  "branch": null,
+  "pr": null,
+  "linear_id": "da0b7a85-8747-42b2-813b-481aa2eda081",
+  "created": "2026-05-18",
+  "updated": "2026-05-18",
+  "tdd": true,
+  "headed": false,
+  "outcome": "A relying party can present an access token to a UserInfo endpoint and receive the end-user's scope-derived claims, proven end-to-end by the keystone test.",
+  "scope": "Add the UserInfo handler and the AuthorizationServer.userInfo() method, plus the keystone e2e covering the full OIDC loop.",
+  "acceptance_criteria": [
+    "UserInfo returns { sub, ...scope-derived claims } as JSON for a valid openid-scoped access token",
+    "A token without the openid scope yields 403 insufficient_scope",
+    "An invalid or expired token yields 401 invalid_token with a WWW-Authenticate header",
+    "The keystone e2e passes: authorize, token, verify id_token against live /jwks, then /userinfo"
+  ],
+  "steps": [
+    "src/oidc — add a UserInfo handler that extracts the bearer access token (Authorization header and form/query), verifies signature and expiry, and checks revocation when getByAccessToken is implemented",
+    "UserInfo handler — return 403 insufficient_scope when the token lacks the openid scope, and 401 invalid_token with a WWW-Authenticate header for bad tokens",
+    "UserInfo handler — call getUserClaims with the user identifier, apply the scope filter, and return { sub, ...claims } as JSON",
+    "AuthorizationServer — add a userInfo(req) method delegating to the handler",
+    "test/e2e — keystone test on the vanilla adapter: authorize with scope=openid plus nonce plus PKCE, exchange the code, verify the id_token against the live /jwks endpoint, then call /userinfo and assert claims"
+  ],
+  "use_cases": [
+    "UC-3",
+    "UC-1",
+    "UC-2"
+  ],
+  "notes": "getUserClaims is keyed by userId, not a loaded user object, so no user repository is needed in the OIDC config. UserInfo returns plain JSON only in v1. The keystone e2e is the highest-value test — it proves the key plumbing, not just claim shapes."
+}

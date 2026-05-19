@@ -1,0 +1,45 @@
+{
+  "id": 9,
+  "slug": "documentation-and-public-api",
+  "name": "Documentation \u0026 public API surface",
+  "track": "intent",
+  "status": "backlog",
+  "priority": "high",
+  "points": 2,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [
+    5,
+    7,
+    8
+  ],
+  "blocking": [],
+  "branch": null,
+  "pr": null,
+  "linear_id": "129dab44-c48c-4ac5-b201-8ea756b0a84d",
+  "created": "2026-05-18",
+  "updated": "2026-05-19",
+  "tdd": false,
+  "headed": false,
+  "outcome": "The OIDC layer is fully documented and every new public type is importable from the package entry point.",
+  "scope": "Confirm public exports, update CLAUDE.md, and add an OIDC page to the docs site. Documentation and wiring only.",
+  "acceptance_criteria": [
+    "All new OIDC public types are importable from the package entry point",
+    "CLAUDE.md describes the OIDC layer in the architecture section",
+    "The docs site has an OIDC page covering key setup, the oidc config block, per-adapter endpoint wiring, and the claims hooks",
+    "The obligation to persist nonce and auth_time for opaque codes is documented",
+    "The one-time migration consequence is documented: enabling OIDC switches access tokens from HS256 to RS256/ES256 and invalidates access tokens issued before the switch"
+  ],
+  "steps": [
+    "index.ts — confirm all new OIDC public types (option types, ID token and claims types, discovery types) are exported",
+    "CLAUDE.md — document the OIDC layer in the architecture section",
+    "docs site — add an OIDC page covering key setup, the oidc config block, endpoint wiring per adapter, getUserClaims and getIdTokenClaims, the obligation to persist nonce and auth_time for opaque codes, and the one-time access-token migration when OIDC is enabled (HS256 to RS256/ES256, invalidating previously issued access tokens)",
+    "docs site — verify the page builds and links from the navigation"
+  ],
+  "use_cases": [
+    "UC-5"
+  ],
+  "notes": "Final integration slice. The adapters need no code changes — the three OIDC endpoints return a plain ResponseInterface every adapter already handles, so the docs only show wiring. ADRs 0001 and 0002 and CONTEXT.md already capture the rationale and glossary."
+}

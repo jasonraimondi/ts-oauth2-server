@@ -1,0 +1,44 @@
+{
+  "id": 8,
+  "slug": "discovery-endpoint",
+  "name": "Discovery endpoint",
+  "track": "intent",
+  "status": "backlog",
+  "priority": "high",
+  "points": 2,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [
+    2
+  ],
+  "blocking": [
+    9
+  ],
+  "branch": null,
+  "pr": null,
+  "linear_id": "53a40e5e-e81b-42fd-9f40-b0eeedcf3337",
+  "created": "2026-05-18",
+  "updated": "2026-05-19",
+  "tdd": true,
+  "headed": false,
+  "outcome": "A relying party can fetch .well-known/openid-configuration and learn the server's OIDC capabilities and endpoint URLs.",
+  "scope": "Add the discovery document builder and the AuthorizationServer.openidConfiguration() method.",
+  "acceptance_criteria": [
+    "openidConfiguration() returns a well-formed document with issuer, endpoint URLs, and auto-derived capability fields",
+    "response_types_supported is [\"code\"] and subject_types_supported is [\"public\"]",
+    "A consumer metadata override shallow-merges into the generated document"
+  ],
+  "steps": [
+    "src/oidc — add a discovery document builder that auto-derives response_types_supported, grant_types_supported, id_token_signing_alg_values_supported, code_challenge_methods_supported, subject_types_supported and token_endpoint_auth_methods_supported",
+    "discovery builder — set scopes_supported to the standard OIDC scopes the library recognizes (openid, profile, email, address, phone, offline_access); the library has no scope registry, so any non-standard scopes must be supplied by the consumer via the metadata override",
+    "discovery builder — include the consumer-supplied endpoint URLs and shallow-merge the optional metadata override",
+    "AuthorizationServer — add an openidConfiguration() method returning the document as a ResponseInterface",
+    "test/unit — cover auto-derived fields, the code-only and public-subject constraints, and the metadata merge"
+  ],
+  "use_cases": [
+    "UC-4"
+  ],
+  "notes": "The library does not own routing, so endpoint URLs are supplied explicitly by the consumer. issuer is reused from options. scopes_supported cannot be truly auto-derived — the library has no scope registry — so it lists only the standard OIDC scopes; consumer-specific scopes come via the metadata override. claims_supported is likewise unknowable by the library and only appears if the consumer provides it via the metadata override."
+}

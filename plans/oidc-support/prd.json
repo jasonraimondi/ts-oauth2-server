@@ -1,0 +1,103 @@
+{
+  "name": "OIDC Support",
+  "slug": "oidc-support",
+  "status": "active",
+  "created": "2026-05-18",
+  "updated": "2026-05-18",
+  "description": "Add an OpenID Connect layer (ID tokens, UserInfo, discovery, JWKS) on top of the existing OAuth 2.0 authorization code grant.",
+  "why": "Most teams searching for a TypeScript OAuth2 server actually want OIDC — they just don't know the distinction. Today the library answers OAuth questions but not authentication questions. Without ID tokens, a UserInfo endpoint, discovery, and a JWKS endpoint, it cannot be a relying party's login provider, which is what the majority of real-world auth integrations need.",
+  "outcome": "A consumer can enable OIDC by supplying an asymmetric signing key and an OIDC config block. Relying parties can run the PKCE authorization code flow with scope=openid, receive a verifiable ID token, fetch user claims from UserInfo, and auto-configure via the discovery and JWKS endpoints. Non-OIDC consumers see zero behavior change.",
+  "in_scope": [
+    "ID token issuance in the authorization code flow when the openid scope is granted",
+    "UserInfo endpoint returning scope-derived claims for a presented access token",
+    "Discovery endpoint serving .well-known/openid-configuration",
+    "JWKS endpoint publishing the public signing key",
+    "Asymmetric (RS256/ES256) token signing with a consumer-supplied keypair",
+    "nonce capture and propagation into the ID token",
+    "Standard OIDC scope-to-claim mapping and filtering",
+    "getUserClaims and optional getIdTokenClaims consumer hooks"
+  ],
+  "out_of_scope": [
+    "Implicit and hybrid flows — response_type=code only",
+    "FAPI 2.0 profiles, the claims request parameter, JAR (request/request_uri), and response_mode beyond query",
+    "Pairwise subject identifiers — public subject type only",
+    "ID token issuance on the refresh_token grant",
+    "Signed or encrypted UserInfo responses (application/jwt)",
+    "Multi-key rotation machinery — kid headers and JWKS-as-array keep it a future additive change",
+    "Runtime key generation — keypair lifecycle is the consumer's responsibility",
+    "Formal OpenID conformance suite in CI",
+    "Dynamic client registration and RP-initiated / front-channel / back-channel logout"
+  ],
+  "use_cases": [
+    {
+      "id": "UC-1",
+      "description": "A relying party runs the PKCE authorization code flow with scope=openid and a nonce, exchanges the code at the token endpoint, and receives an ID token alongside the access token."
+    },
+    {
+      "id": "UC-2",
+      "description": "A relying party verifies an issued ID token's signature against the keys published at the JWKS endpoint."
+    },
+    {
+      "id": "UC-3",
+      "description": "A relying party presents an access token to the UserInfo endpoint and receives the end-user's scope-derived claims."
+    },
+    {
+      "id": "UC-4",
+      "description": "A relying party fetches the discovery document to learn the server's OIDC capabilities and endpoint URLs."
+    },
+    {
+      "id": "UC-5",
+      "description": "A consumer enables OIDC by supplying an asymmetric signing key and OIDC config; a consumer who does not enable OIDC observes identical behavior to today."
+    },
+    {
+      "id": "UC-6",
+      "description": "A consumer adds custom claims such as roles, tenant, or acr to issued ID tokens via the getIdTokenClaims hook."
+    },
+    {
+      "id": "UC-7",
+      "description": "A consumer using opaque authorization codes runs the OIDC flow with nonce binding preserved across the authorize-to-token round trip."
+    }
+  ],
+  "decisions": [
+    "Asymmetric RS256/ES256 signing; one consumer-supplied keypair signs both ID and access tokens when OIDC is enabled; the symmetric HS256 path is unchanged for non-OIDC users (ADR 0001).",
+    "No new runtime dependency: jsonwebtoken plus Node's built-in crypto cover signing, JWK export, and thumbprint computation.",
+    "The consumer supplies the private key only (PEM string or KeyObject); the library derives the public key and never generates keys at runtime.",
+    "v1 ships a single signing key; every token header carries a kid; the JWKS endpoint always publishes a keys array; kid defaults to the RFC 7638 thumbprint and is overridable.",
+    "The three OIDC endpoints (UserInfo, discovery, JWKS) are added as methods on AuthorizationServer; ID token issuance lives inside the authorization code grant; there is no separate provider class (ADR 0002).",
+    "OIDC is enabled by an explicit oidc config block on AuthorizationServerOptions; an ID token is issued per-request only when the granted scopes include openid.",
+    "When OIDC is enabled the library auto-recognizes the standard OIDC scopes (openid, profile, email, address, phone, offline_access) as valid.",
+    "A getUserClaims callback supplies user attributes; the default ID token stays lean (protocol claims only); scope-derived claims are served only from UserInfo; the library owns the standard scope-to-claim mapping and filtering.",
+    "getUserClaims is keyed by the user identifier, not a loaded user object, so the OIDC config needs no user repository.",
+    "The library owns nonce end-to-end; all other OIDC authorization parameters are parsed and exposed to the consumer but not acted on; prompt=none is pass-through.",
+    "auth_time is consumer-supplied on the authorization request; the library throws when max_age was requested but auth_time is absent.",
+    "Only response_type=code is supported; no implicit or hybrid flows.",
+    "Refresh-token issuance is not gated by the library; offline_access handling is left to the consumer's token repository.",
+    "The refresh flow stays OIDC-unaware; no ID token is issued on refresh.",
+    "Discovery requires explicit endpoint URLs from the consumer; issuer is reused from options and mandatory under OIDC; remaining fields are auto-derived; an optional metadata override is shallow-merged in.",
+    "Both opaque and JWT authorization codes are supported under OIDC; nonce and auth_time are added as optional fields on the auth code entity and payload, propagated by both encoders.",
+    "JwtInterface gains an optional JWKS-exposing method; OIDC construction throws if the supplied JWT service lacks it.",
+    "ID token claims: iss, stringified sub, aud set to the client, exp reusing the access-token TTL, iat, conditional nonce and auth_time, and at_hash; azp is omitted in v1.",
+    "An optional getIdTokenClaims hook merges custom claims into the ID token; protocol claims always win and cannot be overridden.",
+    "UserInfo requires the openid scope, returns plain JSON, verifies token signature and expiry, and checks revocation when getByAccessToken is implemented."
+  ],
+  "risks": [
+    "JwtService.sign currently drops its options argument; it must be fixed to forward algorithm and keyid — a latent bug touched by this work.",
+    "Asymmetric signing changes the token format for OIDC consumers (kid header, RS256/ES256); the existing symmetric HS256 path must remain byte-identical so non-OIDC users see no breaking change.",
+    "AuthorizationServerOptions is currently flat scalars; nesting an oidc object containing callbacks is a shape change to a public interface — additive but notable.",
+    "Consumers using opaque authorization codes must persist two new entity fields (nonce, auth_time) or OIDC nonce binding silently breaks; this requires a clear doc note.",
+    "This is a published library — every change must be additive and no public signature may change."
+  ],
+  "validation": [
+    "Unit tests: JWK export, RFC 7638 thumbprint kid, RS256/ES256 sign-and-verify round trip, scope-to-claim filtering, discovery document generation, ID token claim assembly, and at_hash computation.",
+    "Keystone e2e: a full authorize-to-token flow that verifies the issued ID token's signature against the live JWKS endpoint, then calls UserInfo — run on the vanilla adapter.",
+    "e2e: opaque-authorization-code OIDC variant, and a 403 insufficient_scope response when the openid scope is absent at UserInfo.",
+    "The existing test suite stays green and the symmetric HS256 path is confirmed unchanged.",
+    "Manual smoke test against a real relying-party library (openid-client)."
+  ],
+  "notes": "Five implementation phases in dependency order. Phase 1: key service and JWKS — extend JwtService for asymmetric keys, fix sign() to forward options, add a JWKS-exposing method to JwtInterface. Phase 2: the oidc config block on AuthorizationServerOptions plus fail-fast construction guards (issuer set, JWT service exposes JWKS). Phase 3: ID token issuance inside the authorization code grant — nonce and auth_time threaded through the authorization request, auth code entity, payload, and both auth code encoders. Phase 4: the UserInfo endpoint, the claims resolver and standard scope-to-claim mapping, and new invalid_token / insufficient_scope error types. Phase 5: the discovery document, public type exports, and documentation. New code is concentrated under src/oidc/. The framework adapters need no changes — the three new endpoints return a plain ResponseInterface that every adapter already handles. Rough size: 1,300-1,600 lines of library code and 900-1,200 lines of tests. Two ADRs are already recorded: docs/adr/0001 (asymmetric signing) and docs/adr/0002 (OIDC layered on the auth code grant). Domain glossary captured in CONTEXT.md.",
+  "dev_command": "pnpm test:watch",
+  "base_url": "",
+  "linear": {
+    "project_id": "f1b478cb-c8ca-4da1-ae70-a434dd04f1f7"
+  }
+}
