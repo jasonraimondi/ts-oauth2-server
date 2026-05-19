@@ -1,0 +1,45 @@
+{
+  "id": 1,
+  "slug": "asymmetric-signing-jwk-export",
+  "name": "Asymmetric signing \u0026 JWK export",
+  "track": "rules",
+  "status": "todo",
+  "priority": "high",
+  "points": 3,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [],
+  "blocking": [
+    2,
+    6
+  ],
+  "branch": null,
+  "pr": null,
+  "linear_id": "e9f4ebf8-f385-46a2-9d59-b31aca651bdd",
+  "created": "2026-05-18",
+  "updated": "2026-05-19",
+  "tdd": true,
+  "headed": false,
+  "outcome": "JwtService can sign and verify tokens with a consumer-supplied asymmetric keypair and expose the public key as a JWK set, while the existing symmetric path is untouched.",
+  "scope": "Extend JwtService for asymmetric (RS256/ES256) keys, fix sign() to forward SignOptions, and add an optional JWKS-exposing method to JwtInterface. No endpoints, no OIDC config yet.",
+  "acceptance_criteria": [
+    "A JwtService built with an RSA or EC private key signs and verifies RS256/ES256 tokens, and the JWT header includes a kid",
+    "getKeySet returns a valid JWK set containing the public key with a kid matching the token header",
+    "kid defaults to the RFC 7638 thumbprint and can be overridden",
+    "The existing string-secret HS256 path signs and verifies byte-identically to today"
+  ],
+  "steps": [
+    "JwtService constructor — accept an asymmetric key option object ({ key, kid?, algorithm? }) alongside the existing Secret string, deriving the public key from the private key via Node crypto",
+    "JwtService.sign — forward SignOptions (algorithm, keyid) to jsonwebtoken so RS256/ES256 tokens carry a kid header",
+    "JwtService — auto-detect algorithm from key type (RSA to RS256, EC to ES256) and default kid to the RFC 7638 JWK thumbprint (a hand-rolled function: canonical JSON of the required JWK members, SHA-256, base64url — Node crypto has no thumbprint primitive)",
+    "JwtInterface — add an optional getKeySet method exposing the public key as a JWK set, and implement it on JwtService",
+    "test/unit — cover RS256/ES256 round trips, JWK export, thumbprint kid, and confirm the symmetric HS256 path is unchanged"
+  ],
+  "use_cases": [
+    "UC-2",
+    "UC-5"
+  ],
+  "notes": "Foundation slice — unblocks everything. JwtService.sign currently drops its options argument; fixing that is required here. No new dependency: jsonwebtoken plus Node crypto (createPublicKey, JWK export). The RFC 7638 thumbprint has no crypto primitive — it is a small hand-rolled function and should be unit-tested directly. See docs/adr/0001."
+}

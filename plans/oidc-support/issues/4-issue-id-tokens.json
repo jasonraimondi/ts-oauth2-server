@@ -1,0 +1,46 @@
+{
+  "id": 4,
+  "slug": "issue-id-tokens",
+  "name": "Issue ID tokens in the authorization code flow",
+  "track": "intent",
+  "status": "backlog",
+  "priority": "high",
+  "points": 3,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [
+    3
+  ],
+  "blocking": [
+    5,
+    7
+  ],
+  "branch": null,
+  "pr": null,
+  "linear_id": "ec4e27a7-7a7e-4965-b05a-5ed77aa7a0ce",
+  "created": "2026-05-18",
+  "updated": "2026-05-18",
+  "tdd": true,
+  "headed": false,
+  "outcome": "An authorization code flow requesting the openid scope returns a signed, verifiable ID token alongside the access token.",
+  "scope": "Add the ID token builder and wire it into the auth code grant's token response, gated on OIDC being enabled and the openid scope being granted. Also auto-recognize the standard OIDC scopes.",
+  "acceptance_criteria": [
+    "An authorization code flow with scope=openid returns a signed id_token alongside the access token",
+    "The id_token verifies against the JWKS key and carries correct iss, sub, aud, exp, iat, conditional nonce/auth_time, and at_hash",
+    "sub is stringified and aud is the client id",
+    "A flow without the openid scope returns no id_token, and non-OIDC flows are unchanged"
+  ],
+  "steps": [
+    "src/oidc — add an ID token builder assembling protocol claims (iss, stringified sub, aud set to the client, exp from the access-token TTL, iat, conditional nonce and auth_time) and at_hash",
+    "AbstractGrant — auto-recognize the standard OIDC scopes (openid, profile, email, address, phone, offline_access) as valid when OIDC is enabled",
+    "AuthCodeGrant.respondToAccessTokenRequest — add a signed id_token to the token response body when OIDC is enabled and the openid scope was granted",
+    "index.ts — export the ID token claim types",
+    "test/unit and test/e2e — cover claim assembly, at_hash, and the openid-scope gate"
+  ],
+  "use_cases": [
+    "UC-1"
+  ],
+  "notes": "ID token aud is the client, deliberately different from the access token's resource aud. exp reuses the access-token TTL — no separate config knob. azp is omitted in v1. The ID token stays lean: protocol claims only."
+}

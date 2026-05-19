@@ -1,0 +1,47 @@
+{
+  "id": 3,
+  "slug": "thread-nonce-and-auth-time",
+  "name": "Thread nonce \u0026 auth_time through the authorization code",
+  "track": "data",
+  "status": "backlog",
+  "priority": "high",
+  "points": 3,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [
+    2
+  ],
+  "blocking": [
+    4
+  ],
+  "branch": null,
+  "pr": null,
+  "linear_id": "9d7cec51-d326-4be0-9cb3-43557a8aee77",
+  "created": "2026-05-18",
+  "updated": "2026-05-19",
+  "tdd": true,
+  "headed": false,
+  "outcome": "A nonce supplied at /authorize, and a consumer-supplied auth_time, survive the authorize-to-token round trip for both JWT and opaque authorization codes.",
+  "scope": "Add nonce and auth_time to the authorization request, auth code entity, and payload, propagate them through both encoders, and enforce the max_age rule. No ID token minting yet.",
+  "acceptance_criteria": [
+    "A nonce supplied at /authorize survives to the resolved auth code payload for both JWT and opaque codes",
+    "Requesting max_age without supplying authTime throws an OAuthException that redirects with an error parameter, not an unhandled exception",
+    "The other OIDC authorization params are parsed onto AuthorizationRequest but not acted on",
+    "Non-OIDC authorization requests are unaffected"
+  ],
+  "steps": [
+    "AuthorizationRequest — add nonce and authTime fields plus a parsed bag of inert OIDC params (prompt, maxAge, loginHint, display, uiLocales, acrValues, idTokenHint)",
+    "OAuthAuthCode entity and PayloadAuthCode — add optional nonce and auth_time fields",
+    "AuthCodeGrant.validateAuthorizationRequest — read nonce and the OIDC params from the query string when OIDC is enabled",
+    "AuthCodeGrant.completeAuthorizationRequest — set nonce and authTime on the auth code entity, and throw when max_age was requested but authTime is absent; the throw must be an OAuthException so it surfaces as an error redirect (the consumer's login UI has already run by this point), not an unhandled exception",
+    "JwtAuthCodeEncoder and OpaqueAuthCodeEncoder — carry nonce and auth_time across the authorize-to-token round trip",
+    "test/unit and test/e2e — cover nonce survival for both encoders and the max_age enforcement throw"
+  ],
+  "use_cases": [
+    "UC-1",
+    "UC-7"
+  ],
+  "notes": "Opaque codes rebuild the payload from the persisted entity, so nonce/auth_time must live on OAuthAuthCode. Consumers persisting opaque codes must store the two new optional fields — documented in issue 9."
+}

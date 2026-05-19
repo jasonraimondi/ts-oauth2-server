@@ -1,0 +1,42 @@
+{
+  "id": 5,
+  "slug": "get-id-token-claims-hook",
+  "name": "getIdTokenClaims hook for custom ID token claims",
+  "track": "intent",
+  "status": "backlog",
+  "priority": "high",
+  "points": 1,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [
+    4
+  ],
+  "blocking": [
+    9
+  ],
+  "branch": null,
+  "pr": null,
+  "linear_id": "63b6308a-fa03-4044-8189-9e0e9214a696",
+  "created": "2026-05-18",
+  "updated": "2026-05-18",
+  "tdd": true,
+  "headed": false,
+  "outcome": "Consumers can add custom claims (roles, tenant, acr) to issued ID tokens without being able to corrupt the protocol claims.",
+  "scope": "Wire the optional getIdTokenClaims hook into the ID token builder with a protocol-claims-win merge.",
+  "acceptance_criteria": [
+    "Custom claims returned by getIdTokenClaims appear in the issued id_token",
+    "The hook cannot override iss, sub, aud, exp, iat or at_hash",
+    "When the hook is absent the id_token contains exactly the protocol claim set"
+  ],
+  "steps": [
+    "ID token builder — call the optional getIdTokenClaims hook with userId, scopes, client and nonce, and merge its result into the ID token",
+    "ID token builder — apply the merge so protocol claims always win over hook-supplied claims",
+    "test/unit — cover the merge and the protocol-claims-win guard"
+  ],
+  "use_cases": [
+    "UC-6"
+  ],
+  "notes": "The hook keeps the default ID token lean while removing the hard wall; it also satisfies the deferred claims-in-ID-token need without a separate flag."
+}

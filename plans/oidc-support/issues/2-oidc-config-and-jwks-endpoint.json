@@ -1,0 +1,48 @@
+{
+  "id": 2,
+  "slug": "oidc-config-and-jwks-endpoint",
+  "name": "OIDC config block, construction guards \u0026 JWKS endpoint",
+  "track": "intent",
+  "status": "backlog",
+  "priority": "high",
+  "points": 3,
+  "labels": [
+    "AFK"
+  ],
+  "assignee": null,
+  "blocked_by": [
+    1
+  ],
+  "blocking": [
+    3,
+    8
+  ],
+  "branch": null,
+  "pr": null,
+  "linear_id": "75280983-5520-486f-b0fa-b9ee3f1acd22",
+  "created": "2026-05-18",
+  "updated": "2026-05-19",
+  "tdd": true,
+  "headed": false,
+  "outcome": "OIDC can be turned on via an explicit config block, mistakes are caught at construction, and the server publishes its signing key at a JWKS endpoint.",
+  "scope": "Add the oidc config block to AuthorizationServerOptions, fail-fast construction guards, and the jwks() endpoint method. No ID tokens, UserInfo, or discovery yet.",
+  "acceptance_criteria": [
+    "Constructing with oidc config but no issuer throws a clear error",
+    "Constructing with oidc config and a symmetric JWT service (no getKeySet) throws a clear error",
+    "jwks() returns { keys: [...] } containing the public signing key",
+    "Constructing without oidc config behaves identically to today"
+  ],
+  "steps": [
+    "AuthorizationServerOptions — add an optional oidc config block (endpoint URLs, getUserClaims, optional getIdTokenClaims, optional metadata override)",
+    "AuthorizationServer constructor — throw when oidc config is present but issuer is unset",
+    "AuthorizationServer constructor — throw when oidc config is present but the JWT service does not expose getKeySet",
+    "AuthorizationServer — add a jwks() method returning the JWK set as a ResponseInterface",
+    "index.ts — export the new OIDC option types",
+    "test/unit — cover both construction guards and the jwks() output shape"
+  ],
+  "use_cases": [
+    "UC-5",
+    "UC-2"
+  ],
+  "notes": "The oidc block lives on AuthorizationServerOptions so both AuthCodeGrant and the AuthorizationServer endpoint methods can read it. issuer is reused from existing options and becomes mandatory under OIDC. See docs/adr/0002."
+}
