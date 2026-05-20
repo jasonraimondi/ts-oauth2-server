@@ -1,11 +1,11 @@
 {
   "id": 1,
   "slug": "asymmetric-signing-jwk-export",
-  "name": "Asymmetric signing \u0026 JWK export",
+  "name": "Asymmetric signing, JWK export & OIDC error types",
   "track": "rules",
   "status": "todo",
   "priority": "high",
-  "points": 3,
+  "points": 5,
   "labels": [
     "AFK"
   ],
@@ -22,24 +22,32 @@
   "updated": "2026-05-19",
   "tdd": true,
   "headed": false,
-  "outcome": "JwtService can sign and verify tokens with a consumer-supplied asymmetric keypair and expose the public key as a JWK set, while the existing symmetric path is untouched.",
-  "scope": "Extend JwtService for asymmetric (RS256/ES256) keys, fix sign() to forward SignOptions, and add an optional JWKS-exposing method to JwtInterface. No endpoints, no OIDC config yet.",
+  "outcome": "JwtService can sign and verify tokens with a consumer-supplied RSA keypair and expose the public key as a JWK set; the existing symmetric path is untouched except that verify() now pins the configured algorithm; OIDC's invalid_token and insufficient_scope error types exist for downstream issues to consume.",
+  "scope": "Extend JwtService for asymmetric RSA keys (RS256 only — ES256 is deferred to v2 per the OIDC Discovery §3 RS256-mandatory requirement and the single-key model), fix sign() to forward SignOptions including a header override, pin the algorithm on verify(), add an optional JWKS-exposing method to JwtInterface, and add the invalid_token / insufficient_scope error types to OAuthException (moved here from later issues to avoid an OAuthException merge conflict between issues 4 and 6). No endpoints, no OIDC config yet.",
   "acceptance_criteria": [
-    "A JwtService built with an RSA or EC private key signs and verifies RS256/ES256 tokens, and the JWT header includes a kid",
-    "getKeySet returns a valid JWK set containing the public key with a kid matching the token header",
-    "kid defaults to the RFC 7638 thumbprint and can be overridden",
-    "The existing string-secret HS256 path signs and verifies byte-identically to today"
+    "A JwtService built with an RSA private key signs and verifies RS256 tokens; ES256 (and any non-RS256 algorithm) is explicitly rejected at construction in v1",
+    "The JWT header includes a kid; kid defaults to the RFC 7638 thumbprint and can be overridden",
+    "getKeySet returns a valid JWK set containing the public key with use:\"sig\", alg:\"RS256\", a kid matching the token header, and NO private members (d, p, q, dp, dq, qi)",
+    "The RFC 7638 thumbprint passes the OpenID Foundation known-answer test vector (the JWK in RFC 7638 §3.1 hashing to NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs)",
+    "The existing string-secret HS256 path signs and verifies byte-identically to today: a snapshot assertion on the JOSE header confirms exactly {alg:HS256,typ:JWT} with no kid",
+    "verify() pins the algorithm — it always passes algorithms:[configuredAlgorithm], ignoring any caller-supplied algorithms VerifyOptions or token-supplied alg header. An algorithm-confusion attack token (HS256 signed using the RSA public key as the HMAC secret) is rejected; an alg:none token is rejected",
+    "sign() forwards a header override so a caller can set a custom typ such as at+jwt",
+    "Malformed inputs fail at construction with a clear error: garbage PEM, a public-only key (no private material), and a key whose type does not match the configured algorithm",
+    "OAuthException.invalidToken() and OAuthException.insufficientScope() static helpers exist and carry the correct OAuth 2.0 error codes (invalid_token, insufficient_scope) and HTTP status (401, 403)"
   ],
   "steps": [
-    "JwtService constructor — accept an asymmetric key option object ({ key, kid?, algorithm? }) alongside the existing Secret string, deriving the public key from the private key via Node crypto",
-    "JwtService.sign — forward SignOptions (algorithm, keyid) to jsonwebtoken so RS256/ES256 tokens carry a kid header",
-    "JwtService — auto-detect algorithm from key type (RSA to RS256, EC to ES256) and default kid to the RFC 7638 JWK thumbprint (a hand-rolled function: canonical JSON of the required JWK members, SHA-256, base64url — Node crypto has no thumbprint primitive)",
-    "JwtInterface — add an optional getKeySet method exposing the public key as a JWK set, and implement it on JwtService",
-    "test/unit — cover RS256/ES256 round trips, JWK export, thumbprint kid, and confirm the symmetric HS256 path is unchanged"
+    "JwtService constructor — accept an asymmetric key option object ({ key, kid?, algorithm? }) alongside the existing Secret string. Derive the public key from the private key via Node crypto (createPublicKey). Reject non-RS256 algorithms at construction; reject public-only inputs",
+    "JwtService.sign — forward SignOptions (algorithm, keyid, header) to jsonwebtoken so RS256 tokens carry a kid header and a caller can set a custom typ (e.g. at+jwt)",
+    "JwtService — default kid to the RFC 7638 JWK thumbprint via a hand-rolled function: canonical JSON of the required JWK members (kty, n, e for RSA), SHA-256, base64url. Unit-test directly against the RFC 7638 §3.1 known-answer vector",
+    "JwtService.verify — pin the verification algorithm by always passing algorithms:[configuredAlgorithm], ignoring any caller-supplied or token-supplied algorithm (algorithm-confusion defense, ADR 0003)",
+    "JwtInterface — add an optional getKeySet method exposing the public key as a JWK set ({ keys: [{ kty, n, e, use:\"sig\", alg:\"RS256\", kid }] }); implement it on JwtService stripping any private members before export",
+    "OAuthException — add invalidToken() and insufficientScope() static helpers with the right error codes and HTTP statuses; place here (not issue 6) so issues 4 and 6 do not both edit OAuthException",
+    "test/unit — RS256 round trips; JWK export shape and no-private-members assertion; thumbprint against the RFC 7638 KAT; sign() header/typ forwarding; verify() algorithm pin via the HS256-with-RSA-public-key forged-token test and an alg:none test; malformed-key construction failures; the HS256 JOSE-header byte-identical regression snapshot",
+    "CHANGELOG — record that verify() now pins algorithms and a caller-supplied algorithms VerifyOptions is ignored; pointer to the upgrade-guide note added in issue 9"
   ],
   "use_cases": [
     "UC-2",
     "UC-5"
   ],
-  "notes": "Foundation slice — unblocks everything. JwtService.sign currently drops its options argument; fixing that is required here. No new dependency: jsonwebtoken plus Node crypto (createPublicKey, JWK export). The RFC 7638 thumbprint has no crypto primitive — it is a small hand-rolled function and should be unit-tested directly. See docs/adr/0001."
+  "notes": "Foundation slice — unblocks everything. JwtService.sign currently drops its options argument; fixing that is required here. No new dependency: jsonwebtoken plus Node crypto (createPublicKey, JWK export). The RFC 7638 thumbprint has no crypto primitive — it is a small hand-rolled function and is unit-tested against the spec's own KAT. Re-pointed 3 → 5 to reflect the crypto risk surface (sign/verify, thumbprint, public-key derivation, JWK export, algorithm pinning, malformed-input handling, plus the OAuthException additions). ES256 is deferred — see PRD out_of_scope. verify() now pins algorithms:['HS256'] for existing symmetric consumers too — a safe-by-default tightening that requires a CHANGELOG entry, not a token-format change. See docs/adr/0001 and docs/adr/0003."
 }

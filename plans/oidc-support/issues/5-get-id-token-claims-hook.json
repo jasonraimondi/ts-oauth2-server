@@ -5,7 +5,7 @@
   "track": "intent",
   "status": "backlog",
   "priority": "high",
-  "points": 1,
+  "points": 2,
   "labels": [
     "AFK"
   ],
@@ -20,23 +20,28 @@
   "pr": null,
   "linear_id": "63b6308a-fa03-4044-8189-9e0e9214a696",
   "created": "2026-05-18",
-  "updated": "2026-05-18",
+  "updated": "2026-05-19",
   "tdd": true,
   "headed": false,
-  "outcome": "Consumers can add custom claims (roles, tenant, acr) to issued ID tokens without being able to corrupt the protocol claims.",
-  "scope": "Wire the optional getIdTokenClaims hook into the ID token builder with a protocol-claims-win merge.",
+  "outcome": "Consumers can add custom claims (roles, tenant, acr) to issued ID tokens without being able to corrupt the protocol claims or the JOSE header.",
+  "scope": "Wire the optional getIdTokenClaims hook into the ID token builder with an explicit strip-then-merge so protocol claims always win — by named constant, not by spread-ordering trust. Hook output reaches the JWT payload only, never the JOSE header.",
   "acceptance_criteria": [
-    "Custom claims returned by getIdTokenClaims appear in the issued id_token",
-    "The hook cannot override iss, sub, aud, exp, iat or at_hash",
-    "When the hook is absent the id_token contains exactly the protocol claim set"
+    "Custom claims returned by getIdTokenClaims appear in the issued id_token's payload",
+    "PROTOCOL_CLAIM_NAMES is an exported named constant — not an inline literal — and lists exactly: iss, sub, aud, exp, iat, at_hash, nonce, auth_time",
+    "The hook merge strips PROTOCOL_CLAIM_NAMES from the hook's return value before merging. A hook that returns { nonce, at_hash, roles: ['admin'] } produces an id_token whose nonce and at_hash are the protocol values, roles is the consumer value",
+    "Hook output reaches the JWT payload only — never the JOSE header. A hook returning { alg: 'HS256', typ: 'fake' } cannot influence what jsonwebtoken signs with",
+    "When the hook is absent the id_token contains exactly the protocol claim set",
+    "Hook errors propagate as OAuthException.invalidGrant rather than being swallowed (consumer mistakes are visible)"
   ],
   "steps": [
-    "ID token builder — call the optional getIdTokenClaims hook with userId, scopes, client and nonce, and merge its result into the ID token",
-    "ID token builder — apply the merge so protocol claims always win over hook-supplied claims",
-    "test/unit — cover the merge and the protocol-claims-win guard"
+    "ID token builder — define and export PROTOCOL_CLAIM_NAMES as a named const array (the eight names above)",
+    "ID token builder — call the optional getIdTokenClaims hook with { userId, scopes, client, nonce }",
+    "ID token builder — strip PROTOCOL_CLAIM_NAMES from the hook output, then merge the stripped object into the payload (not spread-ordering). The merge structure must make the strip explicit; do not rely on spread order to be 'safe enough'",
+    "ID token builder — pass the merged payload to jwt.sign with the JOSE header fixed at { typ: 'JWT' }; hook output never reaches SignOptions",
+    "test/unit — the strip-then-merge guard with each PROTOCOL_CLAIM_NAMES member as the attacker key (eight tests); a hook returning header-shaped keys cannot affect the header; absent hook yields exactly the protocol set; a throwing hook surfaces as invalid_grant"
   ],
   "use_cases": [
     "UC-6"
   ],
-  "notes": "The hook keeps the default ID token lean while removing the hard wall; it also satisfies the deferred claims-in-ID-token need without a separate flag."
+  "notes": "Re-pointed 1 → 2 because the security-sensitive merge guard with eight attacker-key tests and the header-isolation test are real work, not a one-step wire-through. The hook keeps the default ID token lean while removing the hard wall; it also satisfies the deferred claims-in-ID-token need without a separate flag."
 }

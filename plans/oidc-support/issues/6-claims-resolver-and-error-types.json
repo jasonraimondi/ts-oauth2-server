@@ -1,7 +1,7 @@
 {
   "id": 6,
   "slug": "claims-resolver-and-error-types",
-  "name": "Claims resolver \u0026 OIDC error types",
+  "name": "Claims resolver (OIDC Core §5.4 scope-to-claim mapping)",
   "track": "rules",
   "status": "backlog",
   "priority": "high",
@@ -23,21 +23,22 @@
   "updated": "2026-05-19",
   "tdd": true,
   "headed": false,
-  "outcome": "The library owns the standard scope-to-claim mapping and the error types UserInfo needs, ready for the endpoint to consume.",
-  "scope": "Add the OIDC scope-to-claim mapping plus a scope-gated filter, and the invalid_token and insufficient_scope error types. No endpoint wiring.",
+  "outcome": "The library owns the OIDC Core §5.4 scope-to-claim mapping exactly, with a filter that reduces consumer-supplied claims to those the granted scopes authorize.",
+  "scope": "Add the OIDC scope-to-claim mapping per OIDC Core §5.4 (exact membership) plus a scope-gated filter. No endpoint wiring. OAuthException additions are NOT in this issue — they moved to issue 1 to avoid the issue 4/6 merge conflict on OAuthException.",
   "acceptance_criteria": [
-    "The filter returns only claims authorized by the granted scopes, with sub always present",
+    "The mapping matches OIDC Core §5.4 exactly: profile → name, family_name, given_name, middle_name, nickname, preferred_username, profile, picture, website, gender, birthdate, zoneinfo, locale, updated_at; email → email, email_verified; address → address (structured object: formatted, street_address, locality, region, postal_code, country); phone → phone_number, phone_number_verified. Commonly-missed members (updated_at, email_verified, phone_number_verified, structured address) are present",
+    "The filter returns only claims authorized by the granted scopes, with sub always present even when no scope-derived claims are authorized",
     "openid alone yields only sub",
-    "invalid_token and insufficient_scope exceptions are constructible and carry the correct error codes"
+    "openid + email yields { sub, email, email_verified } only — name, etc., are dropped",
+    "Unknown scopes are ignored silently (no throw); a consumer claim not authorized by any granted scope is dropped"
   ],
   "steps": [
-    "src/oidc — add the standard OIDC scope-to-claim mapping (profile, email, address, phone) per OIDC Core section 5.4",
-    "src/oidc — add a filter that reduces a claims object to those the granted scopes authorize, always retaining sub",
-    "OAuthException — add invalid_token and insufficient_scope error types with static helpers",
-    "test/unit — cover the filter across scope combinations and the new exception helpers"
+    "src/oidc — add the OIDC Core §5.4 scope-to-claim mapping as an exported constant; include every claim listed in §5.4 verbatim (the commonly-missed members listed above)",
+    "src/oidc — add a filter(claims, grantedScopes) function that returns the subset of claims authorized by the granted scopes, always retaining sub. address is preserved as a structured object, not flattened",
+    "test/unit — table-driven tests across scope combinations including: openid alone; openid+email; openid+address (preserves structured address); openid+all; unknown scope ignored; consumer-supplied claim not authorized by any granted scope dropped"
   ],
   "use_cases": [
     "UC-3"
   ],
-  "notes": "The scope-to-claim mapping is spec-defined, so the library owns it rather than the consumer. The consumer's getUserClaims returns whatever attributes it has; this filter enforces what the granted scopes permit. Depends only on issue 1 — it touches neither the oidc config block nor anything from issue 2, so it can run in parallel with the 3-to-4 chain."
+  "notes": "Scope-to-claim mapping is spec-defined, so the library owns it rather than the consumer. The consumer's getUserClaims returns whatever attributes it has; this filter enforces what the granted scopes permit. Depends only on issue 1 — it touches neither the oidc config block nor anything from issue 2, so it can run in parallel with the 3→4 chain. OAuthException additions are in issue 1."
 }

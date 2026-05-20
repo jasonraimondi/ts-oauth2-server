@@ -1,11 +1,11 @@
 {
   "id": 9,
   "slug": "documentation-and-public-api",
-  "name": "Documentation \u0026 public API surface",
+  "name": "Documentation site OIDC section, upgrade guide & public-API consolidation",
   "track": "intent",
   "status": "backlog",
   "priority": "high",
-  "points": 2,
+  "points": 3,
   "labels": [
     "AFK"
   ],
@@ -23,23 +23,36 @@
   "updated": "2026-05-19",
   "tdd": false,
   "headed": false,
-  "outcome": "The OIDC layer is fully documented and every new public type is importable from the package entry point.",
-  "scope": "Confirm public exports, update CLAUDE.md, and add an OIDC page to the docs site. Documentation and wiring only.",
+  "outcome": "The OIDC layer's per-feature docs (added in issues 4, 7, 8) are stitched together into a coherent OIDC section, the upgrade guide covers the verify() pinning and at+jwt behavior changes, and the public-API surface is audited end-to-end. Per-issue export confirmation already happened in issues 1, 2, 4, 5, 6, 7, 8.",
+  "scope": "Docs-site integration, the upgrade guide, public-API audit, and final consumer-facing artifacts. Per-issue export and per-endpoint documentation already shipped with their feature issues (MF-8 distributes docs). This issue is the final integration pass — re-pointed 2 → 3 to reflect actual scope.",
   "acceptance_criteria": [
-    "All new OIDC public types are importable from the package entry point",
-    "CLAUDE.md describes the OIDC layer in the architecture section",
-    "The docs site has an OIDC page covering key setup, the oidc config block, per-adapter endpoint wiring, and the claims hooks",
-    "The obligation to persist nonce and auth_time for opaque codes is documented",
-    "The one-time migration consequence is documented: enabling OIDC switches access tokens from HS256 to RS256/ES256 and invalidates access tokens issued before the switch"
+    "Public-API audit: a single test or build script asserts every new OIDC public type and the AccessTokenVerifier are importable from the package entry point (catches anything the feature issues missed)",
+    "CLAUDE.md describes the OIDC layer in the architecture section, including the AccessTokenVerifier seam's role",
+    "Docs site has a coherent OIDC section assembled from the per-feature pages shipped in issues 4, 7, and 8, plus three new integration pages added in this issue: (a) Getting Started with OIDC, (b) Keypair Lifecycle, (c) Hooks reference",
+    "Keypair Lifecycle page includes openssl and Node generateKeyPairSync snippets, PEM vs KeyObject usage, a do-not-generate-on-boot warning, and a forward-pointer to multi-key rotation as a future change",
+    "Configuration page (configuration.md) gains a complete options table for the oidc config block (every field, every type, every default) and the AuthorizationServerOptions diff (top-level issuer + nested oidc — issue 2's note on why the split exists)",
+    "Hooks reference includes a 'which hook do I use?' decision table comparing getUserClaims (scope-derived claims, UserInfo only) vs getIdTokenClaims (custom protocol-adjacent claims in the ID token); TSDoc doc-comments are required on the exported callback types and asserted by lint or build",
+    "Upgrade guide (upgrade_guide.md) covers (a) the verify() algorithm pin — caller-supplied algorithms VerifyOptions is now ignored; (b) the typ:at+jwt JOSE header on OIDC access tokens; (c) the opaque-code nonce/auth_time persistence requirement; (d) the OAuthAuthCode entity diff; (e) the BearerTokenResponse.body.id_token shape extension",
+    "CHANGELOG: stitched from the per-issue CHANGELOG entries added by issues 1 and 4, plus the OIDC feature summary",
+    "Known limitations list: no ID token on refresh; no offline_access auto-recognition (consumer-owned); no ES256 in v1 (forward-pointer to multi-key story); no signed/encrypted UserInfo",
+    "Opaque-code nonce/auth_time obligation is documented as a prominent callout, alongside a recommendation to use JWT auth codes for OIDC (issue 3's fail-loud guard backs the obligation, but the doc still warns consumers building opaque-code repositories)",
+    "openid-client smoke test recipe: a copy-pasteable snippet that confirms the OIDC integration works against the popular openid-client library — release gate"
   ],
   "steps": [
-    "index.ts — confirm all new OIDC public types (option types, ID token and claims types, discovery types) are exported",
-    "CLAUDE.md — document the OIDC layer in the architecture section",
-    "docs site — add an OIDC page covering key setup, the oidc config block, endpoint wiring per adapter, getUserClaims and getIdTokenClaims, the obligation to persist nonce and auth_time for opaque codes, and the one-time access-token migration when OIDC is enabled (HS256 to RS256/ES256, invalidating previously issued access tokens)",
-    "docs site — verify the page builds and links from the navigation"
+    "index.ts — audit and confirm exports for: OIDC option types, oidc config block type, ID token claim types, discovery types, getUserClaims/getIdTokenClaims callback types, AccessTokenVerifier, OAuthException.invalidToken/insufficientScope helpers, PROTOCOL_CLAIM_NAMES const",
+    "CLAUDE.md — add an OIDC section to the architecture description, including a one-paragraph description of the AccessTokenVerifier seam and why it exists",
+    "docs site — write the Getting Started with OIDC page (config block → key setup → enable → call the new endpoints)",
+    "docs site — write the Keypair Lifecycle page with the snippets and warnings listed in the acceptance criteria",
+    "docs site — write the Hooks reference with the 'which hook do I use?' decision table",
+    "docs site configuration page — add the oidc config block options table and the top-level-issuer / nested-oidc split rationale",
+    "docs site — verify the page builds, links from the navigation, and that the per-feature pages from issues 4, 7, 8 are linked from the OIDC section",
+    "upgrade_guide.md — add the five upgrade items in the acceptance criteria; cross-link to the CHANGELOG entries from issues 1 and 4",
+    "CHANGELOG — finalize the OIDC release summary, stitching in the per-issue entries",
+    "lint/build — assert TSDoc doc-comments are present on the exported callback types",
+    "example app — update the auth-code entity and Prisma schema to include nonce and auth_time so the example isn't a misleading template (the example is a published reference)"
   ],
   "use_cases": [
     "UC-5"
   ],
-  "notes": "Final integration slice. The adapters need no code changes — the three OIDC endpoints return a plain ResponseInterface every adapter already handles, so the docs only show wiring. ADRs 0001 and 0002 and CONTEXT.md already capture the rationale and glossary."
+  "notes": "Final integration slice. The adapters need no code changes — the three OIDC endpoints return a plain ResponseInterface every adapter already handles, so the docs only show wiring. Per-feature docs ship with their issues (MF-8); this issue is integration, the upgrade guide, the public-API audit, and the example app update. ADRs 0001/0002/0003 and CONTEXT.md already capture the rationale and glossary."
 }
