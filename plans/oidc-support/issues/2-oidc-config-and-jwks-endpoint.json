@@ -1,7 +1,7 @@
 {
   "id": 2,
   "slug": "oidc-config-and-jwks-endpoint",
-  "name": "OIDC config block, construction guards \u0026 JWKS endpoint",
+  "name": "OIDC config block, construction guards, AccessTokenVerifier seam & JWKS endpoint",
   "track": "intent",
   "status": "backlog",
   "priority": "high",
@@ -15,6 +15,7 @@
   ],
   "blocking": [
     3,
+    7,
     8
   ],
   "branch": null,
@@ -24,25 +25,30 @@
   "updated": "2026-05-19",
   "tdd": true,
   "headed": false,
-  "outcome": "OIDC can be turned on via an explicit config block, mistakes are caught at construction, and the server publishes its signing key at a JWKS endpoint.",
-  "scope": "Add the oidc config block to AuthorizationServerOptions, fail-fast construction guards, and the jwks() endpoint method. No ID tokens, UserInfo, or discovery yet.",
+  "outcome": "OIDC can be turned on via an explicit config block; mistakes are caught at construction with specific error messages; the AccessTokenVerifier seam exists and owns the access-token security checks (algorithm pin, typ:at+jwt, iss equality, recorded aud policy) regardless of which JwtInterface the consumer supplies; and the server publishes its signing key at a JWKS endpoint.",
+  "scope": "Add the oidc config block to AuthorizationServerOptions, fail-fast construction guards with concrete error messages, the AccessTokenVerifier seam in src/oidc/ (consumed by issue 7's UserInfo), and the jwks() endpoint method. No ID tokens, UserInfo handler, or discovery yet.",
   "acceptance_criteria": [
-    "Constructing with oidc config but no issuer throws a clear error",
-    "Constructing with oidc config and a symmetric JWT service (no getKeySet) throws a clear error",
-    "jwks() returns { keys: [...] } containing the public signing key",
+    "Constructing with oidc config and a missing or non-https issuer throws 'OIDC requires `issuer` to be set' or 'OIDC `issuer` must be https (loopback http permitted)' verbatim — error messages are pinned, not described as 'clear'",
+    "Constructing with oidc config and an issuer with a query string or fragment throws 'OIDC `issuer` must not contain a query or fragment'",
+    "Constructing with oidc config but a JWT service that does not expose getKeySet throws 'OIDC requires a JwtInterface that implements getKeySet()'",
+    "AccessTokenVerifier seam: a named, unit-testable verifier in src/oidc/ accepting a raw bearer string and returning a verified typed payload, or throwing invalid_token. It enforces (a) the algorithm pin via the configured JwtInterface, (b) typ === 'at+jwt' on the JOSE header, (c) iss === configured issuer on the payload, and (d) the documented v1 aud policy (accept, do not reject on aud)",
+    "The seam is callable independently of UserInfo so issue 7 imports it as a unit; tests exercise the seam directly with crafted tokens (wrong typ, wrong iss, wrong alg, expired)",
+    "jwks() returns a ResponseInterface with { keys: [...] } containing the public signing key (use:'sig', alg:'RS256', kid), Content-Type: application/json, and Cache-Control: public, max-age=3600 (no-cache headers are wrong for JWKS — RPs cache it)",
     "Constructing without oidc config behaves identically to today"
   ],
   "steps": [
-    "AuthorizationServerOptions — add an optional oidc config block (endpoint URLs, getUserClaims, optional getIdTokenClaims, optional metadata override)",
-    "AuthorizationServer constructor — throw when oidc config is present but issuer is unset",
-    "AuthorizationServer constructor — throw when oidc config is present but the JWT service does not expose getKeySet",
-    "AuthorizationServer — add a jwks() method returning the JWK set as a ResponseInterface",
-    "index.ts — export the new OIDC option types",
-    "test/unit — cover both construction guards and the jwks() output shape"
+    "AuthorizationServerOptions — add an optional oidc config block { issuer reused from existing options as the OIDC issuer; endpoint URLs (authorizationEndpoint, tokenEndpoint, userinfoEndpoint, jwksUri — all four are REQUIRED by OIDC Discovery §3); getUserClaims callback; optional getIdTokenClaims callback; optional metadata override }. issuer stays top-level (already exists on AuthorizationServerOptions) — nesting it would be a breaking shape change; issue 9 documents this split",
+    "AuthorizationServer constructor — throw the verbatim error messages above when oidc config is present unless issuer is a well-formed absolute URL with no query or fragment and an https scheme (http permitted only for loopback hosts: localhost, 127.0.0.1, [::1])",
+    "AuthorizationServer constructor — throw when oidc config is present but the JWT service does not expose getKeySet. Note: when the AuthorizationServer is constructed with a string secret we instantiate JwtService internally, so the string-secret path naturally satisfies getKeySet once an asymmetric key option is added in a future minor — currently a string secret + oidc config still fails the guard (HS256 keys have no JWK export)",
+    "src/oidc — add the AccessTokenVerifier as a named class/function: input is a raw bearer string and the AuthorizationServerOptions; output is a verified typed payload, or throws OAuthException.invalidToken with a specific reason. Owns: algorithm pin (delegated to JwtInterface.verify), typ === 'at+jwt' check on the JOSE header before signature verification, iss equality post-verification, and the recorded v1 aud policy (no aud rejection)",
+    "AuthorizationServer — add a jwks() method returning the JWK set as a ResponseInterface with the JWKS-appropriate cache headers",
+    "index.ts — export the new OIDC option types AND the AccessTokenVerifier (consumers may want to call it standalone, e.g. for a custom resource-server adapter)",
+    "test/unit — cover the issuer-validation and getKeySet construction guards (assert the verbatim error messages), the jwks() output shape and cache headers, the no-private-members assertion on exported JWK, and direct AccessTokenVerifier tests (wrong typ, wrong iss, wrong alg, expired, well-formed at+jwt with matching iss accepted)"
   ],
   "use_cases": [
     "UC-5",
-    "UC-2"
+    "UC-2",
+    "UC-3"
   ],
-  "notes": "The oidc block lives on AuthorizationServerOptions so both AuthCodeGrant and the AuthorizationServer endpoint methods can read it. issuer is reused from existing options and becomes mandatory under OIDC. See docs/adr/0002."
+  "notes": "The oidc block lives on AuthorizationServerOptions so AuthCodeGrant and the AuthorizationServer endpoint methods can read it. issuer is reused from existing top-level options (it pre-dates OIDC) and becomes mandatory under OIDC — the split between top-level issuer and the nested oidc block is documented in issue 9. The AccessTokenVerifier seam is the home for UserInfo's access-token verification logic and closes MF-3/MF-4 together: it owns the security checks even when a consumer supplies a custom JwtInterface that itself does not pin algorithms. See ADR 0002, ADR 0003."
 }

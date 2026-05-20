@@ -3,19 +3,20 @@
   "slug": "oidc-support",
   "status": "active",
   "created": "2026-05-18",
-  "updated": "2026-05-18",
+  "updated": "2026-05-19",
   "description": "Add an OpenID Connect layer (ID tokens, UserInfo, discovery, JWKS) on top of the existing OAuth 2.0 authorization code grant.",
   "why": "Most teams searching for a TypeScript OAuth2 server actually want OIDC — they just don't know the distinction. Today the library answers OAuth questions but not authentication questions. Without ID tokens, a UserInfo endpoint, discovery, and a JWKS endpoint, it cannot be a relying party's login provider, which is what the majority of real-world auth integrations need.",
-  "outcome": "A consumer can enable OIDC by supplying an asymmetric signing key and an OIDC config block. Relying parties can run the PKCE authorization code flow with scope=openid, receive a verifiable ID token, fetch user claims from UserInfo, and auto-configure via the discovery and JWKS endpoints. Non-OIDC consumers see zero behavior change.",
+  "outcome": "A consumer can enable OIDC by supplying an asymmetric signing key and an OIDC config block. Relying parties can run the PKCE authorization code flow with scope=openid, receive a verifiable ID token, fetch user claims from UserInfo, and auto-configure via the discovery and JWKS endpoints. For non-OIDC consumers the token wire format is byte-identical to today; the only behavior change is JwtService.verify pinning the configured algorithm — a safe-by-default hardening that rejects algorithm-confused tokens. Documented in the upgrade guide.",
   "in_scope": [
     "ID token issuance in the authorization code flow when the openid scope is granted",
-    "UserInfo endpoint returning scope-derived claims for a presented access token",
+    "UserInfo endpoint returning scope-derived claims for a presented access token, with iss validation and a recorded aud policy",
     "Discovery endpoint serving .well-known/openid-configuration",
     "JWKS endpoint publishing the public signing key",
-    "Asymmetric (RS256/ES256) token signing with a consumer-supplied keypair",
-    "nonce capture and propagation into the ID token",
-    "Standard OIDC scope-to-claim mapping and filtering",
-    "getUserClaims and optional getIdTokenClaims consumer hooks"
+    "Asymmetric RS256 token signing with a consumer-supplied RSA keypair",
+    "nonce capture and propagation into the ID token, with a fail-loud guard when an opaque code loses nonce in transit",
+    "Standard OIDC scope-to-claim mapping (OIDC Core §5.4) and scope-gated filtering",
+    "getUserClaims and optional getIdTokenClaims consumer hooks",
+    "A named AccessTokenVerifier seam that owns iss/aud/typ/alg checks regardless of which JwtInterface the consumer supplies"
   ],
   "out_of_scope": [
     "Implicit and hybrid flows — response_type=code only",
@@ -25,6 +26,7 @@
     "Signed or encrypted UserInfo responses (application/jwt)",
     "Multi-key rotation machinery — kid headers and JWKS-as-array keep it a future additive change",
     "Runtime key generation — keypair lifecycle is the consumer's responsibility",
+    "ES256 (and any non-RS256 signing) in v1 — OIDC Discovery §3 requires RS256 in id_token_signing_alg_values_supported; a single ES256 key cannot satisfy this. ES256 is a future additive change (a one-line capability addition once a multi-key story exists).",
     "Formal OpenID conformance suite in CI",
     "Dynamic client registration and RP-initiated / front-channel / back-channel logout"
   ],
@@ -47,7 +49,7 @@
     },
     {
       "id": "UC-5",
-      "description": "A consumer enables OIDC by supplying an asymmetric signing key and OIDC config; a consumer who does not enable OIDC observes identical behavior to today."
+      "description": "A consumer enables OIDC by supplying an asymmetric signing key and OIDC config; a consumer who does not enable OIDC sees a byte-identical token wire format to today, with the single behavior change that verify() now pins the configured algorithm — documented in the upgrade guide."
     },
     {
       "id": "UC-6",
@@ -59,7 +61,7 @@
     }
   ],
   "decisions": [
-    "Asymmetric RS256/ES256 signing; one consumer-supplied keypair signs both ID and access tokens when OIDC is enabled; the symmetric HS256 path is unchanged for non-OIDC users (ADR 0001).",
+    "v1 ships RS256 only; ES256 is deferred (a single ES256 key cannot satisfy the OIDC Discovery §3 RS256-mandatory requirement). One consumer-supplied RSA keypair signs both ID and access tokens when OIDC is enabled; the symmetric HS256 path is unchanged for non-OIDC users (ADR 0001).",
     "No new runtime dependency: jsonwebtoken plus Node's built-in crypto cover signing, JWK export, and thumbprint computation.",
     "The consumer supplies the private key only (PEM string or KeyObject); the library derives the public key and never generates keys at runtime.",
     "v1 ships a single signing key; every token header carries a kid; the JWKS endpoint always publishes a keys array; kid defaults to the RFC 7638 thumbprint and is overridable.",
@@ -78,21 +80,35 @@
     "JwtInterface gains an optional JWKS-exposing method; OIDC construction throws if the supplied JWT service lacks it.",
     "ID token claims: iss, stringified sub, aud set to the client, exp reusing the access-token TTL, iat, conditional nonce and auth_time, and at_hash; azp is omitted in v1.",
     "An optional getIdTokenClaims hook merges custom claims into the ID token; protocol claims always win and cannot be overridden.",
-    "UserInfo requires the openid scope, returns plain JSON, verifies token signature and expiry, and checks revocation when getByAccessToken is implemented."
+    "UserInfo requires the openid scope, returns plain JSON, and routes verification through a named AccessTokenVerifier seam in src/oidc/ that owns the algorithm pin, typ:at+jwt check, iss equality check, and the recorded aud policy — regardless of which JwtInterface the consumer supplies. Verification also checks signature, expiry, and revocation when getByAccessToken is implemented.",
+    "UserInfo aud policy for v1: accept tokens issued by this server (iss match) without further aud validation, and record this as the documented limitation; a future resource-server-scoped audience check is a forward-compatible addition once the audience parameter has a discovery story.",
+    "OIDC access tokens carry the JOSE header typ:at+jwt (RFC 9068) while ID tokens keep typ:JWT; UserInfo rejects any non-at+jwt token, preventing an ID token from being accepted as a bearer access token (ADR 0003).",
+    "JwtService.verify pins the verification algorithm to the single configured algorithm, so a token's own alg header can never drive verification (algorithm-confusion defense, ADR 0003).",
+    "The OIDC construction guard validates issuer is a well-formed absolute https URL with no query or fragment; http is permitted only for loopback hosts.",
+    "A single canonical stringify (String(user.id)) produces sub for the ID token, the UserInfo response, and the getUserClaims key, keeping sub byte-identical across all three.",
+    "The discovery document advertises code_challenge_methods_supported as [\"S256\"] only; the grant still accepts a plain code_challenge_method but does not advertise it.",
+    "The getIdTokenClaims protocol-claims-win merge protects the full Protocol Claims set including the conditional nonce and auth_time.",
+    "JWT auth codes are the recommended encoder for OIDC consumers; opaque-code consumers must persist the new nonce/auth_time fields. If an opaque-code payload is resolved at token time and nonce is missing while the authorization request carried one, the library fails loud (throws invalid_grant) rather than minting a nonce-less ID token — silent loss is treated as a security failure, not a doc note.",
+    "max_age freshness is enforced: when max_age was requested and auth_time + max_age < now, the library throws an OAuthException; consumers are not trusted to enforce freshness themselves."
   ],
   "risks": [
     "JwtService.sign currently drops its options argument; it must be fixed to forward algorithm and keyid — a latent bug touched by this work.",
     "Asymmetric signing changes the token format for OIDC consumers (kid header, RS256/ES256); the existing symmetric HS256 path must remain byte-identical so non-OIDC users see no breaking change.",
     "AuthorizationServerOptions is currently flat scalars; nesting an oidc object containing callbacks is a shape change to a public interface — additive but notable.",
     "Consumers using opaque authorization codes must persist two new entity fields (nonce, auth_time) or OIDC nonce binding silently breaks; this requires a clear doc note.",
-    "This is a published library — every change must be additive and no public signature may change."
+    "This is a published library — every change must be additive and no public signature may change.",
+    "JwtService.verify will pin algorithms for existing symmetric consumers too ([\"HS256\"]); a safe-by-default tightening of verification behavior. A caller-supplied algorithms VerifyOptions is now silently ignored — this is a behavior change requiring a CHANGELOG entry and an upgrade-guide note, not just inline docs.",
+    "Asymmetric signing is ~100× slower than HS256 per operation. For high-throughput deployments this is a real operational consideration; accepted-and-documented in v1 since the keypair is fixed and signing is amortized over short access-token lifetimes.",
+    "The JwtInterface contract cannot enforce algorithm pinning, typ:at+jwt, or JWK export — a consumer who supplies a custom JwtInterface would otherwise bypass these security properties. The AccessTokenVerifier seam in src/oidc/ owns the security checks regardless of the injected JWT service, closing this gap."
   ],
   "validation": [
-    "Unit tests: JWK export, RFC 7638 thumbprint kid, RS256/ES256 sign-and-verify round trip, scope-to-claim filtering, discovery document generation, ID token claim assembly, and at_hash computation.",
-    "Keystone e2e: a full authorize-to-token flow that verifies the issued ID token's signature against the live JWKS endpoint, then calls UserInfo — run on the vanilla adapter.",
-    "e2e: opaque-authorization-code OIDC variant, and a 403 insufficient_scope response when the openid scope is absent at UserInfo.",
-    "The existing test suite stays green and the symmetric HS256 path is confirmed unchanged.",
-    "Manual smoke test against a real relying-party library (openid-client)."
+    "Unit tests: JWK export, RFC 7638 thumbprint kid against a known-answer vector, RS256 sign-and-verify round trip, scope-to-claim filtering (OIDC Core §5.4 exact), discovery document generation, ID token claim assembly, and at_hash against the OIDC Core §A.3 known-answer test vector.",
+    "Unit tests: algorithm-confusion attack rejection — HS256 token forged using the RSA public key as the HMAC secret is rejected; alg:none is rejected; malformed PEM and public-only keys fail at construction.",
+    "Keystone e2e (vanilla adapter): authorize → token → independently verify the issued ID token using the `jose` library against the live /jwks endpoint (not the library's own JwtService — a self-referential verify cannot catch a JWK-export or thumbprint bug) → call /userinfo → assert decoded id_token.sub equals userinfo sub.",
+    "e2e: opaque-authorization-code OIDC variant; 403 insufficient_scope when openid scope is absent at UserInfo; 401 invalid_token when an ID token is presented as a bearer access token; iss mismatch rejection.",
+    "Regression: byte-identical HS256 JOSE-header snapshot for non-OIDC consumers — assert `{alg:HS256,typ:JWT}` exactly, with no kid and no at+jwt. Snapshot, not round-trip.",
+    "Timer strategy for the keystone e2e is specified upfront: use real timers via vi.useRealTimers() inside the describe block, since test/setup.ts installs fake timers globally and a JWKS verify against `iat`/`exp` cannot work under frozen time.",
+    "Manual smoke test against openid-client; gate release on the automated jose-library verification e2e, not the manual smoke."
   ],
   "notes": "Five implementation phases in dependency order. Phase 1: key service and JWKS — extend JwtService for asymmetric keys, fix sign() to forward options, add a JWKS-exposing method to JwtInterface. Phase 2: the oidc config block on AuthorizationServerOptions plus fail-fast construction guards (issuer set, JWT service exposes JWKS). Phase 3: ID token issuance inside the authorization code grant — nonce and auth_time threaded through the authorization request, auth code entity, payload, and both auth code encoders. Phase 4: the UserInfo endpoint, the claims resolver and standard scope-to-claim mapping, and new invalid_token / insufficient_scope error types. Phase 5: the discovery document, public type exports, and documentation. New code is concentrated under src/oidc/. The framework adapters need no changes — the three new endpoints return a plain ResponseInterface that every adapter already handles. Rough size: 1,300-1,600 lines of library code and 900-1,200 lines of tests. Two ADRs are already recorded: docs/adr/0001 (asymmetric signing) and docs/adr/0002 (OIDC layered on the auth code grant). Domain glossary captured in CONTEXT.md.",
   "dev_command": "pnpm test:watch",
