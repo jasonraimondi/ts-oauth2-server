@@ -13,9 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add the optional `oidc` authorization-server config block, construction guards, `jwks()` endpoint response, and reusable `AccessTokenVerifier` seam.
 - Add OIDC Core §5.4 scope-to-claim mapping and scope-gated claim filtering helpers.
 - Thread OIDC `nonce`, `auth_time`, and `max_age` through the authorization request, auth code entity, and payload for both JWT and opaque codes, with a fail-loud guard when an opaque-code repository drops the persisted `nonce` and `max_age` freshness enforcement at token time.
+- Issue a signed `id_token` alongside the access token in the authorization code flow when the `openid` scope is granted, carrying `iss`, `sub`, `aud`, `exp`, `iat`, conditional `nonce`/`auth_time`, and `at_hash`. Adds `buildIdTokenClaims`, `calculateAtHash`, and `oidcSubjectIdentifier` helpers, and auto-recognizes the standard OIDC scopes (`openid`, `profile`, `email`, `address`, `phone`) when OIDC is enabled.
 
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.
+- When OIDC is enabled, authorization-code access tokens now carry the JOSE header `typ: "at+jwt"` (RFC 9068). The `BearerTokenResponse` body gains an optional `id_token` string for OIDC `openid` flows. Non-OIDC token wire format is unchanged.
 - `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options.
 - `JwtService.sign()` now forwards signing options, including JOSE header overrides such as `typ: "at+jwt"`.
 

@@ -3,7 +3,7 @@
   "slug": "issue-id-tokens",
   "name": "Issue ID tokens in the authorization code flow",
   "track": "intent",
-  "status": "backlog",
+  "status": "done",
   "priority": "high",
   "points": 3,
   "labels": [

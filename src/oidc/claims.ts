@@ -23,6 +23,18 @@ export const OIDC_SCOPE_CLAIMS = {
 export type OidcStandardScope = keyof typeof OIDC_SCOPE_CLAIMS;
 export type OidcStandardClaim = (typeof OIDC_SCOPE_CLAIMS)[OidcStandardScope][number];
 
+/**
+ * Scopes the library auto-recognizes as valid when OIDC is enabled, so consumers
+ * need not register them in their scope repository. `offline_access` is
+ * intentionally excluded in v1: refresh-token issuance is consumer-owned and no
+ * ID token is issued on refresh, so advertising it would mislead relying parties.
+ */
+export const OIDC_AUTO_RECOGNIZED_SCOPES: readonly string[] = ["openid", ...Object.keys(OIDC_SCOPE_CLAIMS)];
+
+export function isAutoRecognizedOidcScope(scope: string): boolean {
+  return OIDC_AUTO_RECOGNIZED_SCOPES.includes(scope);
+}
+
 export interface OidcAddressClaim {
   formatted?: string;
   street_address?: string;

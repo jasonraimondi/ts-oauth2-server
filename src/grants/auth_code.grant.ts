@@ -4,7 +4,10 @@ import { CodeChallengeMethod, ICodeChallenge } from "../code_verifiers/verifier.
 import { OAuthAuthCode } from "../entities/auth_code.entity.js";
 import { OAuthClient } from "../entities/client.entity.js";
 import { OAuthScope } from "../entities/scope.entity.js";
-import { OAuthUserIdentifier } from "../entities/user.entity.js";
+import { OAuthToken } from "../entities/token.entity.js";
+import { OAuthUser, OAuthUserIdentifier } from "../entities/user.entity.js";
+import { buildIdTokenClaims } from "../oidc/id_token.js";
+import { oidcSubjectIdentifier } from "../oidc/subject.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthTokenRepository } from "../repositories/access_token.repository.js";
 import { OAuthAuthCodeRepository } from "../repositories/auth_code.repository.js";
@@ -155,7 +158,52 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     const extraJwtFields = await this.extraJwtFields(req, client, user, accessToken.originatingAuthCodeId);
 
-    return await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
+    const tokenResponse = await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
+
+    if (this.shouldIssueIdToken(scopes)) {
+      tokenResponse.body = {
+        ...tokenResponse.body,
+        id_token: await this.issueIdToken(
+          client,
+          user,
+          accessToken,
+          tokenResponse.body.access_token as string,
+          validatedPayload,
+        ),
+      };
+    }
+
+    return tokenResponse;
+  }
+
+  private shouldIssueIdToken(scopes: OAuthScope[]): boolean {
+    return !!this.options.oidc && scopes.some(scope => scope.name === "openid");
+  }
+
+  /**
+   * Mints the ID token for an OIDC authorization-code flow. Added here in
+   * AuthCodeGrant after `makeBearerTokenResponse` returns — never by editing
+   * AbstractGrant, which the other grants inherit. The ID token carries Protocol
+   * Claims only; scope-derived user attributes are served from UserInfo.
+   */
+  private async issueIdToken(
+    client: OAuthClient,
+    user: OAuthUser | undefined,
+    accessToken: OAuthToken,
+    encryptedAccessToken: string,
+    payload: PayloadAuthCode,
+  ): Promise<string> {
+    const claims = buildIdTokenClaims({
+      issuer: this.options.issuer ?? "",
+      clientId: client.id,
+      subject: oidcSubjectIdentifier(user!.id),
+      accessTokenExpiresAt: accessToken.accessTokenExpiresAt,
+      encryptedAccessToken,
+      nonce: payload.nonce,
+      authTime: payload.auth_time,
+    });
+
+    return this.encrypt(claims);
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {

@@ -16,7 +16,9 @@ import { ResponseInterface } from "../../responses/response.js";
 import { arrayDiff } from "../../utils/array.js";
 import { base64decode } from "../../utils/base64.js";
 import { DateInterval } from "../../utils/date_interval.js";
+import type { SignOptions } from "jsonwebtoken";
 import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt.js";
+import { isAutoRecognizedOidcScope } from "../../oidc/claims.js";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time.js";
 import {
   JwtRefreshTokenEncoder,
@@ -141,25 +143,34 @@ export abstract class AbstractGrant implements GrantInterface {
     extraJwtFields: ExtraAccessTokenFields,
   ): Promise<string> {
     const now = Date.now();
-    return this.encrypt(<ITokenData>{
-      // optional claims which the `jwtService.extraTokenFields()` method may overwrite
-      iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
-      aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
+    // RFC 9068: OIDC access tokens carry typ:at+jwt so a verifier can reject an
+    // ID token presented as a bearer token. Non-OIDC consumers pass no options
+    // and keep the byte-identical { alg:HS256, typ:JWT } header.
+    const signOptions: SignOptions | undefined = this.options.oidc
+      ? { header: { typ: "at+jwt", alg: "RS256" } }
+      : undefined;
+    return this.encrypt(
+      <ITokenData>{
+        // optional claims which the `jwtService.extraTokenFields()` method may overwrite
+        iss: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.1
+        aud: undefined, // @see https://tools.ietf.org/html/rfc7519#section-4.1.3
 
-      // the contents of `jwtService.extraTokenFields()`
-      ...extraJwtFields,
+        // the contents of `jwtService.extraTokenFields()`
+        ...extraJwtFields,
 
-      // non-standard claims over which this library asserts control
-      cid: client[this.options.tokenCID],
-      scope: scopes.map(scope => scope.name).join(this.scopeDelimiter),
+        // non-standard claims over which this library asserts control
+        cid: client[this.options.tokenCID],
+        scope: scopes.map(scope => scope.name).join(this.scopeDelimiter),
 
-      // standard claims over which this library asserts control
-      sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
-      exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
-      nbf: roundToSeconds(now) - this.options.notBeforeLeeway, // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
-      iat: roundToSeconds(now), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
-      jti: accessToken.accessToken, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
-    });
+        // standard claims over which this library asserts control
+        sub: accessToken.user?.id, // @see https://tools.ietf.org/html/rfc7519#section-4.1.2
+        exp: roundToSeconds(accessToken.accessTokenExpiresAt.getTime()), // @see https://tools.ietf.org/html/rfc7519#section-4.1.4
+        nbf: roundToSeconds(now) - this.options.notBeforeLeeway, // @see https://tools.ietf.org/html/rfc7519#section-4.1.5
+        iat: roundToSeconds(now), // @see https://tools.ietf.org/html/rfc7519#section-4.1.6
+        jti: accessToken.accessToken, // @see https://tools.ietf.org/html/rfc7519#section-4.1.7
+      },
+      signOptions,
+    );
   }
 
   protected async validateClient(request: RequestInterface): Promise<OAuthClient> {
@@ -236,6 +247,16 @@ export abstract class AbstractGrant implements GrantInterface {
 
     const validScopes = await this.scopeRepository.getAllByIdentifiers(scopes);
 
+    if (this.options.oidc) {
+      const known = new Set(validScopes.map(scope => scope.name));
+      for (const name of scopes) {
+        if (!known.has(name) && isAutoRecognizedOidcScope(name)) {
+          validScopes.push({ name });
+          known.add(name);
+        }
+      }
+    }
+
     const invalidScopes = arrayDiff(
       scopes,
       validScopes.map(scope => scope.name),
@@ -290,8 +311,11 @@ export abstract class AbstractGrant implements GrantInterface {
     return request.query?.[param] ?? defaultValue;
   }
 
-  protected encrypt(unencryptedData: string | Buffer | Record<string, unknown>): Promise<string> {
-    return this.jwt.sign(unencryptedData);
+  protected encrypt(
+    unencryptedData: string | Buffer | Record<string, unknown>,
+    options?: SignOptions,
+  ): Promise<string> {
+    return this.jwt.sign(unencryptedData, options);
   }
 
   protected async decrypt(encryptedData: string): Promise<Record<string, unknown>> {

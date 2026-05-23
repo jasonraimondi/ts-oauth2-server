@@ -7,6 +7,8 @@ export * from "./entities/user.entity.js";
 export * from "./exceptions/oauth.exception.js";
 export * from "./oidc/access_token_verifier.js";
 export * from "./oidc/claims.js";
+export * from "./oidc/id_token.js";
+export * from "./oidc/subject.js";
 export { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 export type {
   OidcDiscoveryMetadata,
