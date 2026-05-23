@@ -14,6 +14,7 @@ This server implements the following OAuth 2.0 endpoints, each supporting specif
 
 ## OpenID Connect Endpoints
 
+- [The `/userinfo` Endpoint](./userinfo.md)
 - [The `/.well-known/openid-configuration` Endpoint](./discovery.md)
 
 :::info

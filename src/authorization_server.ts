@@ -15,7 +15,9 @@ import { RequestInterface } from "./requests/request.js";
 import { OAuthResponse, ResponseInterface } from "./responses/response.js";
 import { DateInterval } from "./utils/date_interval.js";
 import { type JsonWebKeySet, JwtInterface, JwtService } from "./utils/jwt.js";
+import { AccessTokenVerifier } from "./oidc/access_token_verifier.js";
 import { buildOidcDiscoveryDocument, OIDC_PROTECTED_METADATA } from "./oidc/discovery.js";
+import { handleUserInfoRequest } from "./oidc/userinfo.js";
 import { AuthorizationServerOptions, DEFAULT_AUTHORIZATION_SERVER_OPTIONS, OidcDiscoveryMetadata } from "./options.js";
 import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
 import { AbstractGrant } from "./grants/abstract/abstract.grant.js";
@@ -400,6 +402,26 @@ export class AuthorizationServer {
         "cache-control": "public, max-age=3600",
       },
       body: buildOidcDiscoveryDocument(this.options.issuer!, this.options.oidc),
+    });
+  }
+
+  /**
+   * Handles requests to the `/userinfo` endpoint, returning the end-user's
+   * scope-derived claims for a presented OIDC access token. Access-token
+   * verification is delegated to the AccessTokenVerifier seam; the response is
+   * a plain ResponseInterface (200 with claims, or an RFC 6750 bearer error),
+   * so every adapter handles it unchanged.
+   */
+  userInfo(req: RequestInterface): Promise<ResponseInterface> {
+    if (!this.options.oidc) {
+      throw OAuthException.badRequest("OIDC is not enabled on this authorization server");
+    }
+
+    return handleUserInfoRequest(req, {
+      verifier: new AccessTokenVerifier(this.jwt, this.options),
+      oidc: this.options.oidc,
+      scopeDelimiter: this.options.scopeDelimiter,
+      getByAccessToken: this.tokenRepository.getByAccessToken?.bind(this.tokenRepository),
     });
   }
 

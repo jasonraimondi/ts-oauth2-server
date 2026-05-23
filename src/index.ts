@@ -10,6 +10,7 @@ export * from "./oidc/claims.js";
 export * from "./oidc/discovery.js";
 export * from "./oidc/id_token.js";
 export * from "./oidc/subject.js";
+export * from "./oidc/userinfo.js";
 export { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 export type {
   OidcDiscoveryMetadata,
