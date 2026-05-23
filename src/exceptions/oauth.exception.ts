@@ -2,6 +2,7 @@ export const HttpStatus = {
   NOT_ACCEPTABLE: 406,
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
   INTERNAL_SERVER_ERROR: 500,
   OK: 200,
 };
@@ -11,6 +12,8 @@ export enum ErrorType {
   InvalidClient = "invalid_client",
   InvalidGrant = "invalid_grant",
   InvalidScope = "invalid_scope",
+  InvalidToken = "invalid_token",
+  InsufficientScope = "insufficient_scope",
   UnauthorizedScope = "unauthorized_scope",
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
@@ -124,6 +127,26 @@ export class OAuthException extends Error {
    */
   static unsupportedTokenType(): OAuthException {
     return new OAuthException("Unsupported token_type_hint", ErrorType.UnsupportedTokenType);
+  }
+
+  static invalidToken(errorDescription?: string): OAuthException {
+    return new OAuthException(
+      "Invalid token",
+      ErrorType.InvalidToken,
+      errorDescription,
+      undefined,
+      HttpStatus.UNAUTHORIZED,
+    );
+  }
+
+  static insufficientScope(errorDescription?: string): OAuthException {
+    return new OAuthException(
+      "Insufficient scope",
+      ErrorType.InsufficientScope,
+      errorDescription,
+      undefined,
+      HttpStatus.FORBIDDEN,
+    );
   }
 
   static badRequest(message: string): OAuthException {

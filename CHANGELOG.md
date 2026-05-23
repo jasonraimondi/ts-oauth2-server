@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add RS256 `JwtService` key options with public JWKS export and RFC 7638 thumbprint `kid` defaults.
+- Add `OAuthException.invalidToken()` and `OAuthException.insufficientScope()` helpers for OIDC bearer-token responses.
+
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.
+- `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options.
+- `JwtService.sign()` now forwards signing options, including JOSE header overrides such as `typ: "at+jwt"`.
 
 ## [4.3.5] - 2026-05-08
 
