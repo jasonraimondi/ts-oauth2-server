@@ -3,7 +3,7 @@
   "slug": "claims-resolver-and-error-types",
   "name": "Claims resolver (OIDC Core §5.4 scope-to-claim mapping)",
   "track": "rules",
-  "status": "backlog",
+  "status": "done",
   "priority": "high",
   "points": 2,
   "labels": [
@@ -16,7 +16,7 @@
   "blocking": [
     7
   ],
-  "branch": null,
+  "branch": "jason/oidc-support",
   "pr": null,
   "linear_id": "dc8e75cd-38a1-4a01-94c5-b5adfc0c5b37",
   "created": "2026-05-18",

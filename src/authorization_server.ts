@@ -12,9 +12,9 @@ import { OAuthScopeRepository } from "./repositories/scope.repository.js";
 import { OAuthUserRepository } from "./repositories/user.repository.js";
 import { AuthorizationRequest } from "./requests/authorization.request.js";
 import { RequestInterface } from "./requests/request.js";
-import { ResponseInterface } from "./responses/response.js";
+import { OAuthResponse, ResponseInterface } from "./responses/response.js";
 import { DateInterval } from "./utils/date_interval.js";
-import { JwtInterface, JwtService } from "./utils/jwt.js";
+import { type JsonWebKeySet, JwtInterface, JwtService } from "./utils/jwt.js";
 import { AuthorizationServerOptions, DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
 import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
 import { AbstractGrant } from "./grants/abstract/abstract.grant.js";
@@ -57,6 +57,55 @@ export type OAuthTokenIntrospectionResponse = {
   iss?: string;
   jti?: string;
 };
+
+const OIDC_REQUIRES_ISSUER = "OIDC requires `issuer` to be set";
+const OIDC_ISSUER_MUST_BE_HTTPS = "OIDC `issuer` must be https (loopback http permitted)";
+const OIDC_ISSUER_NO_QUERY_OR_FRAGMENT = "OIDC `issuer` must not contain a query or fragment";
+const OIDC_REQUIRES_JWKS = "OIDC requires a JwtInterface that implements getKeySet()";
+
+function isLoopbackHostname(hostname: string): boolean {
+  const normalized = hostname.toLowerCase();
+  return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1" || normalized === "[::1]";
+}
+
+function validateOidcIssuer(issuer: string | undefined): void {
+  if (!issuer) {
+    throw OAuthException.badRequest(OIDC_REQUIRES_ISSUER);
+  }
+
+  let url: URL;
+  try {
+    url = new URL(issuer);
+  } catch {
+    throw OAuthException.badRequest(OIDC_ISSUER_MUST_BE_HTTPS);
+  }
+
+  if (url.search || url.hash || issuer.includes("?") || issuer.includes("#")) {
+    throw OAuthException.badRequest(OIDC_ISSUER_NO_QUERY_OR_FRAGMENT);
+  }
+
+  if (url.protocol === "https:") {
+    return;
+  }
+
+  if (url.protocol === "http:" && isLoopbackHostname(url.hostname)) {
+    return;
+  }
+
+  throw OAuthException.badRequest(OIDC_ISSUER_MUST_BE_HTTPS);
+}
+
+function getOidcKeySet(jwt: JwtInterface): JsonWebKeySet {
+  if (typeof jwt.getKeySet !== "function") {
+    throw OAuthException.badRequest(OIDC_REQUIRES_JWKS);
+  }
+
+  try {
+    return jwt.getKeySet();
+  } catch {
+    throw OAuthException.badRequest(OIDC_REQUIRES_JWKS);
+  }
+}
 
 /**
  * The Authorization Server is the core component of the OAuth 2.0 framework.
@@ -105,8 +154,13 @@ export class AuthorizationServer {
     serviceOrString: JwtInterface | string,
     options?: Partial<AuthorizationServerOptions>,
   ) {
-    this.jwt = typeof serviceOrString === "string" ? new JwtService(serviceOrString) : (this.jwt = serviceOrString);
+    this.jwt = typeof serviceOrString === "string" ? new JwtService(serviceOrString) : serviceOrString;
     this.options = { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options };
+    if (this.options.oidc) {
+      validateOidcIssuer(this.options.issuer);
+      getOidcKeySet(this.jwt);
+    }
+
     const grantProps = [
       this.clientRepository,
       this.tokenRepository,
@@ -306,6 +360,16 @@ export class AuthorizationServer {
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
     const grant = this.enabledGrantTypes[authorizationRequest.grantTypeId];
     return await grant.completeAuthorizationRequest(authorizationRequest);
+  }
+
+  jwks(): ResponseInterface {
+    return new OAuthResponse({
+      headers: {
+        "content-type": "application/json",
+        "cache-control": "public, max-age=3600",
+      },
+      body: getOidcKeySet(this.jwt),
+    });
   }
 
   /**

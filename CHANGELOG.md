@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add RS256 `JwtService` key options with public JWKS export and RFC 7638 thumbprint `kid` defaults.
 - Add `OAuthException.invalidToken()` and `OAuthException.insufficientScope()` helpers for OIDC bearer-token responses.
+- Add the optional `oidc` authorization-server config block, construction guards, `jwks()` endpoint response, and reusable `AccessTokenVerifier` seam.
+- Add OIDC Core §5.4 scope-to-claim mapping and scope-gated claim filtering helpers.
 
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.

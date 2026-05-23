@@ -1,4 +1,29 @@
+import type { OidcUserClaims } from "./oidc/claims.js";
 import { LoggerService } from "./utils/logger.js";
+
+export type OidcDiscoveryMetadata = Record<string, unknown>;
+export type OidcGetUserClaims = (subject: string) => OidcUserClaims | Promise<OidcUserClaims>;
+
+export interface OidcIdTokenClaimsContext {
+  subject: string;
+  clientId: string;
+  scopes: string[];
+  [context: string]: unknown;
+}
+
+export type OidcGetIdTokenClaims = (
+  context: OidcIdTokenClaimsContext,
+) => Record<string, unknown> | Promise<Record<string, unknown>>;
+
+export interface OidcOptions {
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  userinfoEndpoint: string;
+  jwksUri: string;
+  getUserClaims: OidcGetUserClaims;
+  getIdTokenClaims?: OidcGetIdTokenClaims;
+  metadata?: OidcDiscoveryMetadata;
+}
 
 /**
  * @see https://tsoauth2server.com/configuration/
@@ -10,6 +35,7 @@ export interface AuthorizationServerOptions {
   requiresS256: boolean;
   tokenCID: "id" | "name";
   issuer?: string;
+  oidc?: OidcOptions;
   scopeDelimiter: string;
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;

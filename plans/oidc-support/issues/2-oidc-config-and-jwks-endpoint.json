@@ -1,9 +1,9 @@
 {
   "id": 2,
   "slug": "oidc-config-and-jwks-endpoint",
-  "name": "OIDC config block, construction guards, AccessTokenVerifier seam & JWKS endpoint",
+  "name": "OIDC config block, construction guards, AccessTokenVerifier seam \u0026 JWKS endpoint",
   "track": "intent",
-  "status": "backlog",
+  "status": "done",
   "priority": "high",
   "points": 3,
   "labels": [
@@ -18,7 +18,7 @@
     7,
     8
   ],
-  "branch": null,
+  "branch": "jason/oidc-support",
   "pr": null,
   "linear_id": "75280983-5520-486f-b0fa-b9ee3f1acd22",
   "created": "2026-05-18",
