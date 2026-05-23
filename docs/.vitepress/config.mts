@@ -117,6 +117,10 @@ export default defineConfig({
               text: "/.well-known/openid-configuration",
               link: "/docs/endpoints/discovery",
             },
+            {
+              text: "OIDC conformance smoke test",
+              link: "/docs/endpoints/oidc_conformance",
+            },
           ],
         },
         {
