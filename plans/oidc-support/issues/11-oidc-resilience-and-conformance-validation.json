@@ -3,7 +3,7 @@
   "slug": "oidc-resilience-and-conformance-validation",
   "name": "OIDC resilience and conformance validation",
   "track": "resilience",
-  "status": "backlog",
+  "status": "in-review",
   "priority": "high",
   "points": 3,
   "labels": [
@@ -21,7 +21,7 @@
   "pr": null,
   "linear_id": null,
   "created": "2026-05-22",
-  "updated": "2026-05-22",
+  "updated": "2026-05-23",
   "tdd": true,
   "headed": false,
   "outcome": "The completed OIDC surface is validated against cross-cutting failure modes and a real relying-party client before the release docs are finalized.",

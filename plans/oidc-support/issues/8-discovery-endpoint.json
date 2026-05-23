@@ -3,7 +3,7 @@
   "slug": "discovery-endpoint",
   "name": "Discovery endpoint",
   "track": "intent",
-  "status": "backlog",
+  "status": "in-review",
   "priority": "high",
   "points": 2,
   "labels": [
@@ -17,11 +17,11 @@
     9,
     11
   ],
-  "branch": null,
+  "branch": "jason/oidc-support",
   "pr": null,
   "linear_id": "53a40e5e-e81b-42fd-9f40-b0eeedcf3337",
   "created": "2026-05-18",
-  "updated": "2026-05-22",
+  "updated": "2026-05-23",
   "tdd": true,
   "headed": false,
   "outcome": "A relying party can fetch .well-known/openid-configuration and learn the server's OIDC capabilities and endpoint URLs. The document is spec-conformant: id_token_signing_alg_values_supported is [\"RS256\"] (satisfies OIDC Discovery §3 RS256-mandatory) and all four REQUIRED endpoint URLs are present.",
