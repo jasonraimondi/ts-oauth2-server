@@ -1,10 +1,4 @@
-import {
-  createHash,
-  createPrivateKey,
-  createPublicKey,
-  type JsonWebKey as NodeJsonWebKey,
-  type KeyObject,
-} from "crypto";
+import { createHash, createPrivateKey, createPublicKey, type KeyObject } from "crypto";
 import {
   decode as jwtDecode,
   sign as jwtSign,
@@ -55,7 +49,14 @@ function isAsymmetricKeyOptions(value: Secret | JwtAsymmetricKeyOptions): value 
   return typeof value === "object" && value !== null && "key" in value;
 }
 
-function assertRsaPublicJwk(jwk: NodeJsonWebKey): asserts jwk is NodeJsonWebKey & { kty: "RSA"; n: string; e: string } {
+/** The subset of a JWK export (`KeyObject.export({ format: "jwk" })`) we consume. */
+interface ExportedJwk {
+  kty?: string;
+  n?: string;
+  e?: string;
+}
+
+function assertRsaPublicJwk(jwk: ExportedJwk): asserts jwk is ExportedJwk & { kty: "RSA"; n: string; e: string } {
   if (jwk.kty !== "RSA" || typeof jwk.n !== "string" || typeof jwk.e !== "string") {
     throw new Error("RS256 requires an RSA key");
   }
