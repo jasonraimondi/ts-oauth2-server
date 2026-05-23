@@ -15,7 +15,8 @@ import { RequestInterface } from "./requests/request.js";
 import { OAuthResponse, ResponseInterface } from "./responses/response.js";
 import { DateInterval } from "./utils/date_interval.js";
 import { type JsonWebKeySet, JwtInterface, JwtService } from "./utils/jwt.js";
-import { AuthorizationServerOptions, DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
+import { buildOidcDiscoveryDocument, OIDC_PROTECTED_METADATA } from "./oidc/discovery.js";
+import { AuthorizationServerOptions, DEFAULT_AUTHORIZATION_SERVER_OPTIONS, OidcDiscoveryMetadata } from "./options.js";
 import { ProcessTokenExchangeFn, TokenExchangeGrant } from "./grants/token_exchange.grant.js";
 import { AbstractGrant } from "./grants/abstract/abstract.grant.js";
 
@@ -95,6 +96,16 @@ function validateOidcIssuer(issuer: string | undefined): void {
   throw OAuthException.badRequest(OIDC_ISSUER_MUST_BE_HTTPS);
 }
 
+function validateOidcMetadataOverride(metadata: OidcDiscoveryMetadata | undefined): void {
+  if (!metadata) return;
+
+  for (const key of OIDC_PROTECTED_METADATA) {
+    if (Object.hasOwn(metadata, key)) {
+      throw OAuthException.badRequest(`OIDC discovery metadata cannot override \`${key}\``);
+    }
+  }
+}
+
 function getOidcKeySet(jwt: JwtInterface): JsonWebKeySet {
   if (typeof jwt.getKeySet !== "function") {
     throw OAuthException.badRequest(OIDC_REQUIRES_JWKS);
@@ -159,6 +170,7 @@ export class AuthorizationServer {
     if (this.options.oidc) {
       validateOidcIssuer(this.options.issuer);
       getOidcKeySet(this.jwt);
+      validateOidcMetadataOverride(this.options.oidc.metadata);
     }
 
     const grantProps = [
@@ -369,6 +381,25 @@ export class AuthorizationServer {
         "cache-control": "public, max-age=3600",
       },
       body: getOidcKeySet(this.jwt),
+    });
+  }
+
+  /**
+   * Serves the OIDC discovery document for the `.well-known/openid-configuration`
+   * endpoint. Requires OIDC to be enabled (the construction guard validates the
+   * issuer and signing key).
+   */
+  openidConfiguration(): ResponseInterface {
+    if (!this.options.oidc) {
+      throw OAuthException.badRequest("OIDC is not enabled on this authorization server");
+    }
+
+    return new OAuthResponse({
+      headers: {
+        "content-type": "application/json",
+        "cache-control": "public, max-age=3600",
+      },
+      body: buildOidcDiscoveryDocument(this.options.issuer!, this.options.oidc),
     });
   }
 

@@ -112,6 +112,10 @@ export default defineConfig({
               text: "/token/introspect",
               link: "/docs/endpoints/introspect",
             },
+            {
+              text: "/.well-known/openid-configuration",
+              link: "/docs/endpoints/discovery",
+            },
           ],
         },
         {
