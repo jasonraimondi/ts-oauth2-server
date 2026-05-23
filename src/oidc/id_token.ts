@@ -13,6 +13,13 @@ export interface IdTokenClaims {
   [claim: string]: unknown;
 }
 
+/**
+ * The reserved OIDC Protocol Claims. A consumer-supplied `getIdTokenClaims`
+ * hook can never override these — they are stripped from the hook output before
+ * it is merged into the ID token payload (OIDC Core §2).
+ */
+export const PROTOCOL_CLAIM_NAMES = ["iss", "sub", "aud", "exp", "iat", "at_hash", "nonce", "auth_time"] as const;
+
 export interface IdTokenClaimsInput {
   issuer: string;
   clientId: string;
@@ -53,4 +60,23 @@ export function buildIdTokenClaims(input: IdTokenClaimsInput): IdTokenClaims {
   if (input.authTime != null) claims.auth_time = input.authTime;
 
   return claims;
+}
+
+/**
+ * Merges consumer-supplied custom claims into the protocol claim set with the
+ * protocol claims always winning. The strip is explicit — every
+ * PROTOCOL_CLAIM_NAMES key is removed from the hook output before merging — so
+ * a consumer can add claims (roles, tenant, acr) but can never corrupt iss, sub,
+ * aud, exp, iat, at_hash, nonce, or auth_time.
+ */
+export function mergeIdTokenClaims(
+  protocolClaims: IdTokenClaims,
+  customClaims: Record<string, unknown>,
+): IdTokenClaims {
+  const reserved = new Set<string>(PROTOCOL_CLAIM_NAMES);
+  const safeCustomClaims: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(customClaims)) {
+    if (!reserved.has(key)) safeCustomClaims[key] = value;
+  }
+  return { ...safeCustomClaims, ...protocolClaims };
 }

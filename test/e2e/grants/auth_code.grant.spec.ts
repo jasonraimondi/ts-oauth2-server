@@ -1040,9 +1040,91 @@ describe("authorization_code grant", () => {
       const firstResponse = await oidcGrant.respondToAccessTokenRequest(buildTokenRequest(), new DateInterval("1h"));
       expect(firstResponse.body.id_token).toEqual(expect.any(String));
 
-      await expect(
-        oidcGrant.respondToAccessTokenRequest(buildTokenRequest(), new DateInterval("1h")),
-      ).rejects.toThrow(OAuthException);
+      await expect(oidcGrant.respondToAccessTokenRequest(buildTokenRequest(), new DateInterval("1h"))).rejects.toThrow(
+        OAuthException,
+      );
+    });
+
+    const redeemOpenidCode = async (oidcGrant: AuthCodeGrant, nonce?: string) => {
+      const code = await issueOpenidCode(oidcGrant, nonce);
+      request = new OAuthRequest({
+        body: { grant_type: "authorization_code", code, redirect_uri: "http://example.com", client_id: client.id },
+      });
+      return oidcGrant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+    };
+
+    it("adds custom claims from getIdTokenClaims to the id_token payload", async () => {
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: { ...oidcOptions, getIdTokenClaims: () => ({ roles: ["admin"], tenant: "acme" }) },
+      });
+      const response = await redeemOpenidCode(oidcGrant, "nonce-custom");
+
+      const idClaims = decode(response.body.id_token) as Record<string, any>;
+      expect(idClaims.roles).toEqual(["admin"]);
+      expect(idClaims.tenant).toBe("acme");
+      expect(idClaims.iss).toBe("https://issuer.example");
+      expect(idClaims.nonce).toBe("nonce-custom");
+    });
+
+    it("passes the OIDC context to getIdTokenClaims", async () => {
+      let received: any;
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: {
+          ...oidcOptions,
+          getIdTokenClaims: ctx => {
+            received = ctx;
+            return {};
+          },
+        },
+      });
+      await redeemOpenidCode(oidcGrant, "nonce-ctx");
+
+      expect(received.subject).toBe("abc123");
+      expect(received.clientId).toBe(client.id);
+      expect(received.scopes).toContain("openid");
+    });
+
+    it("never lets getIdTokenClaims influence the JOSE header", async () => {
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: { ...oidcOptions, getIdTokenClaims: () => ({ alg: "HS256", typ: "fake", kid: "evil" }) },
+      });
+      const response = await redeemOpenidCode(oidcGrant, "nonce-hdr");
+
+      const idHeader = decodeJoseHeader(response.body.id_token);
+      expect(idHeader.alg).toBe("RS256");
+      expect(idHeader.typ).toBe("JWT");
+      expect(idHeader.kid).not.toBe("evil");
+    });
+
+    it("yields exactly the protocol claim set when no hook is configured", async () => {
+      const oidcGrant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      const response = await redeemOpenidCode(oidcGrant, "nonce-lean");
+
+      const idClaims = decode(response.body.id_token) as Record<string, any>;
+      expect(Object.keys(idClaims).sort()).toEqual(["aud", "at_hash", "exp", "iat", "iss", "nonce", "sub"].sort());
+    });
+
+    it("surfaces a throwing getIdTokenClaims hook as invalid_grant", async () => {
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: {
+          ...oidcOptions,
+          getIdTokenClaims: () => {
+            throw new Error("consumer mistake");
+          },
+        },
+      });
+
+      await expect(redeemOpenidCode(oidcGrant, "nonce-throw")).rejects.toMatchObject({
+        errorType: "invalid_grant",
+      });
     });
   });
 

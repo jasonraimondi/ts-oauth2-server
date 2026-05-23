@@ -6,7 +6,7 @@ import { OAuthClient } from "../entities/client.entity.js";
 import { OAuthScope } from "../entities/scope.entity.js";
 import { OAuthToken } from "../entities/token.entity.js";
 import { OAuthUser, OAuthUserIdentifier } from "../entities/user.entity.js";
-import { buildIdTokenClaims } from "../oidc/id_token.js";
+import { buildIdTokenClaims, mergeIdTokenClaims } from "../oidc/id_token.js";
 import { oidcSubjectIdentifier } from "../oidc/subject.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthTokenRepository } from "../repositories/access_token.repository.js";
@@ -169,6 +169,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
           accessToken,
           tokenResponse.body.access_token as string,
           validatedPayload,
+          scopes,
         ),
       };
     }
@@ -192,18 +193,30 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     accessToken: OAuthToken,
     encryptedAccessToken: string,
     payload: PayloadAuthCode,
+    scopes: OAuthScope[],
   ): Promise<string> {
+    const subject = oidcSubjectIdentifier(user!.id);
     const claims = buildIdTokenClaims({
       issuer: this.options.issuer ?? "",
       clientId: client.id,
-      subject: oidcSubjectIdentifier(user!.id),
+      subject,
       accessTokenExpiresAt: accessToken.accessTokenExpiresAt,
       encryptedAccessToken,
       nonce: payload.nonce,
       authTime: payload.auth_time,
     });
 
-    return this.encrypt(claims);
+    const getIdTokenClaims = this.options.oidc?.getIdTokenClaims;
+    if (!getIdTokenClaims) return this.encrypt(claims);
+
+    let customClaims: Record<string, unknown>;
+    try {
+      customClaims = await getIdTokenClaims({ subject, clientId: client.id, scopes: scopes.map(s => s.name) });
+    } catch (_) {
+      throw OAuthException.invalidGrant("The getIdTokenClaims hook threw while building the ID token.");
+    }
+
+    return this.encrypt(mergeIdTokenClaims(claims, customClaims));
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {

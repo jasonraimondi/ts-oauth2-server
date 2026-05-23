@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add OIDC Core §5.4 scope-to-claim mapping and scope-gated claim filtering helpers.
 - Thread OIDC `nonce`, `auth_time`, and `max_age` through the authorization request, auth code entity, and payload for both JWT and opaque codes, with a fail-loud guard when an opaque-code repository drops the persisted `nonce` and `max_age` freshness enforcement at token time.
 - Issue a signed `id_token` alongside the access token in the authorization code flow when the `openid` scope is granted, carrying `iss`, `sub`, `aud`, `exp`, `iat`, conditional `nonce`/`auth_time`, and `at_hash`. Adds `buildIdTokenClaims`, `calculateAtHash`, and `oidcSubjectIdentifier` helpers, and auto-recognizes the standard OIDC scopes (`openid`, `profile`, `email`, `address`, `phone`) when OIDC is enabled.
+- Add the optional `getIdTokenClaims` OIDC hook for adding custom claims (e.g. roles, tenant, acr) to issued ID tokens. An explicit strip-then-merge against the exported `PROTOCOL_CLAIM_NAMES` constant guarantees protocol claims always win and hook output reaches the JWT payload only, never the JOSE header; a throwing hook surfaces as `invalid_grant`.
 
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.
