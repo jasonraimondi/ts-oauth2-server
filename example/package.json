@@ -3,7 +3,8 @@
   "license": "MIT",
   "scripts": {
     "gen": "prisma generate",
-    "dev": "tsx watch src/main.ts"
+    "dev": "tsx watch src/main.ts",
+    "smoke": "tsx src/smoke/opaque_nonce_roundtrip.ts"
   },
   "type": "module",
   "engines": {

@@ -68,6 +68,11 @@ model OAuthAuthCode {
   client              OAuthClient         @relation(fields: [clientId], references: [id])
   clientId            String              @db.Uuid
   scopes              OAuthScope[]
+  // OIDC: opaque-code repositories must persist these so nonce binding and
+  // auth-time freshness survive the authorize -> token round trip.
+  nonce               String?
+  authTime            Int?
+  maxAge              Int?
 }
 
 model OAuthToken {
