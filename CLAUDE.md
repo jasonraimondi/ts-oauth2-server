@@ -26,7 +26,14 @@ Update https://tsoauth2server.com/ and this file when behavior or architecture c
 - Adapters: `./vanilla`, `./express`, `./fastify` (entry points in `package.json`)
 - PKCE verifiers: Plain, S256
 - Optional logger for token ops, revocations, grant errors
-- RFCs: 6749, 6750, 7009, 7519, 7636, 7662, 8693
+- RFCs: 6749, 6750, 7009, 7519, 7636, 7662, 8693, 9068; OpenID Connect Core 1.0
+
+### OIDC layer (`src/oidc/`)
+- Opt-in via top-level `issuer` + nested `oidc` block on `AuthorizationServerOptions`; requires an RS256 `JwtService`. Absent the block, non-OIDC flows are unchanged.
+- Endpoint methods on `AuthorizationServer`: `jwks()`, `openidConfiguration()`, `userInfo(req)`; the auth-code grant adds an `id_token` to the token response when the `openid` scope is granted.
+- `AccessTokenVerifier` seam: the single home for OIDC access-token verification (algorithm pin → `typ: at+jwt` check → signature → `iss` equality). It owns these checks regardless of which `JwtInterface` the consumer supplies, so a custom `JwtInterface` that fails to pin algorithms cannot weaken UserInfo; it is also unit-testable and reusable by resource-server adapters.
+- Consumer hooks: `getUserClaims` (scope-filtered UserInfo claims) and optional `getIdTokenClaims` (custom ID-token claims, protocol claims protected by `PROTOCOL_CLAIM_NAMES`).
+- Opaque auth codes rebuild their payload from the persisted entity, so consumers must persist `nonce`/`authTime`; a fail-loud guard rejects with `invalid_grant` otherwise.
 
 ## Tests
 - Unit: `test/unit/` — E2E: `test/e2e/` (by grant + adapter) — Setup: `test/setup.ts`

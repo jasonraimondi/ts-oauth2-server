@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **OpenID Connect (OIDC) support.** Opt in by setting the top-level `issuer` and a nested `oidc` config block (with an RS256 `JwtService`). The authorization-code flow then issues a signed `id_token` alongside the access token, and three new endpoints become available: `authorizationServer.userInfo(req)`, `authorizationServer.openidConfiguration()`, and `authorizationServer.jwks()`. Access-token verification for UserInfo runs through a reusable `AccessTokenVerifier` seam. See the [OIDC getting-started guide](https://tsoauth2server.com/docs/oidc/getting_started) and [upgrade guide](https://tsoauth2server.com/docs/upgrade_guide). The individual building blocks are listed below.
 - Add RS256 `JwtService` key options with public JWKS export and RFC 7638 thumbprint `kid` defaults.
 - Add `OAuthException.invalidToken()` and `OAuthException.insufficientScope()` helpers for OIDC bearer-token responses.
 - Add the optional `oidc` authorization-server config block, construction guards, `jwks()` endpoint response, and reusable `AccessTokenVerifier` seam.
@@ -21,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When OIDC is enabled, authorization-code access tokens now carry the JOSE header `typ: "at+jwt"` (RFC 9068). The `BearerTokenResponse` body gains an optional `id_token` string for OIDC `openid` flows. Non-OIDC token wire format is unchanged.
 - `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options.
 - `JwtService.sign()` now forwards signing options, including JOSE header overrides such as `typ: "at+jwt"`.
+
+### Known limitations (OIDC v1)
+- No `id_token` is issued on the refresh-token grant — only in the authorization-code exchange.
+- No `offline_access` auto-recognition; refresh-token issuance stays consumer-owned.
+- RS256 only — ES256 and overlapping multi-key rotation are deferred (a single-key model cannot satisfy OIDC Discovery §3 with an ES256 key).
+- UserInfo returns plain JSON only; signed/encrypted UserInfo responses are not supported.
+- Opaque authorization codes require the consumer repository to persist `nonce`/`auth_time`; JWT authorization codes are recommended for OIDC.
 
 ## [4.3.5] - 2026-05-08
 

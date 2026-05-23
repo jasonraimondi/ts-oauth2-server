@@ -54,6 +54,40 @@ const authorizationServer = new AuthorizationServer(
 );
 ```
 
+## OIDC options
+
+OIDC is enabled by setting the top-level `issuer` **and** a nested `oidc` block. The split is deliberate: `issuer` predates OIDC and is reused as the OIDC issuer (the `iss` of every access token and ID token, and the discovery `issuer`), so it stays top-level; everything OIDC-specific lives in the nested `oidc` block. When `oidc` is present, `issuer` becomes mandatory and the `JwtService` must use an RS256 key.
+
+| Option                 | Type                                   | Default   | Details                                                                                                                                                              |
+| ---------------------- | -------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authorizationEndpoint`| string                                 | —         | Absolute URL of your `/authorize` route. Advertised verbatim in discovery; the library does not own routing.                                                        |
+| `tokenEndpoint`        | string                                 | —         | Absolute URL of your `/token` route.                                                                                                                                |
+| `userinfoEndpoint`     | string                                 | —         | Absolute URL of your [`/userinfo`](../endpoints/userinfo.md) route.                                                                                                 |
+| `jwksUri`              | string                                 | —         | Absolute URL of your JWKS route. A protected discovery field — a `metadata` override may not change it.                                                              |
+| `getUserClaims`        | `(subject: string) => OidcUserClaims \| Promise<OidcUserClaims>` | — | Required. Resolves the end-user's claims for UserInfo, keyed by subject. See [Hooks](../oidc/hooks.md).                                                              |
+| `getIdTokenClaims`     | `(ctx: OidcIdTokenClaimsContext) => Record<string, unknown> \| Promise<…>` | undefined | Optional. Adds custom claims to the ID token. Reserved protocol claims cannot be overwritten. See [Hooks](../oidc/hooks.md).                                          |
+| `metadata`             | `Record<string, unknown>`              | undefined | Optional discovery overrides (e.g. `scopes_supported`, `claims_supported`). `issuer`, `jwks_uri`, and `id_token_signing_alg_values_supported` are protected and cannot be weakened. |
+
+```ts
+type OidcOptions = {
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  userinfoEndpoint: string;
+  jwksUri: string;
+  getUserClaims: (subject: string) => OidcUserClaims | Promise<OidcUserClaims>;
+  getIdTokenClaims?: (context: OidcIdTokenClaimsContext) => Record<string, unknown> | Promise<Record<string, unknown>>;
+  metadata?: Record<string, unknown>;
+};
+
+type AuthorizationServerOptions = {
+  // ...existing options...
+  issuer?: string;   // mandatory when `oidc` is set — the OIDC issuer
+  oidc?: OidcOptions; // enables OIDC: ID tokens, /userinfo, discovery, JWKS
+};
+```
+
+See [Getting Started with OIDC](../oidc/getting_started.md) for a full wiring example.
+
 ## Logger Configuration
 
 The authorization server supports optional logging for debugging purposes, particularly useful for tracking token operations. You can provide either a custom logger implementation or use the built-in console logger.

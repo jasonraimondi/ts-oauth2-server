@@ -22,6 +22,45 @@ new AuthorizationServer(..., {
 });
 ```
 
+### OIDC support
+
+The OIDC release is **additive** — non-OIDC flows are unchanged and you opt in by setting the `issuer` and `oidc` options. A few changes affect existing users regardless of OIDC; review them before upgrading. See the [CHANGELOG](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/CHANGELOG.md) for the full list.
+
+#### `JwtService.verify()` now pins the algorithm
+
+`verify()` pins verification to the service's configured algorithm and **ignores any caller-supplied `algorithms` in `VerifyOptions`**. This closes an algorithm-confusion vector. If you relied on passing `algorithms` to `verify()`, that option is now a no-op — configure the `JwtService` with the algorithm you intend instead. This applies to symmetric (HS256) consumers too.
+
+#### OIDC access tokens carry `typ: "at+jwt"`
+
+When OIDC is enabled, authorization-code access tokens carry the JOSE header `typ: "at+jwt"` ([RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068)). This lets the `AccessTokenVerifier` reject an ID token presented as a bearer token. **Non-OIDC token wire format is unchanged.**
+
+#### `BearerTokenResponse.body` gains an optional `id_token`
+
+For OIDC `openid` flows, the token response body now includes an `id_token` string. The field is absent for non-OIDC flows and for OIDC flows that did not grant the `openid` scope. If you typed the response body strictly, widen it to allow the optional `id_token`.
+
+#### `OAuthAuthCode` entity gains `nonce`, `authTime`, `maxAge`
+
+The auth-code entity has three new optional OIDC fields:
+
+```ts
+interface OAuthAuthCode {
+  // ...existing fields...
+  nonce?: string | null;
+  authTime?: number | null;
+  maxAge?: number | null;
+}
+```
+
+JWT authorization codes carry these inside the signed code and need no persistence changes.
+
+#### Opaque authorization codes must persist `nonce`/`auth_time` for OIDC
+
+::: warning Opaque-code consumers must persist nonce/auth_time
+If you use **opaque** authorization codes (`useOpaqueAuthorizationCodes: true`) with OIDC, your `OAuthAuthCodeRepository` **must** persist and hydrate `nonce` (and `authTime` when `max_age` is requested). The library rebuilds the opaque code's payload from the stored row, so a dropped `nonce` is lost across the authorize → token round trip. A fail-loud guard rejects the exchange with `invalid_grant` rather than silently issuing a replay-vulnerable, nonce-less ID token. **JWT authorization codes avoid this obligation** and are the recommended choice for OIDC.
+:::
+
+See [Getting Started with OIDC](./oidc/getting_started.md) to enable the feature.
+
 ## To v4
 
 ### Breaking Change
