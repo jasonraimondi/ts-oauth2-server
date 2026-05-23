@@ -19,7 +19,7 @@
   "pr": null,
   "linear_id": "e9f4ebf8-f385-46a2-9d59-b31aca651bdd",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "tdd": true,
   "headed": false,
   "outcome": "JwtService can sign and verify tokens with a consumer-supplied RSA keypair and expose the public key as a JWK set; the existing symmetric path is untouched except that verify() now pins the configured algorithm; OIDC's invalid_token and insufficient_scope error types exist for downstream issues to consume.",

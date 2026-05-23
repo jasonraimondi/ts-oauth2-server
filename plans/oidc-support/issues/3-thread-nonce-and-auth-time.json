@@ -14,13 +14,14 @@
     2
   ],
   "blocking": [
-    4
+    4,
+    10
   ],
   "branch": null,
   "pr": null,
   "linear_id": "9d7cec51-d326-4be0-9cb3-43557a8aee77",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "tdd": true,
   "headed": false,
   "outcome": "A nonce supplied at /authorize and a consumer-supplied auth_time survive the authorize-to-token round trip for both JWT and opaque authorization codes. If the round trip silently drops nonce/auth_time (the opaque-code persistence failure mode), the library fails loud rather than minting a security-degraded ID token.",

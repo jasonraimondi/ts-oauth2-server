@@ -21,7 +21,7 @@
   "pr": null,
   "linear_id": "ec4e27a7-7a7e-4965-b05a-5ed77aa7a0ce",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "tdd": true,
   "headed": false,
   "outcome": "An authorization code flow requesting the openid scope returns a signed, verifiable ID token alongside the access token. The ID token is added in AuthCodeGrant after makeBearerTokenResponse returns, never by editing AbstractGrant (which all five grants inherit).",

@@ -22,7 +22,7 @@
   "pr": null,
   "linear_id": "75280983-5520-486f-b0fa-b9ee3f1acd22",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "tdd": true,
   "headed": false,
   "outcome": "OIDC can be turned on via an explicit config block; mistakes are caught at construction with specific error messages; the AccessTokenVerifier seam exists and owns the access-token security checks (algorithm pin, typ:at+jwt, iss equality, recorded aud policy) regardless of which JwtInterface the consumer supplies; and the server publishes its signing key at a JWKS endpoint.",
