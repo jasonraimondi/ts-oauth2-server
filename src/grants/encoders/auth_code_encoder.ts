@@ -91,6 +91,9 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
       code_challenge: request.codeChallenge,
       code_challenge_method: request.codeChallengeMethod,
       audience: request.audience,
+      nonce: authCode.nonce,
+      auth_time: authCode.authTime,
+      max_age: authCode.maxAge,
     };
 
     const jsonPayload = JSON.stringify(payload);
@@ -139,6 +142,9 @@ export class OpaqueAuthCodeEncoder implements AuthCodeEncoder {
       expire_time: Math.ceil(authCode.expiresAt.getTime() / 1000),
       code_challenge: authCode.codeChallenge,
       code_challenge_method: authCode.codeChallengeMethod,
+      nonce: authCode.nonce,
+      auth_time: authCode.authTime,
+      max_age: authCode.maxAge,
     };
 
     return { payload, authCode };

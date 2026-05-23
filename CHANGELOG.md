@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `OAuthException.invalidToken()` and `OAuthException.insufficientScope()` helpers for OIDC bearer-token responses.
 - Add the optional `oidc` authorization-server config block, construction guards, `jwks()` endpoint response, and reusable `AccessTokenVerifier` seam.
 - Add OIDC Core §5.4 scope-to-claim mapping and scope-gated claim filtering helpers.
+- Thread OIDC `nonce`, `auth_time`, and `max_age` through the authorization request, auth code entity, and payload for both JWT and opaque codes, with a fail-loud guard when an opaque-code repository drops the persisted `nonce` and `max_age` freshness enforcement at token time.
 
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.

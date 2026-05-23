@@ -3,7 +3,7 @@
   "slug": "thread-nonce-and-auth-time",
   "name": "Thread nonce & auth_time through the authorization code (with fail-loud guards)",
   "track": "data",
-  "status": "backlog",
+  "status": "done",
   "priority": "high",
   "points": 2,
   "labels": [

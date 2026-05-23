@@ -32,6 +32,9 @@ export interface PayloadAuthCode {
   code_challenge?: string | null;
   code_challenge_method?: CodeChallengeMethod | null;
   audience?: string[] | string | null;
+  nonce?: string | null;
+  auth_time?: number | null;
+  max_age?: number | null;
 }
 /** @deprecated use `PayloadAuthCode` instead */
 export interface IAuthCodePayload extends PayloadAuthCode {}
@@ -82,6 +85,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       await this.resolveAuthCodeData(incomingRawAuthCodeValue);
 
     const validatedPayload = await this.validateAuthorizationCode(authCodeProperties, client, req);
+
+    this.guardAgainstStaleAuthentication(validatedPayload);
 
     const userId = validatedPayload.user_id;
 
@@ -215,7 +220,33 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       authorizationRequest.codeChallengeMethod = codeChallengeMethod;
     }
 
+    if (this.options.oidc) {
+      this.parseOidcAuthorizationParameters(request, authorizationRequest);
+    }
+
     return authorizationRequest;
+  }
+
+  private parseOidcAuthorizationParameters(
+    request: RequestInterface,
+    authorizationRequest: AuthorizationRequest,
+  ): void {
+    authorizationRequest.nonce = this.getQueryStringParameter("nonce", request);
+    authorizationRequest.prompt = this.getQueryStringParameter("prompt", request);
+    authorizationRequest.loginHint = this.getQueryStringParameter("login_hint", request);
+    authorizationRequest.display = this.getQueryStringParameter("display", request);
+    authorizationRequest.uiLocales = this.getQueryStringParameter("ui_locales", request);
+    authorizationRequest.acrValues = this.getQueryStringParameter("acr_values", request);
+    authorizationRequest.idTokenHint = this.getQueryStringParameter("id_token_hint", request);
+
+    const rawMaxAge = this.getQueryStringParameter("max_age", request);
+    if (rawMaxAge !== undefined && rawMaxAge !== null && rawMaxAge !== "") {
+      const maxAge = Number(rawMaxAge);
+      if (!Number.isInteger(maxAge) || maxAge < 0) {
+        throw OAuthException.invalidParameter("max_age", "max_age must be a non-negative integer");
+      }
+      authorizationRequest.maxAge = maxAge;
+    }
   }
 
   async completeAuthorizationRequest(authorizationRequest: AuthorizationRequest): Promise<ResponseInterface> {
@@ -233,6 +264,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.badRequest("Authorization is not approved");
     }
 
+    if (this.options.oidc && authorizationRequest.maxAge !== undefined && authorizationRequest.authTime === undefined) {
+      throw OAuthException.invalidParameter(
+        "auth_time",
+        "max_age was requested but authTime was not set on the authorization request",
+      );
+    }
+
     const authCode = await this.issueAuthCode(
       this.authCodeTTL,
       authorizationRequest.client,
@@ -241,7 +279,14 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       authorizationRequest.codeChallenge,
       authorizationRequest.codeChallengeMethod,
       authorizationRequest.scopes,
+      {
+        nonce: authorizationRequest.nonce,
+        authTime: authorizationRequest.authTime,
+        maxAge: authorizationRequest.maxAge,
+      },
     );
+
+    await this.guardAgainstOpaqueNonceLoss(authCode, authorizationRequest);
 
     const code = await this.authCodeEncoder.issue(authCode, authorizationRequest, this.authCodeTTL.getEndTimeSeconds());
 
@@ -295,6 +340,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     codeChallenge?: string,
     codeChallengeMethod?: CodeChallengeMethod,
     scopes: OAuthScope[] = [],
+    oidc?: { nonce?: string; authTime?: number; maxAge?: number },
   ): Promise<OAuthAuthCode> {
     const user = userIdentifier
       ? await this.userRepository.getUserByCredentials(userIdentifier, undefined, this.identifier, client)
@@ -305,10 +351,63 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     authCode.redirectUri = redirectUri;
     authCode.codeChallenge = codeChallenge;
     authCode.codeChallengeMethod = codeChallengeMethod;
+    authCode.nonce = oidc?.nonce;
+    authCode.authTime = oidc?.authTime;
+    authCode.maxAge = oidc?.maxAge;
     authCode.scopes = [];
     scopes.forEach(scope => authCode.scopes.push(scope));
     await this.authCodeRepository.persist(authCode);
     return authCode;
+  }
+
+  /**
+   * Opaque-code nonce-loss guard. Opaque codes rebuild their payload from the
+   * persisted entity, so a consumer repository that fails to persist `nonce`
+   * (or `authTime` when `max_age` was requested) would silently produce a
+   * security-degraded flow. Re-read the just-persisted code and fail loud so
+   * the misconfiguration surfaces immediately rather than as a nonce-less ID
+   * token. JWT codes carry these fields inside the signed code and never reach
+   * this guard.
+   */
+  private async guardAgainstOpaqueNonceLoss(
+    authCode: OAuthAuthCode,
+    authorizationRequest: AuthorizationRequest,
+  ): Promise<void> {
+    if (!this.options.oidc || !this.options.useOpaqueAuthorizationCodes) return;
+
+    const nonceExpected = authorizationRequest.nonce !== undefined;
+    const authTimeExpected = authorizationRequest.maxAge !== undefined;
+    if (!nonceExpected && !authTimeExpected) return;
+
+    const persisted = await this.authCodeRepository.getByIdentifier(authCode.code);
+
+    if (nonceExpected && !persisted?.nonce) {
+      throw OAuthException.invalidGrant(
+        "Authorization code missing nonce — consumer opaque-code repository must persist the nonce field on OAuthAuthCode",
+      );
+    }
+
+    if (authTimeExpected && persisted?.authTime == null) {
+      throw OAuthException.invalidGrant(
+        "Authorization code missing auth_time — consumer opaque-code repository must persist the authTime field on OAuthAuthCode",
+      );
+    }
+  }
+
+  /**
+   * OIDC `max_age` freshness. When the authorization request carried `max_age`,
+   * the end-user authentication recorded in `auth_time` must still be within
+   * that window at token time, otherwise the flow is rejected rather than
+   * minting an ID token that misrepresents authentication freshness.
+   */
+  private guardAgainstStaleAuthentication(payload: PayloadAuthCode): void {
+    if (!this.options.oidc) return;
+    if (payload.max_age == null || payload.auth_time == null) return;
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (payload.auth_time + payload.max_age < nowSeconds) {
+      throw OAuthException.invalidGrant("max_age exceeded");
+    }
   }
 
   canRespondToRevokeRequest(request: RequestInterface): boolean {

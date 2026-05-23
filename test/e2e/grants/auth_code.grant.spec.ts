@@ -19,11 +19,14 @@ import {
   ExtraAccessTokenFieldArgs,
   IAuthCodePayload,
   JwtService,
+  OAuthAuthCode,
+  OAuthAuthCodeRepository,
   OAuthClient,
   OAuthException,
   OAuthRequest,
   OAuthScope,
   OAuthUser,
+  OidcOptions,
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
 import { expectTokenResponse } from "../_helpers/assertions.js";
@@ -719,6 +722,197 @@ describe("authorization_code grant", () => {
       const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       await expect(accessTokenResponse).rejects.toThrow(OAuthException);
+    });
+  });
+
+  describe("OIDC nonce, auth_time and max_age threading", () => {
+    const oidcOptions: OidcOptions = {
+      authorizationEndpoint: "https://issuer.example/authorize",
+      tokenEndpoint: "https://issuer.example/token",
+      userinfoEndpoint: "https://issuer.example/userinfo",
+      jwksUri: "https://issuer.example/jwks",
+      getUserClaims: async () => ({ sub: "abc123" }),
+    };
+
+    const nowSeconds = () => Math.floor(Date.now() / 1000);
+
+    it("parses OIDC authorization parameters when OIDC is enabled", async () => {
+      grant = createGrant({ issuer: "TestIssuer", oidc: oidcOptions });
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+          nonce: "nonce-abc",
+          max_age: "300",
+          prompt: "login",
+          login_hint: "jason@example.com",
+          display: "page",
+          ui_locales: "en-US",
+          acr_values: "urn:acr:1",
+          id_token_hint: "prev-token",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.nonce).toBe("nonce-abc");
+      expect(authorizationRequest.maxAge).toBe(300);
+      expect(authorizationRequest.prompt).toBe("login");
+      expect(authorizationRequest.loginHint).toBe("jason@example.com");
+      expect(authorizationRequest.display).toBe("page");
+      expect(authorizationRequest.uiLocales).toBe("en-US");
+      expect(authorizationRequest.acrValues).toBe("urn:acr:1");
+      expect(authorizationRequest.idTokenHint).toBe("prev-token");
+    });
+
+    it("leaves OIDC authorization fields undefined when OIDC is disabled", async () => {
+      grant = createGrant({});
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+          nonce: "nonce-abc",
+          max_age: "300",
+          prompt: "login",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.nonce).toBeUndefined();
+      expect(authorizationRequest.maxAge).toBeUndefined();
+      expect(authorizationRequest.prompt).toBeUndefined();
+    });
+
+    it("threads nonce and auth_time into the issued JWT auth code", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.nonce = "nonce-xyz";
+      authorizationRequest.authTime = nowSeconds();
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+      const decoded = decode(String(code)) as IAuthCodePayload & { nonce?: string; auth_time?: number };
+
+      expect(decoded.nonce).toBe("nonce-xyz");
+      expect(decoded.auth_time).toBe(authorizationRequest.authTime);
+    });
+
+    it("throws from completeAuthorizationRequest when max_age was requested without authTime", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.maxAge = 300;
+
+      await expect(grant.completeAuthorizationRequest(authorizationRequest)).rejects.toThrowError(
+        /max_age was requested but authTime/,
+      );
+    });
+
+    it("rejects with invalid_grant when max_age freshness is exceeded at token time", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.maxAge = 60;
+      authorizationRequest.authTime = 1000; // far in the past relative to the frozen test clock
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: String(code),
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+
+      await expect(grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).rejects.toThrowError(
+        /max_age exceeded/,
+      );
+    });
+
+    it("accepts the token request when max_age freshness is satisfied", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.maxAge = 300;
+      authorizationRequest.authTime = nowSeconds() - 10;
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: String(code),
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+      expectTokenResponse(accessTokenResponse);
+    });
+
+    it("fails loud with invalid_grant when an opaque-code repository drops the nonce", async () => {
+      const store: Record<string, OAuthAuthCode> = {};
+      const forgetfulRepository: OAuthAuthCodeRepository = {
+        issueAuthCode(issuingClient, issuingUser, _scopes) {
+          return {
+            code: "opaque-forgetful-code",
+            user: issuingUser,
+            client: issuingClient,
+            redirectUri: "http://example.com",
+            expiresAt: new DateInterval("1h").getEndDate(),
+            scopes: [],
+          };
+        },
+        async persist(authCode) {
+          // simulate a schema without a nonce column: everything persists except nonce
+          store[authCode.code] = { ...authCode, nonce: undefined };
+        },
+        async isRevoked() {
+          return false;
+        },
+        async getByIdentifier(code) {
+          return store[code];
+        },
+        async revoke() {
+          return;
+        },
+      };
+
+      const forgetfulGrant = new AuthCodeGrant(
+        forgetfulRepository,
+        inMemoryUserRepository,
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        new JwtService("secret-key"),
+        { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, requiresPKCE: false, useOpaqueAuthorizationCodes: true, oidc: oidcOptions },
+      );
+
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.nonce = "nonce-should-survive";
+
+      await expect(forgetfulGrant.completeAuthorizationRequest(authorizationRequest)).rejects.toThrowError(
+        /must persist the nonce field on OAuthAuthCode/,
+      );
     });
   });
 
