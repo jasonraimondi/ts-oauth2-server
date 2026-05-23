@@ -3,7 +3,7 @@
   "slug": "oidc-support",
   "status": "active",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "description": "Add an OpenID Connect layer (ID tokens, UserInfo, discovery, JWKS) on top of the existing OAuth 2.0 authorization code grant.",
   "why": "Most teams searching for a TypeScript OAuth2 server actually want OIDC — they just don't know the distinction. Today the library answers OAuth questions but not authentication questions. Without ID tokens, a UserInfo endpoint, discovery, and a JWKS endpoint, it cannot be a relying party's login provider, which is what the majority of real-world auth integrations need.",
   "outcome": "A consumer can enable OIDC by supplying an asymmetric signing key and an OIDC config block. Relying parties can run the PKCE authorization code flow with scope=openid, receive a verifiable ID token, fetch user claims from UserInfo, and auto-configure via the discovery and JWKS endpoints. For non-OIDC consumers the token wire format is byte-identical to today; the only behavior change is JwtService.verify pinning the configured algorithm — a safe-by-default hardening that rejects algorithm-confused tokens. Documented in the upgrade guide.",
@@ -14,7 +14,7 @@
     "JWKS endpoint publishing the public signing key",
     "Asymmetric RS256 token signing with a consumer-supplied RSA keypair",
     "nonce capture and propagation into the ID token, with a fail-loud guard when an opaque code loses nonce in transit",
-    "Standard OIDC scope-to-claim mapping (OIDC Core §5.4) and scope-gated filtering",
+    "Standard OIDC scope-to-claim mapping (OIDC Core §5.4) and scope-gated filtering for openid, profile, email, address, and phone",
     "getUserClaims and optional getIdTokenClaims consumer hooks",
     "A named AccessTokenVerifier seam that owns iss/aud/typ/alg checks regardless of which JwtInterface the consumer supplies"
   ],
@@ -67,7 +67,7 @@
     "v1 ships a single signing key; every token header carries a kid; the JWKS endpoint always publishes a keys array; kid defaults to the RFC 7638 thumbprint and is overridable.",
     "The three OIDC endpoints (UserInfo, discovery, JWKS) are added as methods on AuthorizationServer; ID token issuance lives inside the authorization code grant; there is no separate provider class (ADR 0002).",
     "OIDC is enabled by an explicit oidc config block on AuthorizationServerOptions; an ID token is issued per-request only when the granted scopes include openid.",
-    "When OIDC is enabled the library auto-recognizes the standard OIDC scopes (openid, profile, email, address, phone, offline_access) as valid.",
+    "When OIDC is enabled the library auto-recognizes openid, profile, email, address, and phone as valid. offline_access is not auto-recognized in v1 because refresh-token issuance is consumer-owned and no ID token is issued on refresh.",
     "A getUserClaims callback supplies user attributes; the default ID token stays lean (protocol claims only); scope-derived claims are served only from UserInfo; the library owns the standard scope-to-claim mapping and filtering.",
     "getUserClaims is keyed by the user identifier, not a loaded user object, so the OIDC config needs no user repository.",
     "The library owns nonce end-to-end; all other OIDC authorization parameters are parsed and exposed to the consumer but not acted on; prompt=none is pass-through.",
@@ -108,9 +108,10 @@
     "e2e: opaque-authorization-code OIDC variant; 403 insufficient_scope when openid scope is absent at UserInfo; 401 invalid_token when an ID token is presented as a bearer access token; iss mismatch rejection.",
     "Regression: byte-identical HS256 JOSE-header snapshot for non-OIDC consumers — assert `{alg:HS256,typ:JWT}` exactly, with no kid and no at+jwt. Snapshot, not round-trip.",
     "Timer strategy for the keystone e2e is specified upfront: use real timers via vi.useRealTimers() inside the describe block, since test/setup.ts installs fake timers globally and a JWKS verify against `iat`/`exp` cannot work under frozen time.",
-    "Manual smoke test against openid-client; gate release on the automated jose-library verification e2e, not the manual smoke."
+    "Manual smoke test against openid-client; gate release on the automated jose-library verification e2e, not the manual smoke.",
+    "Dedicated resilience pass: cross-cutting negative e2e coverage for algorithm confusion, alg:none, wrong typ, wrong issuer, expired/revoked tokens, missing openid scope, JWKS/discovery cache headers, and opaque-code nonce loss."
   ],
-  "notes": "Five implementation phases in dependency order. Phase 1: key service and JWKS — extend JwtService for asymmetric keys, fix sign() to forward options, add a JWKS-exposing method to JwtInterface. Phase 2: the oidc config block on AuthorizationServerOptions plus fail-fast construction guards (issuer set, JWT service exposes JWKS). Phase 3: ID token issuance inside the authorization code grant — nonce and auth_time threaded through the authorization request, auth code entity, payload, and both auth code encoders. Phase 4: the UserInfo endpoint, the claims resolver and standard scope-to-claim mapping, and new invalid_token / insufficient_scope error types. Phase 5: the discovery document, public type exports, and documentation. New code is concentrated under src/oidc/. The framework adapters need no changes — the three new endpoints return a plain ResponseInterface that every adapter already handles. Rough size: 1,300-1,600 lines of library code and 900-1,200 lines of tests. Two ADRs are already recorded: docs/adr/0001 (asymmetric signing) and docs/adr/0002 (OIDC layered on the auth code grant). Domain glossary captured in CONTEXT.md.",
+  "notes": "Implementation phases in dependency order. Phase 1: key service and JWKS — extend JwtService for asymmetric keys, fix sign() to forward options, add a JWKS-exposing method to JwtInterface. Phase 2: the oidc config block on AuthorizationServerOptions plus fail-fast construction guards (issuer set, JWT service exposes JWKS). Phase 3: ID token issuance inside the authorization code grant — nonce and auth_time threaded through the authorization request, auth code entity, payload, and both auth code encoders. Phase 4: the UserInfo endpoint, the claims resolver and standard scope-to-claim mapping, and new invalid_token / insufficient_scope error types. Phase 5: discovery, example-app persistence, and cross-cutting resilience/conformance validation. Phase 6: public API audit and docs integration. New code is concentrated under src/oidc/. The framework adapters need no changes — the three new endpoints return a plain ResponseInterface that every adapter already handles. Rough size: 1,300-1,600 lines of library code and 900-1,200 lines of tests. Three ADRs are already recorded: docs/adr/0001 (asymmetric signing), docs/adr/0002 (OIDC layered on the auth code grant), and docs/adr/0003 (token verification hardening). Domain glossary captured in CONTEXT.md.",
   "dev_command": "pnpm test:watch",
   "base_url": "",
   "linear": {

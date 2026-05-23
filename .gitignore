@@ -19,3 +19,4 @@ lerna-debug.log*
 .plan-bender.local.json
 .claude/skills/bender-*
 .pi/skills/bender-*
+.idea/awsToolkit.xml

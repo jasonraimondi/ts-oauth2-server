@@ -20,7 +20,7 @@
   "pr": null,
   "linear_id": "63b6308a-fa03-4044-8189-9e0e9214a696",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "tdd": true,
   "headed": false,
   "outcome": "Consumers can add custom claims (roles, tenant, acr) to issued ID tokens without being able to corrupt the protocol claims or the JOSE header.",

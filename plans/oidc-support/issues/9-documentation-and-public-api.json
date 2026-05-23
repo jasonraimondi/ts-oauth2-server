@@ -13,18 +13,20 @@
   "blocked_by": [
     5,
     7,
-    8
+    8,
+    10,
+    11
   ],
   "blocking": [],
   "branch": null,
   "pr": null,
   "linear_id": "129dab44-c48c-4ac5-b201-8ea756b0a84d",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "tdd": false,
   "headed": false,
   "outcome": "The OIDC layer's per-feature docs (added in issues 4, 7, 8) are stitched together into a coherent OIDC section, the upgrade guide covers the verify() pinning and at+jwt behavior changes, and the public-API surface is audited end-to-end. Per-issue export confirmation already happened in issues 1, 2, 4, 5, 6, 7, 8.",
-  "scope": "Docs-site integration, the upgrade guide, public-API audit, and final consumer-facing artifacts. Per-issue export and per-endpoint documentation already shipped with their feature issues (MF-8 distributes docs). This issue is the final integration pass — re-pointed 2 → 3 to reflect actual scope.",
+  "scope": "Docs-site integration, the upgrade guide, public-API audit, and final consumer-facing artifacts. Per-issue export and per-endpoint documentation already shipped with their feature issues (MF-8 distributes docs). This issue is the final integration pass — re-pointed 2 → 3 to reflect actual scope. The example app persistence update is handled by issue 10; cross-cutting resilience/conformance validation is handled by issue 11.",
   "acceptance_criteria": [
     "Public-API audit: a single test or build script asserts every new OIDC public type and the AccessTokenVerifier are importable from the package entry point (catches anything the feature issues missed)",
     "CLAUDE.md describes the OIDC layer in the architecture section, including the AccessTokenVerifier seam's role",
@@ -48,11 +50,10 @@
     "docs site — verify the page builds, links from the navigation, and that the per-feature pages from issues 4, 7, 8 are linked from the OIDC section",
     "upgrade_guide.md — add the five upgrade items in the acceptance criteria; cross-link to the CHANGELOG entries from issues 1 and 4",
     "CHANGELOG — finalize the OIDC release summary, stitching in the per-issue entries",
-    "lint/build — assert TSDoc doc-comments are present on the exported callback types",
-    "example app — update the auth-code entity and Prisma schema to include nonce and auth_time so the example isn't a misleading template (the example is a published reference)"
+    "lint/build — assert TSDoc doc-comments are present on the exported callback types"
   ],
   "use_cases": [
     "UC-5"
   ],
-  "notes": "Final integration slice. The adapters need no code changes — the three OIDC endpoints return a plain ResponseInterface every adapter already handles, so the docs only show wiring. Per-feature docs ship with their issues (MF-8); this issue is integration, the upgrade guide, the public-API audit, and the example app update. ADRs 0001/0002/0003 and CONTEXT.md already capture the rationale and glossary."
+  "notes": "Final integration slice. The adapters need no code changes — the three OIDC endpoints return a plain ResponseInterface every adapter already handles, so the docs only show wiring. Per-feature docs ship with their issues (MF-8); this issue is integration, the upgrade guide, the public-API audit. The example app update moved to issue 10 and resilience/conformance validation moved to issue 11. ADRs 0001/0002/0003 and CONTEXT.md already capture the rationale and glossary."
 }

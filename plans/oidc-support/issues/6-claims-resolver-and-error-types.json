@@ -20,7 +20,7 @@
   "pr": null,
   "linear_id": "dc8e75cd-38a1-4a01-94c5-b5adfc0c5b37",
   "created": "2026-05-18",
-  "updated": "2026-05-19",
+  "updated": "2026-05-22",
   "tdd": true,
   "headed": false,
   "outcome": "The library owns the OIDC Core §5.4 scope-to-claim mapping exactly, with a filter that reduces consumer-supplied claims to those the granted scopes authorize.",
