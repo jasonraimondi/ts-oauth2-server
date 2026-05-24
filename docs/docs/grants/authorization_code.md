@@ -236,9 +236,10 @@ from the UserInfo endpoint.
 ### Behaviour notes
 
 - **Scope gating:** an authorization code flow without the `openid` scope returns no `id_token`.
-- **Auto-recognized scopes:** when OIDC is enabled, `openid`, `profile`, `email`, `address`, and
-  `phone` are accepted without registering them in your scope repository. `offline_access` is not
-  auto-recognized in v1.
+- **Auto-recognized scopes:** when OIDC is enabled, the authorization code grant accepts `openid`,
+  `profile`, `email`, `address`, and `phone` without registering them in your scope repository.
+  Other grants (`client_credentials`, `password`, …) do not auto-recognize these, since only the
+  authorization code flow issues ID tokens. `offline_access` is not auto-recognized in v1.
 - **Token typing:** OIDC access tokens are signed with the JOSE header `typ: "at+jwt"` (RFC 9068)
   so an ID token can never be accepted as a bearer access token. ID tokens keep `typ: "JWT"`.
 - **Single use:** authorization codes remain single-use; replaying a redeemed code is rejected and

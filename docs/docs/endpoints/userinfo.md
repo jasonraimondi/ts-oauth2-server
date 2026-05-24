@@ -66,7 +66,7 @@ Errors follow RFC 6750 and carry a `WWW-Authenticate: Bearer` challenge.
 | Missing, malformed, expired, wrong `typ`, wrong `iss`, or revoked token | `401` | `Bearer error="invalid_token", error_description="<reason>"` |
 | Valid token without the `openid` scope | `403` | `Bearer error="insufficient_scope", error_description="openid scope required", scope="openid"` |
 
-A revoked access token is rejected as `invalid_token` when the token repository implements [`getByAccessToken`](../getting_started/repositories).
+A revoked access token is rejected as `invalid_token` when the token repository implements [`getByAccessToken`](../getting_started/repositories). With only `getByAccessToken`, a token counts as revoked once it is deleted from storage or its stored expiry has passed. To support flag-based revocation — where the token row survives with a future expiry but has been marked revoked — also implement the optional [`isAccessTokenRevoked`](../getting_started/repositories); UserInfo consults it before returning claims.
 
 :::info v1 audience policy
 v1 accepts any access token this server issued (verified by the `iss` match) without an additional audience check. A resource-server-scoped audience check is a forward-compatible addition once the `audience` parameter has a discovery story.

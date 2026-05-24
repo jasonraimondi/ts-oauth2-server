@@ -34,6 +34,8 @@ Update https://tsoauth2server.com/ and this file when behavior or architecture c
 - `AccessTokenVerifier` seam: the single home for OIDC access-token verification (algorithm pin → `typ: at+jwt` check → signature → `iss` equality). It owns these checks regardless of which `JwtInterface` the consumer supplies, so a custom `JwtInterface` that fails to pin algorithms cannot weaken UserInfo; it is also unit-testable and reusable by resource-server adapters.
 - Consumer hooks: `getUserClaims` (scope-filtered UserInfo claims) and optional `getIdTokenClaims` (custom ID-token claims, protocol claims protected by `PROTOCOL_CLAIM_NAMES`).
 - Opaque auth codes rebuild their payload from the persisted entity, so consumers must persist `nonce`/`authTime`; a fail-loud guard rejects with `invalid_grant` otherwise.
+- OIDC scope auto-recognition (`openid`/`profile`/`email`/…) is gated to the `authorization_code` grant; other grants reject unregistered OIDC scopes as `invalid_scope`.
+- UserInfo revocation: deletion/expiry is detected via `getByAccessToken`; flag-based revocation (live row, future expiry, marked revoked) needs the optional `isAccessTokenRevoked?` on `OAuthTokenRepository`.
 
 ## Tests
 - Unit: `test/unit/` — E2E: `test/e2e/` (by grant + adapter) — Setup: `test/setup.ts`

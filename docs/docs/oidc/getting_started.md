@@ -76,7 +76,7 @@ The `/authorize` and `/token` endpoints are unchanged — when the `openid` scop
 
 ## Call the flow
 
-Request the `openid` scope (plus any of `profile`, `email`, `address`, `phone`) at `/authorize`. The standard OIDC scopes are auto-recognized when OIDC is enabled. After exchanging the code at `/token`, the response carries both an `access_token` and an `id_token`; the access token also drives [UserInfo](../endpoints/userinfo.md).
+Request the `openid` scope (plus any of `profile`, `email`, `address`, `phone`) at `/authorize`. The standard OIDC scopes are auto-recognized for the authorization code flow when OIDC is enabled (other grants are unaffected). After exchanging the code at `/token`, the response carries both an `access_token` and an `id_token`; the access token also drives [UserInfo](../endpoints/userinfo.md).
 
 To confirm the whole surface works against a real relying party, run the [OIDC conformance smoke test](../endpoints/oidc_conformance.md).
 
