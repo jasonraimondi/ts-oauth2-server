@@ -203,6 +203,24 @@ describe("AuthorizationServer userInfo", () => {
     );
   });
 
+  it("returns 401 invalid_token when isAccessTokenRevoked flags a token whose expiry is still in the future", async () => {
+    const jwt = new JwtService({ key: rsaPem() });
+    const flagRevokedRepo: OAuthTokenRepository = {
+      ...tokenRepoWithoutRevocation,
+      getByAccessToken: async () => ({ accessTokenExpiresAt: new Date(Date.now() + 3_600_000) }) as OAuthToken,
+      isAccessTokenRevoked: async () => true,
+    };
+    const server = createServer(jwt, async () => ({ sub: "abc123" }), flagRevokedRepo);
+    const token = await sign(jwt, accessTokenClaims());
+
+    const res = await server.userInfo(bearer(token));
+
+    expect(res.status).toBe(401);
+    expect(res.get("www-authenticate")).toBe(
+      'Bearer error="invalid_token", error_description="Access token has been revoked"',
+    );
+  });
+
   it("returns claims when getByAccessToken reports the token active", async () => {
     const jwt = new JwtService({ key: rsaPem() });
     const activeRepo: OAuthTokenRepository = {

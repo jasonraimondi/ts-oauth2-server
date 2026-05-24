@@ -14,6 +14,7 @@ export interface UserInfoDependencies {
   oidc: OidcOptions;
   scopeDelimiter: string;
   getByAccessToken?: (accessTokenToken: string) => Promise<OAuthToken>;
+  isAccessTokenRevoked?: (accessToken: OAuthToken) => Promise<boolean>;
 }
 
 function extractBearerToken(req: RequestInterface): string {
@@ -71,6 +72,7 @@ function insufficientScopeResponse(): ResponseInterface {
 async function isRevoked(
   getByAccessToken: NonNullable<UserInfoDependencies["getByAccessToken"]>,
   jti: string,
+  isAccessTokenRevoked?: UserInfoDependencies["isAccessTokenRevoked"],
 ): Promise<boolean> {
   let stored: OAuthToken | undefined;
   try {
@@ -79,7 +81,14 @@ async function isRevoked(
     stored = undefined;
   }
 
-  const expiresAt = stored?.accessTokenExpiresAt ?? new Date(0);
+  // Token no longer in storage → treat as revoked.
+  if (!stored) return true;
+
+  // Flag-based revocation: the row still exists (possibly with a future expiry)
+  // but the consumer has marked it revoked.
+  if (isAccessTokenRevoked && (await isAccessTokenRevoked(stored))) return true;
+
+  const expiresAt = stored.accessTokenExpiresAt ?? new Date(0);
   return expiresAt.getTime() <= Date.now();
 }
 
@@ -118,7 +127,7 @@ export async function handleUserInfoRequest(
   if (
     deps.getByAccessToken &&
     typeof payload.jti === "string" &&
-    (await isRevoked(deps.getByAccessToken, payload.jti))
+    (await isRevoked(deps.getByAccessToken, payload.jti, deps.isAccessTokenRevoked))
   ) {
     return invalidTokenResponse("Access token has been revoked");
   }

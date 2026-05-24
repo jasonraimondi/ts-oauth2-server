@@ -422,6 +422,7 @@ export class AuthorizationServer {
       oidc: this.options.oidc,
       scopeDelimiter: this.options.scopeDelimiter,
       getByAccessToken: this.tokenRepository.getByAccessToken?.bind(this.tokenRepository),
+      isAccessTokenRevoked: this.tokenRepository.isAccessTokenRevoked?.bind(this.tokenRepository),
     });
   }
 
