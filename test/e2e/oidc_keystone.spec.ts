@@ -81,7 +81,6 @@ describe("OIDC keystone: authorize → token → jwks → userinfo (vanilla adap
   });
 
   it("issues an id_token jose can verify against /jwks whose sub matches userinfo", async () => {
-    // 1. Authorization request (scope=openid, nonce, PKCE).
     const authRequest = await server.validateAuthorizationRequest(
       new OAuthRequest({
         query: {
@@ -103,7 +102,6 @@ describe("OIDC keystone: authorize → token → jwks → userinfo (vanilla adap
     const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
     expect(code).toBeTruthy();
 
-    // 2. Token request → access token + id_token.
     const tokenResponse = await server.respondToAccessTokenRequest(
       new OAuthRequest({
         body: {
@@ -119,15 +117,13 @@ describe("OIDC keystone: authorize → token → jwks → userinfo (vanilla adap
     const accessToken = tokenResponse.body.access_token as string;
     expect(idToken).toEqual(expect.any(String));
 
-    // 3. Fetch the live JWKS through the vanilla adapter.
     const jwksResponse = responseToVanilla(server.jwks() as OAuthResponse);
     const jwks = createLocalJWKSet(await jwksResponse.json());
 
-    // 4. Independently verify the id_token with jose (NOT the library's JwtService).
+    // Independently verify the id_token with jose (NOT the library's JwtService).
     const { payload: idClaims } = await jwtVerify(idToken, jwks, { issuer, audience: client.id });
     expect(idClaims.nonce).toBe("n-0S6_WzA2Mj");
 
-    // 5. Call UserInfo through the vanilla adapter.
     const userInfoResponse = responseToVanilla(
       (await server.userInfo(
         new OAuthRequest({ headers: { authorization: `Bearer ${accessToken}` } }),
@@ -138,7 +134,7 @@ describe("OIDC keystone: authorize → token → jwks → userinfo (vanilla adap
     expect(userInfoResponse.headers.get("cache-control")).toBe("no-store");
     const userInfo = await userInfoResponse.json();
 
-    // 6. Keystone assertion: id_token sub === userinfo sub, byte-for-byte.
+    // Keystone assertion: id_token sub === userinfo sub, byte-for-byte.
     expect(userInfo.sub).toBe(idClaims.sub);
     expect(userInfo.sub).toBe("abc123");
     expect(userInfo.name).toBe("Alice");
