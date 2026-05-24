@@ -247,7 +247,11 @@ export abstract class AbstractGrant implements GrantInterface {
 
     const validScopes = await this.scopeRepository.getAllByIdentifiers(scopes);
 
-    if (this.options.oidc) {
+    // OIDC scopes (openid/profile/email/…) are only meaningful to the
+    // authorization_code grant, which is the sole issuer of id_tokens. Auto-
+    // recognizing them for every grant would let client_credentials, password,
+    // etc. silently accept scopes they can never act on.
+    if (this.options.oidc && this.identifier === "authorization_code") {
       const known = new Set(validScopes.map(scope => scope.name));
       for (const name of scopes) {
         if (!known.has(name) && isAutoRecognizedOidcScope(name)) {

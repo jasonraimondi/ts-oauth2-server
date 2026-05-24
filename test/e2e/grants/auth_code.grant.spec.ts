@@ -809,6 +809,28 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.prompt).toBeUndefined();
     });
 
+    it("auto-injects unregistered OIDC scopes for the authorization_code grant", async () => {
+      // openid/email are allowed for the client but are NOT registered scopes;
+      // only the auth-code grant's OIDC auto-injection makes them valid here.
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      client.scopes = [scope1, { name: "openid" }, { name: "email" }];
+      inMemoryDatabase.clients[client.id] = client;
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          scope: "openid email",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      const names = authorizationRequest.scopes.map(scope => scope.name);
+      expect(names).toContain("openid");
+      expect(names).toContain("email");
+    });
+
     it("threads nonce and auth_time into the issued JWT auth code", async () => {
       grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
