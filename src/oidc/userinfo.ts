@@ -29,12 +29,29 @@ function extractBearerToken(req: RequestInterface): string {
   throw OAuthException.invalidToken("Missing access token");
 }
 
+// The error description can originate from a JWT-library message derived from
+// attacker-supplied token bytes. Strip the double-quote, backslash and control
+// characters that could otherwise break out of the WWW-Authenticate
+// quoted-string and inject extra auth-scheme parameters or split the response.
+function sanitizeHeaderValue(value: string): string {
+  let sanitized = "";
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    const isControl = code < 0x20 || code === 0x7f;
+    const isQuote = code === 0x22;
+    const isBackslash = code === 0x5c;
+    if (isControl || isQuote || isBackslash) continue;
+    sanitized += char;
+  }
+  return sanitized;
+}
+
 function invalidTokenResponse(description: string): ResponseInterface {
   return new OAuthResponse({
     status: HttpStatus.UNAUTHORIZED,
     headers: {
       "content-type": "application/json",
-      [WWW_AUTHENTICATE]: `Bearer error="invalid_token", error_description="${description}"`,
+      [WWW_AUTHENTICATE]: `Bearer error="invalid_token", error_description="${sanitizeHeaderValue(description)}"`,
     },
     body: { error: "invalid_token", error_description: description },
   });

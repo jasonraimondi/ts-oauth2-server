@@ -886,6 +886,36 @@ describe("authorization_code grant", () => {
       expectTokenResponse(accessTokenResponse);
     });
 
+    it("rejects with an OAuthException rather than a raw 500 when the user is absent at id_token time", async () => {
+      grant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      client.scopes = [{ name: "openid" }];
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+
+      // The user existed at authorize time but is gone by token time (deleted, or the
+      // repository returns undefined). The granted openid scope still gates an ID token,
+      // which must surface as an OAuthException rather than a TypeError from user!.id.
+      vi.spyOn(inMemoryUserRepository, "getUserByCredentials").mockResolvedValue(undefined);
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: String(code),
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+
+      await expect(grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).rejects.toThrowError(
+        OAuthException,
+      );
+    });
+
     it("fails loud with invalid_grant when an opaque-code repository drops the nonce", async () => {
       const store: Record<string, OAuthAuthCode> = {};
       const forgetfulRepository: OAuthAuthCodeRepository = {

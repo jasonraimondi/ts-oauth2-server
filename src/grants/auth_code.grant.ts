@@ -195,7 +195,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     payload: PayloadAuthCode,
     scopes: OAuthScope[],
   ): Promise<string> {
-    const subject = oidcSubjectIdentifier(user!.id);
+    if (!user) {
+      throw OAuthException.invalidGrant("The user for this authorization code could not be found");
+    }
+
+    const subject = oidcSubjectIdentifier(user.id);
     const claims = buildIdTokenClaims({
       issuer: this.options.issuer ?? "",
       clientId: client.id,
@@ -360,7 +364,11 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     return new RedirectResponse(finalRedirectUri);
   }
 
-  private async validateAuthorizationCode(payload: any, client: OAuthClient, request: RequestInterface) {
+  private async validateAuthorizationCode(
+    payload: PayloadAuthCode,
+    client: OAuthClient,
+    request: RequestInterface,
+  ): Promise<PayloadAuthCode> {
     if (!payload.auth_code_id) {
       throw OAuthException.invalidParameter("code", "Authorization code malformed");
     }

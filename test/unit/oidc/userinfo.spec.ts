@@ -8,6 +8,9 @@ import {
   type OAuthTokenRepository,
   type OidcOptions,
 } from "../../../src/index.js";
+import { OAuthException } from "../../../src/exceptions/oauth.exception.js";
+import type { AccessTokenVerifier } from "../../../src/oidc/access_token_verifier.js";
+import { handleUserInfoRequest } from "../../../src/oidc/userinfo.js";
 import {
   inMemoryAccessTokenRepository,
   inMemoryClientRepository,
@@ -213,6 +216,30 @@ describe("AuthorizationServer userInfo", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ name: "Alice", sub: "abc123" });
+  });
+
+  it("sanitizes the error_description so a verifier message cannot break out of the WWW-Authenticate header", async () => {
+    const malicious = 'bad "value"\r\nWWW-Authenticate: injected="1"';
+    const verifier = {
+      verify: async () => {
+        throw OAuthException.invalidToken(malicious);
+      },
+    } as unknown as AccessTokenVerifier;
+
+    const res = await handleUserInfoRequest(new OAuthRequest({ body: { access_token: "x" } }), {
+      verifier,
+      oidc: oidcOptions(async () => ({ sub: "abc123" })),
+      scopeDelimiter: " ",
+    });
+
+    const header = res.get("www-authenticate") ?? "";
+    expect(res.status).toBe(401);
+    // The structural quotes around the value remain, but the injected payload's quotes,
+    // backslashes and CR/LF must be stripped so it cannot inject extra auth-scheme params.
+    expect(header).toBe('Bearer error="invalid_token", error_description="bad valueWWW-Authenticate: injected=1"');
+    expect(header).not.toMatch(/[\r\n]/);
+    // The body still carries the raw description (JSON-encoded, so injection-safe there).
+    expect(res.body.error_description).toBe(malicious);
   });
 
   it("throws when OIDC is not enabled", () => {
