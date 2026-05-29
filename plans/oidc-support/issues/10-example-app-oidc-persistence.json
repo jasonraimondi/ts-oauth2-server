@@ -3,7 +3,7 @@
   "slug": "example-app-oidc-persistence",
   "name": "Example app OIDC auth-code persistence update",
   "track": "data",
-  "status": "in-review",
+  "status": "done",
   "priority": "medium",
   "points": 1,
   "labels": [
@@ -20,7 +20,7 @@
   "pr": null,
   "linear_id": null,
   "created": "2026-05-22",
-  "updated": "2026-05-23",
+  "updated": "2026-05-29",
   "tdd": true,
   "headed": false,
   "outcome": "The example app persists nonce and auth_time on authorization codes so it remains a safe template for opaque-code OIDC consumers.",

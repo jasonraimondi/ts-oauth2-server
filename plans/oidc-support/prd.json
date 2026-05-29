@@ -1,7 +1,7 @@
 {
   "name": "OIDC Support",
   "slug": "oidc-support",
-  "status": "active",
+  "status": "in-review",
   "created": "2026-05-18",
   "updated": "2026-05-22",
   "description": "Add an OpenID Connect layer (ID tokens, UserInfo, discovery, JWKS) on top of the existing OAuth 2.0 authorization code grant.",

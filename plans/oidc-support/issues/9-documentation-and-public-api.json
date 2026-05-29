@@ -3,7 +3,7 @@
   "slug": "documentation-and-public-api",
   "name": "Documentation site OIDC section, upgrade guide \u0026 public-API consolidation",
   "track": "intent",
-  "status": "in-review",
+  "status": "done",
   "priority": "high",
   "points": 3,
   "labels": [
@@ -22,7 +22,7 @@
   "pr": null,
   "linear_id": "129dab44-c48c-4ac5-b201-8ea756b0a84d",
   "created": "2026-05-18",
-  "updated": "2026-05-23",
+  "updated": "2026-05-29",
   "tdd": false,
   "headed": false,
   "outcome": "The OIDC layer's per-feature docs (added in issues 4, 7, 8) are stitched together into a coherent OIDC section, the upgrade guide covers the verify() pinning and at+jwt behavior changes, and the public-API surface is audited end-to-end. Per-issue export confirmation already happened in issues 1, 2, 4, 5, 6, 7, 8.",

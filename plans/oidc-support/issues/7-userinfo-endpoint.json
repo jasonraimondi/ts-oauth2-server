@@ -3,7 +3,7 @@
   "slug": "userinfo-endpoint",
   "name": "UserInfo endpoint",
   "track": "intent",
-  "status": "in-review",
+  "status": "done",
   "priority": "high",
   "points": 3,
   "labels": [
@@ -23,7 +23,7 @@
   "pr": null,
   "linear_id": "da0b7a85-8747-42b2-813b-481aa2eda081",
   "created": "2026-05-18",
-  "updated": "2026-05-23",
+  "updated": "2026-05-29",
   "tdd": true,
   "headed": false,
   "outcome": "A relying party can present an access token to a UserInfo endpoint and receive the end-user's scope-derived claims, proven end-to-end by the keystone test using an independent JWT verifier (the `jose` library) — not the library's own JwtService.",
