@@ -3,7 +3,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bodyParser from "body-parser";
 import Express from "express";
-import { AuthorizationServer, DateInterval } from "@jmondi/oauth2-server";
+import { AuthorizationServer, DateInterval, OAuthResponse } from "@jmondi/oauth2-server";
 import { handleExpressError, handleExpressResponse } from "@jmondi/oauth2-server/express";
 
 import { AuthCodeRepository } from "./repositories/auth_code_repository.js";
@@ -19,13 +19,31 @@ async function bootstrap() {
   const authCodeRepository = new AuthCodeRepository(prisma);
   const userRepository = new UserRepository(prisma);
   const tokenRepository = new TokenRepository(prisma);
-  const jwtService = new MyCustomJwtService(process.env.OAUTH_CODES_SECRET!);
+  // OIDC requires asymmetric RS256 signing (a single HMAC secret cannot satisfy
+  // OIDC Discovery §3), so the JwtService is built from an RSA private key.
+  // Generate the key ONCE and load it from the environment — never generate on
+  // boot (see https://tsoauth2server.com/oidc/keypair_lifecycle/).
+  const jwtService = new MyCustomJwtService({ key: process.env.OAUTH_PRIVATE_KEY! });
+  const issuer = process.env.OAUTH_ISSUER ?? "http://localhost:3000";
 
   const authorizationServer = new AuthorizationServer(
     new ClientRepository(prisma),
     tokenRepository,
     new ScopeRepository(prisma),
     jwtService,
+    {
+      issuer,
+      oidc: {
+        authorizationEndpoint: `${issuer}/authorize`,
+        tokenEndpoint: `${issuer}/token`,
+        userinfoEndpoint: `${issuer}/userinfo`,
+        jwksUri: `${issuer}/jwks`,
+        // Scope-derived profile claims exposed at /userinfo. Look the subject
+        // (the user id) up in your own store and return only the claims the
+        // granted scopes permit.
+        getUserClaims: async subject => ({ sub: subject, email: "user@example.com" }),
+      },
+    },
   );
   authorizationServer.enableGrantTypes(
     ["client_credentials", new DateInterval("1d")],
@@ -82,6 +100,28 @@ async function bootstrap() {
     try {
       const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
       return handleExpressResponse(res, oauthResponse);
+    } catch (e) {
+      handleExpressError(e, res);
+      return;
+    }
+  });
+
+  // ============================================================
+  // OIDC Endpoints
+  // ============================================================
+
+  app.get("/.well-known/openid-configuration", (_req: Express.Request, res: Express.Response) => {
+    handleExpressResponse(res, authorizationServer.openidConfiguration() as OAuthResponse);
+  });
+
+  app.get("/jwks", (_req: Express.Request, res: Express.Response) => {
+    handleExpressResponse(res, authorizationServer.jwks() as OAuthResponse);
+  });
+
+  app.get("/userinfo", async (req: Express.Request, res: Express.Response) => {
+    try {
+      const oauthResponse = await authorizationServer.userInfo(req);
+      return handleExpressResponse(res, oauthResponse as OAuthResponse);
     } catch (e) {
       handleExpressError(e, res);
       return;
@@ -148,6 +188,11 @@ async function bootstrap() {
         oauth: {
           "GET /authorize": "Authorization endpoint",
           "POST /token": "Token endpoint",
+        },
+        oidc: {
+          "GET /.well-known/openid-configuration": "OIDC discovery document",
+          "GET /jwks": "JSON Web Key Set (id_token verification keys)",
+          "GET /userinfo": "OIDC UserInfo endpoint (requires valid token)",
         },
         protected: {
           "GET /api/me": "Returns token info (requires valid token)",

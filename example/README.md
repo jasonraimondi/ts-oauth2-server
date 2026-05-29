@@ -10,11 +10,20 @@ See the [ts-oauth2-server-example](https://github.com/jasonraimondi/ts-oauth2-se
 cp .env.example .env
 ```
 
-```dotenv
-# String, buffer, or object containing either the secret for HMAC algorithms or the PEM encoded private key for RSA and ECDSA
-# https://github.com/auth0/node-jsonwebtoken#usage
-OAUTH_CODES_SECRET=changeme
+This example enables OIDC, which requires RS256 (asymmetric) signing. Generate an
+RSA private key once and point `OAUTH_PRIVATE_KEY` at its PEM (see `.env.example`):
+
+```bash
+openssl genpkey -algorithm RSA -pkcs8 -out private.pem -pkeyopt rsa_keygen_bits:2048
 ```
+
+```dotenv
+OAUTH_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+OAUTH_ISSUER=http://localhost:3000
+```
+
+The server then exposes the OIDC endpoints alongside the OAuth2 ones:
+`GET /.well-known/openid-configuration`, `GET /jwks`, and `GET /userinfo`.
 
 ## OIDC and opaque authorization codes
 
