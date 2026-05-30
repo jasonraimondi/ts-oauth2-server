@@ -81,7 +81,6 @@ async function isRevoked(
     stored = undefined;
   }
 
-  // Token no longer in storage → treat as revoked.
   if (!stored) return true;
 
   // Flag-based revocation: the row still exists (possibly with a future expiry)

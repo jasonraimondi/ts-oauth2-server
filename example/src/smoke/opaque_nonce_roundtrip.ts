@@ -12,8 +12,7 @@ import { Client } from "../entities/client.js";
  * exchange with invalid_grant). Run with `pnpm smoke`.
  */
 
-// In-memory stand-in for PrismaClient so the fixture needs no database.
-function fakePrisma(clientRow: Record<string, unknown>) {
+function createInMemoryPrismaStub(clientRow: Record<string, unknown>) {
   const rows = new Map<string, Record<string, unknown>>();
   return {
     oAuthAuthCode: {
@@ -42,7 +41,7 @@ async function main() {
   };
   const client = new Client(clientRow as never);
 
-  const repository = new AuthCodeRepository(fakePrisma(clientRow));
+  const repository = new AuthCodeRepository(createInMemoryPrismaStub(clientRow));
 
   const authCode = repository.issueAuthCode(client, undefined, []);
   authCode.nonce = "nonce-roundtrip";

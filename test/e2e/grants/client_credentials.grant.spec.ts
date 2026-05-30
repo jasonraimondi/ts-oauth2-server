@@ -172,7 +172,6 @@ describe("client_credentials grant", () => {
       },
     });
 
-    // act + assert
     await expect(grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).rejects.toThrowError(
       /invalid, unknown, or malformed/,
     );

@@ -106,10 +106,6 @@ async function bootstrap() {
     }
   });
 
-  // ============================================================
-  // OIDC Endpoints
-  // ============================================================
-
   app.get("/.well-known/openid-configuration", (_req: Express.Request, res: Express.Response) => {
     handleExpressResponse(res, authorizationServer.openidConfiguration() as OAuthResponse);
   });

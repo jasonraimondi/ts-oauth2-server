@@ -1012,8 +1012,8 @@ describe("authorization_code grant", () => {
           };
         },
         async persist(authCode) {
-          // simulate a schema without a nonce column: everything persists except nonce
-          store[authCode.code] = { ...authCode, nonce: undefined };
+          const authCodePersistedWithoutNonce = { ...authCode, nonce: undefined };
+          store[authCode.code] = authCodePersistedWithoutNonce;
         },
         async isRevoked() {
           return false;
