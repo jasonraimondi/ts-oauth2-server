@@ -363,17 +363,20 @@ export abstract class AbstractGrant implements GrantInterface {
   }
 
   protected async extraJwtFields(
-    req: RequestInterface,
+    req: RequestInterface | undefined,
     client: OAuthClient,
     user?: OAuthUser | null,
     originatingAuthCodeId?: string,
   ): Promise<ExtraAccessTokenFields> {
     const extraJwtFields = await this.jwt.extraTokenFields?.({ user, client, originatingAuthCodeId });
-    const aud: string[] | string | undefined =
-      this.getQueryStringParameter("audience", req) ??
-      this.getRequestParameter("audience", req) ??
-      this.getQueryStringParameter("aud", req) ??
-      this.getRequestParameter("aud", req);
+    // The implicit grant issues during authorization and has no request to read
+    // `audience` from; it passes `req` undefined and only the issuer is injected.
+    const aud: string[] | string | undefined = req
+      ? (this.getQueryStringParameter("audience", req) ??
+        this.getRequestParameter("audience", req) ??
+        this.getQueryStringParameter("aud", req) ??
+        this.getRequestParameter("aud", req))
+      : undefined;
 
     return {
       ...(aud && { aud }),

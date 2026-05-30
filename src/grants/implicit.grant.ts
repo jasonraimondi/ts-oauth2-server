@@ -96,16 +96,20 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       finalizedScopes,
     );
 
-    const extraFields = await this.jwt.extraTokenFields?.({
-      user: authorizationRequest.user,
-      client: authorizationRequest.client,
-    });
+    // Route through the shared seam (req undefined — implicit has no request to
+    // read `audience` from) so the OIDC `iss` claim is injected; otherwise the
+    // at+jwt access token is rejected by AccessTokenVerifier on issuer mismatch.
+    const extraFields = await this.extraJwtFields(
+      undefined,
+      authorizationRequest.client,
+      authorizationRequest.user,
+    );
 
     const encryptedAccessToken = await this.encryptAccessToken(
       authorizationRequest.client,
       accessToken,
       finalizedScopes,
-      extraFields ?? {},
+      extraFields,
     );
 
     const params: Record<string, string> = {
