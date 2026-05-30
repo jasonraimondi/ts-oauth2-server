@@ -7,7 +7,7 @@ A framework-agnostic TypeScript library implementing an OAuth 2.0 authorization 
 ### Tokens
 
 **Access Token**:
-A JWT granting a bearer access to protected resources. Its `aud` claim is the *resource* audience (from the request `audience` parameter).
+A JWT granting a bearer access to protected resources. When the request supplies an `audience` parameter, that becomes the token's `aud` (the *resource* audience); with no `audience` requested, the token carries no `aud` claim.
 _Avoid_: "bearer token" when you mean the access token specifically.
 
 **ID Token**:
