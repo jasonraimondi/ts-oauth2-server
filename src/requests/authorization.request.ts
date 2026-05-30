@@ -15,21 +15,21 @@ export class AuthorizationRequest {
 
   /**
    * OIDC `nonce`, bound into the issued ID token to mitigate replay. Only parsed
-   * when OIDC is enabled; otherwise always undefined.
+   * for openid-scoped authorization requests; otherwise always undefined.
    */
   nonce?: string;
   /**
    * OIDC end-user authentication time (epoch seconds). Consumer-supplied after
-   * the user authenticates; required when `maxAge` is present.
+   * the user authenticates; required when `maxAge` is present on an openid-scoped request.
    */
   authTime?: number;
   /**
-   * OIDC `max_age` (seconds). Parsed from the request; enforced for freshness.
+   * OIDC `max_age` (seconds). Parsed from openid-scoped requests; enforced for freshness.
    */
   maxAge?: number;
 
-  // Parsed but inert OIDC authorization parameters (exposed for the consumer,
-  // not acted on by the library).
+  // Parsed but inert OIDC authorization parameters for openid-scoped requests
+  // (exposed for the consumer, not acted on by the library).
   prompt?: string;
   loginHint?: string;
   display?: string;

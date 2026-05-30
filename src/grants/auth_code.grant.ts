@@ -178,7 +178,14 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   private shouldIssueIdToken(scopes: OAuthScope[]): boolean {
-    return !!this.options.oidc && scopes.some(scope => scope.name === "openid");
+    return this.isOpenIdScopeRequest(scopes);
+  }
+
+  private isOpenIdScopeRequest(scopes: OAuthScope[] | string[] | undefined): boolean {
+    return (
+      !!this.options.oidc &&
+      scopes?.some(scope => (typeof scope === "string" ? scope : scope.name) === "openid") === true
+    );
   }
 
   /**
@@ -285,7 +292,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       authorizationRequest.codeChallengeMethod = codeChallengeMethod;
     }
 
-    if (this.options.oidc) {
+    if (this.isOpenIdScopeRequest(finalizedScopes)) {
       this.parseOidcAuthorizationParameters(request, authorizationRequest);
     }
 
@@ -329,7 +336,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       throw OAuthException.badRequest("Authorization is not approved");
     }
 
-    if (this.options.oidc && authorizationRequest.maxAge !== undefined && authorizationRequest.authTime === undefined) {
+    const isOidcAuthorizationRequest = this.isOpenIdScopeRequest(authorizationRequest.scopes);
+
+    if (
+      isOidcAuthorizationRequest &&
+      authorizationRequest.maxAge !== undefined &&
+      authorizationRequest.authTime === undefined
+    ) {
       throw OAuthException.invalidParameter(
         "auth_time",
         "max_age was requested but authTime was not set on the authorization request",
@@ -344,11 +357,13 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       authorizationRequest.codeChallenge,
       authorizationRequest.codeChallengeMethod,
       authorizationRequest.scopes,
-      {
-        nonce: authorizationRequest.nonce,
-        authTime: authorizationRequest.authTime,
-        maxAge: authorizationRequest.maxAge,
-      },
+      isOidcAuthorizationRequest
+        ? {
+            nonce: authorizationRequest.nonce,
+            authTime: authorizationRequest.authTime,
+            maxAge: authorizationRequest.maxAge,
+          }
+        : undefined,
     );
 
     await this.guardAgainstOpaqueNonceLoss(authCode, authorizationRequest);
@@ -430,19 +445,19 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   /**
-   * Opaque-code nonce-loss guard. Opaque codes rebuild their payload from the
-   * persisted entity, so a consumer repository that fails to persist `nonce`
-   * (or `authTime` when `max_age` was requested) would silently produce a
-   * security-degraded flow. Re-read the just-persisted code and fail loud so
-   * the misconfiguration surfaces immediately rather than as a nonce-less ID
-   * token. JWT codes carry these fields inside the signed code and never reach
-   * this guard.
+   * Opaque-code OIDC metadata persistence guard. Opaque codes rebuild their
+   * payload from the persisted entity, so a consumer repository that fails to
+   * persist `nonce` (or `authTime` when `max_age` was requested) for an
+   * openid-scoped request would silently produce a security-degraded flow.
+   * Re-read the just-persisted code and fail loud so the misconfiguration
+   * surfaces immediately rather than as a nonce-less ID token. JWT codes carry
+   * these fields inside the signed code and never reach this guard.
    */
   private async guardAgainstOpaqueNonceLoss(
     authCode: OAuthAuthCode,
     authorizationRequest: AuthorizationRequest,
   ): Promise<void> {
-    if (!this.options.oidc || !this.options.useOpaqueAuthorizationCodes) return;
+    if (!this.options.useOpaqueAuthorizationCodes || !this.isOpenIdScopeRequest(authorizationRequest.scopes)) return;
 
     const nonceExpected = authorizationRequest.nonce !== undefined;
     const authTimeExpected = authorizationRequest.maxAge !== undefined;
@@ -464,13 +479,14 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
   }
 
   /**
-   * OIDC `max_age` freshness. When the authorization request carried `max_age`,
-   * the end-user authentication recorded in `auth_time` must still be within
-   * that window at token time, otherwise the flow is rejected rather than
-   * minting an ID token that misrepresents authentication freshness.
+   * OIDC `max_age` freshness for openid-scoped codes. When the authorization
+   * request carried `max_age`, the end-user authentication recorded in
+   * `auth_time` must still be within that window at token time, otherwise the
+   * flow is rejected rather than minting an ID token that misrepresents
+   * authentication freshness.
    */
   private guardAgainstStaleAuthentication(payload: PayloadAuthCode): void {
-    if (!this.options.oidc) return;
+    if (!this.isOpenIdScopeRequest(payload.scopes)) return;
     if (payload.max_age == null || payload.auth_time == null) return;
 
     const nowSeconds = Math.floor(Date.now() / 1000);

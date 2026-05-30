@@ -755,13 +755,20 @@ describe("authorization_code grant", () => {
 
     const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-    it("parses OIDC authorization parameters when OIDC is enabled", async () => {
+    const allowOpenidScope = (): void => {
+      client.scopes = [scope1, { name: "openid" }];
+      inMemoryDatabase.clients[client.id] = client;
+    };
+
+    it("parses OIDC authorization parameters when request includes openid scope", async () => {
       grant = createGrant({ issuer: "TestIssuer", oidc: oidcOptions });
+      allowOpenidScope();
       request = new OAuthRequest({
         query: {
           response_type: "code",
           client_id: client.id,
           redirect_uri: "http://example.com",
+          scope: "openid",
           code_challenge: codeChallenge,
           code_challenge_method: "S256",
           nonce: "nonce-abc",
@@ -785,6 +792,28 @@ describe("authorization_code grant", () => {
       expect(authorizationRequest.uiLocales).toBe("en-US");
       expect(authorizationRequest.acrValues).toBe("urn:acr:1");
       expect(authorizationRequest.idTokenHint).toBe("prev-token");
+    });
+
+    it("ignores OIDC authorization parameters on non-openid requests", async () => {
+      grant = createGrant({ issuer: "TestIssuer", oidc: oidcOptions });
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+          nonce: "nonce-abc",
+          max_age: "not-a-number",
+          prompt: "login",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.nonce).toBeUndefined();
+      expect(authorizationRequest.maxAge).toBeUndefined();
+      expect(authorizationRequest.prompt).toBeUndefined();
     });
 
     it("leaves OIDC authorization fields undefined when OIDC is disabled", async () => {
@@ -833,9 +862,11 @@ describe("authorization_code grant", () => {
 
     it("threads nonce and auth_time into the issued JWT auth code", async () => {
       grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
       authorizationRequest.nonce = "nonce-xyz";
       authorizationRequest.authTime = nowSeconds();
 
@@ -847,11 +878,36 @@ describe("authorization_code grant", () => {
       expect(decoded.auth_time).toBe(authorizationRequest.authTime);
     });
 
-    it("throws from completeAuthorizationRequest when max_age was requested without authTime", async () => {
+    it("does not persist stray OIDC fields into non-openid auth codes", async () => {
       grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
+      authorizationRequest.scopes = [scope1];
+      authorizationRequest.nonce = "nonce-ignored";
+      authorizationRequest.maxAge = 300;
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+      const decoded = decode(String(code)) as IAuthCodePayload & {
+        nonce?: string;
+        auth_time?: number;
+        max_age?: number;
+      };
+
+      expect(decoded.scopes).toEqual([scope1.name]);
+      expect(decoded.nonce).toBeUndefined();
+      expect(decoded.auth_time).toBeUndefined();
+      expect(decoded.max_age).toBeUndefined();
+    });
+
+    it("throws from completeAuthorizationRequest when max_age was requested without authTime", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
       authorizationRequest.maxAge = 300;
 
       await expect(grant.completeAuthorizationRequest(authorizationRequest)).rejects.toThrowError(
@@ -861,9 +917,11 @@ describe("authorization_code grant", () => {
 
     it("rejects with invalid_grant when max_age freshness is exceeded at token time", async () => {
       grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
       authorizationRequest.maxAge = 60;
       authorizationRequest.authTime = 1000; // far in the past relative to the frozen test clock
 
@@ -886,9 +944,11 @@ describe("authorization_code grant", () => {
 
     it("accepts the token request when max_age freshness is satisfied", async () => {
       grant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
       authorizationRequest.maxAge = 300;
       authorizationRequest.authTime = nowSeconds() - 10;
 
@@ -981,9 +1041,11 @@ describe("authorization_code grant", () => {
         },
       );
 
+      allowOpenidScope();
       const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
       authorizationRequest.isAuthorizationApproved = true;
       authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
       authorizationRequest.nonce = "nonce-should-survive";
 
       await expect(forgetfulGrant.completeAuthorizationRequest(authorizationRequest)).rejects.toThrowError(
