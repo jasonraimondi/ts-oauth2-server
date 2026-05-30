@@ -80,6 +80,15 @@ Request the `openid` scope (plus any of `profile`, `email`, `address`, `phone`) 
 
 To confirm the whole surface works against a real relying party, run the [OIDC conformance smoke test](../endpoints/oidc_conformance.md).
 
+## Access token format
+
+The access token is a JWT tagged `typ: at+jwt` ([RFC 9068](https://www.rfc-editor.org/rfc/rfc9068)), but two claims intentionally deviate from the strict profile for backward compatibility:
+
+- **`cid`, not `client_id`.** The library has always identified the client with the non-standard `cid` claim; RFC 9068 §2.2 specifies `client_id`. Resource servers reading the access token should look for `cid`.
+- **`aud` is conditional.** RFC 9068 §2.2 lists `aud` as required, but the access token carries `aud` only when an `audience` (or `aud`) parameter is supplied on the request. With no audience requested, no `aud` claim is emitted.
+
+The ID token is unaffected and follows OpenID Connect Core 1.0.
+
 ## Known limitations (v1)
 
 - **No ID token on refresh.** ID tokens are issued only in the authorization-code exchange.

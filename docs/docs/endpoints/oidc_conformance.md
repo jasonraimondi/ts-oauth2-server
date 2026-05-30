@@ -89,6 +89,10 @@ PASS: OIDC conformance smoke test succeeded
 
 A non-zero exit with `FAIL` (or an `openid-client` validation error such as `id_token issued in the future`, `unexpected JWT alg received`, or `nonce mismatch`) signals a regression in the signing, discovery, or claims plumbing — treat it as a release blocker.
 
+:::note RFC 9068 deviations
+The validators above check the ID token strictly, but the **access token** intentionally departs from RFC 9068 in two places: it identifies the client with `cid` rather than `client_id`, and it includes `aud` only when an `audience` parameter is supplied on the token request. See [Access token format](../oidc/getting_started.md#access-token-format).
+:::
+
 :::info Covered by the test suite
 The same end-to-end path (authorize → token → JWKS → UserInfo, verified with an independent `jose` validator) is asserted in `test/e2e/oidc_keystone.spec.ts`, and the cross-cutting failure modes (algorithm confusion, `alg:none`, wrong `typ`/`iss`, expired/revoked tokens, missing `openid` scope, opaque-code nonce loss) in `test/e2e/oidc_resilience.spec.ts`.
 :::

@@ -139,6 +139,11 @@ export class OAuthException extends Error {
     );
   }
 
+  /**
+   * RFC 6750 §3.1 `insufficient_scope` (403). Exposed for consumers building
+   * resource-server endpoints. The built-in UserInfo handler does not use this —
+   * it emits its own bearer response carrying a `scope="openid"` challenge.
+   */
   static insufficientScope(errorDescription?: string): OAuthException {
     return new OAuthException(
       "Insufficient scope",
