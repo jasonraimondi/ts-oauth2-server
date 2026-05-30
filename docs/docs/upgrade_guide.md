@@ -26,9 +26,13 @@ new AuthorizationServer(..., {
 
 The OIDC release is **additive** — non-OIDC flows are unchanged and you opt in by setting the `issuer` and `oidc` options. A few changes affect existing users regardless of OIDC; review them before upgrading. See the [CHANGELOG](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/CHANGELOG.md) for the full list.
 
-#### `JwtService.verify()` now pins the algorithm
+#### `JwtService.verify()` hardening
 
-`verify()` pins verification to the service's configured algorithm and **ignores any caller-supplied `algorithms` in `VerifyOptions`**. This closes an algorithm-confusion vector. If you relied on passing `algorithms` to `verify()`, that option is now a no-op — configure the `JwtService` with the algorithm you intend instead. This applies to symmetric (HS256) consumers too.
+Two verification behaviors changed. Both are safe-by-default tightenings — no legitimate consumer should break — but they are behavior changes worth noting.
+
+**Algorithm pinning.** `verify()` pins verification to the service's configured algorithm and **ignores any caller-supplied `algorithms` in `VerifyOptions`**. This closes an algorithm-confusion vector. If you relied on passing `algorithms` to `verify()`, that option is now a no-op — configure the `JwtService` with the algorithm you intend instead. This applies to symmetric (HS256) consumers too.
+
+**Non-object payloads are rejected.** `verify()` now rejects any token whose payload is not a JSON object, failing with `JWT payload must be an object`. The method has always declared a `Promise<Record<string, unknown>>` return type; previously a JWT signed with a string payload would resolve with the raw string, contradicting that contract. Only consumers using `JwtService` directly to verify their own string-payload tokens are affected — the library itself never signs non-object payloads.
 
 #### OIDC access tokens carry `typ: "at+jwt"`
 

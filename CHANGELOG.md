@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.
 - When OIDC is enabled, authorization-code access tokens now carry the JOSE header `typ: "at+jwt"` (RFC 9068). The `BearerTokenResponse` body gains an optional `id_token` string for OIDC `openid` flows. Non-OIDC token wire format is unchanged.
-- `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options.
+- `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options. It also rejects any token whose payload is not a JSON object (the method has always declared a `Record<string, unknown>` return), so a string-payload JWT no longer resolves with the raw string.
 - `JwtService.sign()` now forwards signing options, including JOSE header overrides such as `typ: "at+jwt"`.
 - Internal: stop importing the removed `crypto.JsonWebKey` type (dropped in `@types/node` v25); the RSA JWK export is now typed against a small local interface so `tsc` passes. No public API or runtime change.
 
