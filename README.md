@@ -31,22 +31,6 @@ Out of the box it supports the following grants:
 - [Implicit grant](https://tsoauth2server.com/docs/grants/implicit) // not recommended 
 - [Resource owner password credentials grant](https://tsoauth2server.com/docs/grants/password) // not recommended
 
-Implicit redirect mode:
-
-The implicit grant appends tokens to the redirect URI fragment by default, as recommended by RFC 6749. Set `implicitRedirectMode: "query"` only for legacy clients that depend on the previous query-string behavior.
-
-OpenID Connect support:
-
-OIDC is opt-in and built on the authorization code grant. When enabled with an `issuer`, an RS256 `JwtService`, and an `oidc` configuration block, authorization code exchanges granted the `openid` scope include a signed `id_token`.
-
-The OIDC helpers expose the standard endpoints through the same `ResponseInterface` used by the OAuth endpoints:
-
-- `authorizationServer.openidConfiguration()` for `/.well-known/openid-configuration`
-- `authorizationServer.jwks()` for publishing the public JWKS
-- `authorizationServer.userInfo(req)` for scope-filtered UserInfo claims
-
-OIDC configuration also supports `getUserClaims`, optional `getIdTokenClaims`, standard OIDC scope recognition for the authorization code grant, and `typ: "at+jwt"` access tokens. See the [OIDC getting-started guide](https://tsoauth2server.com/docs/oidc/getting_started) for a full example.
-
 Framework support:
 
 The included adapters are just helper functions, any framework should be supported. Take a look at the adapter implementations to learn how you can create custom adapters for your favorite tool!
@@ -98,10 +82,12 @@ Example implementations:
 | Version         | Latest Version | Security Updates |
 |-----------------|----------------|------------------|
 | [4.x][version4] | :tada:         | :tada:           |
-| [3.x][version3] | :tada:         | :tada:           |
-| [2.x][version2] |                | :tada:           |
+| [4.x][version4] |                | :tada:           |
+| [3.x][version3] |                |                  |
+| [2.x][version2] |                |                  |
 
-[version4]: https://github.com/jasonraimondi/ts-oauth2-server/tree/main
+[version5]: https://github.com/jasonraimondi/ts-oauth2-server/tree/main
+[version4]: https://github.com/jasonraimondi/ts-oauth2-server/tree/4.x
 [version3]: https://github.com/jasonraimondi/ts-oauth2-server/tree/3.x
 [version2]: https://github.com/jasonraimondi/ts-oauth2-server/tree/2.x
 
@@ -110,6 +96,7 @@ Example implementations:
 - [v1 to v2](https://github.com/jasonraimondi/ts-oauth2-server/releases/tag/v2.0.0)
 - [v2 to v3](https://tsoauth2server.com/docs/upgrade_guide#to-v3) 
 - [v3 to v4](https://tsoauth2server.com/docs/upgrade_guide#to-v4) 
+- [v4 to v5](https://tsoauth2server.com/docs/upgrade_guide#to-v5) 
 
 ## Thanks
 
