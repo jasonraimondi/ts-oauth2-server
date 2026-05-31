@@ -196,3 +196,51 @@ Cache-Control: no-store
 Pragma: no-cache
 ```
 :::
+
+## OpenID Connect ID Tokens
+
+When OIDC is enabled (an `oidc` config block is set on the authorization server) and the
+authorization code flow is run with the `openid` scope granted, the token response carries a
+signed `id_token` alongside the `access_token`:
+
+```json
+{
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "access_token": "<RS256 JWT, JOSE header typ:at+jwt>",
+  "refresh_token": "...",
+  "scope": "openid",
+  "id_token": "<RS256 JWT, JOSE header typ:JWT>"
+}
+```
+
+### Claim set
+
+The default ID token is lean — it carries **Protocol Claims only**. Scope-derived user
+attributes (`name`, `email`, …) are never placed in the ID token; relying parties read those
+from the UserInfo endpoint.
+
+| Claim | Value |
+| --- | --- |
+| `iss` | The configured `issuer`. |
+| `sub` | The canonical subject — `String(user.id)`, byte-identical to the UserInfo `sub`. |
+| `aud` | The **client** id (deliberately different from the access token's resource `aud`). |
+| `exp` | Reuses the access-token TTL. |
+| `iat` | Issued-at, in epoch seconds. |
+| `nonce` | Present only when the authorization request carried a `nonce`. |
+| `auth_time` | Present only when a consumer-supplied `authTime` was set. |
+| `at_hash` | Base64url left-half of `SHA-256(access_token)` (OIDC Core §3.1.3.6). |
+
+`azp` is omitted in v1 (valid only while `aud` is the single client id).
+
+### Behaviour notes
+
+- **Scope gating:** an authorization code flow without the `openid` scope returns no `id_token`.
+- **Auto-recognized scopes:** when OIDC is enabled, the authorization code grant accepts `openid`,
+  `profile`, `email`, `address`, and `phone` without registering them in your scope repository.
+  Other grants (`client_credentials`, `password`, …) do not auto-recognize these, since only the
+  authorization code flow issues ID tokens. `offline_access` is not auto-recognized in v1.
+- **Token typing:** OIDC access tokens are signed with the JOSE header `typ: "at+jwt"` (RFC 9068)
+  so an ID token can never be accepted as a bearer access token. ID tokens keep `typ: "JWT"`.
+- **Single use:** authorization codes remain single-use; replaying a redeemed code is rejected and
+  mints no second ID token.

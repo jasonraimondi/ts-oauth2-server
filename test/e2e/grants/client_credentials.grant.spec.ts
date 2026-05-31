@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from "crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
 import {
@@ -10,6 +11,7 @@ import {
   OAuthClient,
   OAuthRequest,
   OAuthScope,
+  OidcOptions,
 } from "../../../src/index.js";
 import {
   inMemoryAccessTokenRepository,
@@ -33,6 +35,22 @@ function createGrant(options?: Partial<AuthorizationServerOptions>) {
     inMemoryAccessTokenRepository,
     inMemoryScopeRepository,
     new ClientCredentialsJwtService("secret-key"),
+    { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
+  );
+}
+
+// OIDC pins RS256, so an OIDC-enabled grant must sign access tokens with an
+// asymmetric key.
+const rsaPrivateKeyPem = generateKeyPairSync("rsa", { modulusLength: 2048 })
+  .privateKey.export({ format: "pem", type: "pkcs8" })
+  .toString();
+
+function createOidcGrant(options?: Partial<AuthorizationServerOptions>) {
+  return new ClientCredentialsGrant(
+    inMemoryClientRepository,
+    inMemoryAccessTokenRepository,
+    inMemoryScopeRepository,
+    new JwtService({ key: rsaPrivateKeyPem }),
     { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
   );
 }
@@ -131,6 +149,32 @@ describe("client_credentials grant", () => {
     expect(decodedToken.client_id).toBe(client.id);
     expect(decodedToken.iss).toBe("TestIssuer");
     expect(decodedToken.aud).toStrictEqual("test-audience");
+  });
+
+  it("does not auto-inject OIDC scopes for non-authorization_code grants when OIDC is enabled", async () => {
+    // arrange — `openid` is an allowed client scope but is NOT a registered scope,
+    // so only the auth-code grant's OIDC auto-injection would make it valid.
+    const oidc: OidcOptions = {
+      authorizationEndpoint: "https://issuer.example/authorize",
+      tokenEndpoint: "https://issuer.example/token",
+      userinfoEndpoint: "https://issuer.example/userinfo",
+      jwksUri: "https://issuer.example/jwks",
+      getUserClaims: async () => ({ sub: "abc123" }),
+    };
+    client.scopes = [...client.scopes, { name: "openid" }];
+    grant = createOidcGrant({ issuer: "https://issuer.example", oidc });
+    request = new OAuthRequest({
+      body: {
+        grant_type: "client_credentials",
+        client_id: client.id,
+        client_secret: client.secret,
+        scope: "openid",
+      },
+    });
+
+    await expect(grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).rejects.toThrowError(
+      /invalid, unknown, or malformed/,
+    );
   });
 
   it("successfully grants using body with scopes", async () => {

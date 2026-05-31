@@ -69,6 +69,31 @@ describe("JwtAuthCodeEncoder", () => {
     expect(payload.expire_time).toBe(expireSeconds);
   });
 
+  it("carries OIDC nonce, auth_time and max_age across the round trip", async () => {
+    const authCode = buildAuthCode({ nonce: "n-once-123", authTime: 1_700_000_000, maxAge: 300 });
+    const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
+    const expireSeconds = Math.ceil(authCode.expiresAt.getTime() / 1000);
+
+    const wireCode = await encoder.issue(authCode, request, expireSeconds);
+    const { payload } = await encoder.resolve(wireCode);
+
+    expect(payload.nonce).toBe("n-once-123");
+    expect(payload.auth_time).toBe(1_700_000_000);
+    expect(payload.max_age).toBe(300);
+  });
+
+  it("omits OIDC fields when the auth code carries none", async () => {
+    const authCode = buildAuthCode();
+    const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
+
+    const wireCode = await encoder.issue(authCode, request, Math.ceil(authCode.expiresAt.getTime() / 1000));
+    const { payload } = await encoder.resolve(wireCode);
+
+    expect(payload.nonce).toBeUndefined();
+    expect(payload.auth_time).toBeUndefined();
+    expect(payload.max_age).toBeUndefined();
+  });
+
   it("throws OAuthException when the wire-form code is malformed", async () => {
     await expect(encoder.resolve("not.a.real.jwt")).rejects.toBeInstanceOf(OAuthException);
   });
@@ -268,6 +293,17 @@ describe("OpaqueAuthCodeEncoder", () => {
     expect(payload.code_challenge_method).toBe(authCode.codeChallengeMethod);
     expect(payload.user_id).toBe("user-id-1");
     expect(payload.expire_time).toBe(Math.ceil(authCode.expiresAt.getTime() / 1000));
+  });
+
+  it("resolve() projects OIDC nonce, auth_time and max_age from the persisted entity", async () => {
+    const authCode = buildAuthCode({ nonce: "opaque-nonce", authTime: 1_700_000_500, maxAge: 600 });
+    await repository.persist(authCode);
+
+    const { payload } = await encoder.resolve(authCode.code);
+
+    expect(payload.nonce).toBe("opaque-nonce");
+    expect(payload.auth_time).toBe(1_700_000_500);
+    expect(payload.max_age).toBe(600);
   });
 
   it("resolve() returns the persisted entity with no PKCE challenge", async () => {

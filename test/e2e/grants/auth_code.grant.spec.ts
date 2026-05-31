@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { generateKeyPairSync } from "crypto";
 import { decode } from "jsonwebtoken";
 
 import { inMemoryDatabase } from "../_helpers/in_memory/database.js";
@@ -19,11 +20,14 @@ import {
   ExtraAccessTokenFieldArgs,
   IAuthCodePayload,
   JwtService,
+  OAuthAuthCode,
+  OAuthAuthCodeRepository,
   OAuthClient,
   OAuthException,
   OAuthRequest,
   OAuthScope,
   OAuthUser,
+  OidcOptions,
   REGEX_ACCESS_TOKEN,
 } from "../../../src/index.js";
 import { expectTokenResponse } from "../_helpers/assertions.js";
@@ -45,6 +49,24 @@ function createGrant(options?: Partial<AuthorizationServerOptions>) {
     inMemoryAccessTokenRepository,
     inMemoryScopeRepository,
     new CustomJwtService("secret-key"),
+    { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
+  );
+}
+
+// OIDC mandates RS256; use an asymmetric service whenever an OIDC flow signs an
+// access token (typ:at+jwt) or an ID token.
+const rsaPrivateKeyPem = generateKeyPairSync("rsa", { modulusLength: 2048 })
+  .privateKey.export({ format: "pem", type: "pkcs8" })
+  .toString();
+
+function createOidcGrant(options?: Partial<AuthorizationServerOptions>) {
+  return new AuthCodeGrant(
+    inMemoryAuthCodeRepository,
+    inMemoryUserRepository,
+    inMemoryClientRepository,
+    inMemoryAccessTokenRepository,
+    inMemoryScopeRepository,
+    new JwtService({ key: rsaPrivateKeyPem }),
     { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
   );
 }
@@ -719,6 +741,504 @@ describe("authorization_code grant", () => {
       const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       await expect(accessTokenResponse).rejects.toThrow(OAuthException);
+    });
+  });
+
+  describe("OIDC nonce, auth_time and max_age threading", () => {
+    const oidcOptions: OidcOptions = {
+      authorizationEndpoint: "https://issuer.example/authorize",
+      tokenEndpoint: "https://issuer.example/token",
+      userinfoEndpoint: "https://issuer.example/userinfo",
+      jwksUri: "https://issuer.example/jwks",
+      getUserClaims: async () => ({ sub: "abc123" }),
+    };
+
+    const nowSeconds = () => Math.floor(Date.now() / 1000);
+
+    const allowOpenidScope = (): void => {
+      client.scopes = [scope1, { name: "openid" }];
+      inMemoryDatabase.clients[client.id] = client;
+    };
+
+    it("parses OIDC authorization parameters when request includes openid scope", async () => {
+      grant = createGrant({ issuer: "TestIssuer", oidc: oidcOptions });
+      allowOpenidScope();
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          scope: "openid",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+          nonce: "nonce-abc",
+          max_age: "300",
+          prompt: "login",
+          login_hint: "jason@example.com",
+          display: "page",
+          ui_locales: "en-US",
+          acr_values: "urn:acr:1",
+          id_token_hint: "prev-token",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.nonce).toBe("nonce-abc");
+      expect(authorizationRequest.maxAge).toBe(300);
+      expect(authorizationRequest.prompt).toBe("login");
+      expect(authorizationRequest.loginHint).toBe("jason@example.com");
+      expect(authorizationRequest.display).toBe("page");
+      expect(authorizationRequest.uiLocales).toBe("en-US");
+      expect(authorizationRequest.acrValues).toBe("urn:acr:1");
+      expect(authorizationRequest.idTokenHint).toBe("prev-token");
+    });
+
+    it("ignores OIDC authorization parameters on non-openid requests", async () => {
+      grant = createGrant({ issuer: "TestIssuer", oidc: oidcOptions });
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+          nonce: "nonce-abc",
+          max_age: "not-a-number",
+          prompt: "login",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.nonce).toBeUndefined();
+      expect(authorizationRequest.maxAge).toBeUndefined();
+      expect(authorizationRequest.prompt).toBeUndefined();
+    });
+
+    it("leaves OIDC authorization fields undefined when OIDC is disabled", async () => {
+      grant = createGrant({});
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+          nonce: "nonce-abc",
+          max_age: "300",
+          prompt: "login",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      expect(authorizationRequest.nonce).toBeUndefined();
+      expect(authorizationRequest.maxAge).toBeUndefined();
+      expect(authorizationRequest.prompt).toBeUndefined();
+    });
+
+    it("auto-injects unregistered OIDC scopes for the authorization_code grant", async () => {
+      // openid/email are allowed for the client but are NOT registered scopes;
+      // only the auth-code grant's OIDC auto-injection makes them valid here.
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      client.scopes = [scope1, { name: "openid" }, { name: "email" }];
+      inMemoryDatabase.clients[client.id] = client;
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+          scope: "openid email",
+        },
+      });
+
+      const authorizationRequest = await grant.validateAuthorizationRequest(request);
+
+      const names = authorizationRequest.scopes.map(scope => scope.name);
+      expect(names).toContain("openid");
+      expect(names).toContain("email");
+    });
+
+    it("threads nonce and auth_time into the issued JWT auth code", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+      authorizationRequest.nonce = "nonce-xyz";
+      authorizationRequest.authTime = nowSeconds();
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+      const decoded = decode(String(code)) as IAuthCodePayload & { nonce?: string; auth_time?: number };
+
+      expect(decoded.nonce).toBe("nonce-xyz");
+      expect(decoded.auth_time).toBe(authorizationRequest.authTime);
+    });
+
+    it("does not persist stray OIDC fields into non-openid auth codes", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [scope1];
+      authorizationRequest.nonce = "nonce-ignored";
+      authorizationRequest.maxAge = 300;
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+      const decoded = decode(String(code)) as IAuthCodePayload & {
+        nonce?: string;
+        auth_time?: number;
+        max_age?: number;
+      };
+
+      expect(decoded.scopes).toEqual([scope1.name]);
+      expect(decoded.nonce).toBeUndefined();
+      expect(decoded.auth_time).toBeUndefined();
+      expect(decoded.max_age).toBeUndefined();
+    });
+
+    it("throws from completeAuthorizationRequest when max_age was requested without authTime", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+      authorizationRequest.maxAge = 300;
+
+      await expect(grant.completeAuthorizationRequest(authorizationRequest)).rejects.toThrowError(
+        /max_age was requested but authTime/,
+      );
+    });
+
+    it("rejects with invalid_grant when max_age freshness is exceeded at token time", async () => {
+      grant = createGrant({ issuer: "TestIssuer", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+      authorizationRequest.maxAge = 60;
+      authorizationRequest.authTime = 1000; // far in the past relative to the frozen test clock
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: String(code),
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+
+      await expect(grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).rejects.toThrowError(
+        /max_age exceeded/,
+      );
+    });
+
+    it("accepts the token request when max_age freshness is satisfied", async () => {
+      grant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      allowOpenidScope();
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+      authorizationRequest.maxAge = 300;
+      authorizationRequest.authTime = nowSeconds() - 10;
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: String(code),
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+
+      const accessTokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+      expectTokenResponse(accessTokenResponse);
+    });
+
+    it("rejects with an OAuthException rather than a raw 500 when the user is absent at id_token time", async () => {
+      grant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      client.scopes = [{ name: "openid" }];
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const code = new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code");
+
+      // The user existed at authorize time but is gone by token time (deleted, or the
+      // repository returns undefined). The granted openid scope still gates an ID token,
+      // which must surface as an OAuthException rather than a TypeError from user!.id.
+      vi.spyOn(inMemoryUserRepository, "getUserByCredentials").mockResolvedValue(undefined);
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code: String(code),
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+
+      await expect(grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).rejects.toThrowError(
+        OAuthException,
+      );
+    });
+
+    it("fails loud with invalid_grant when an opaque-code repository drops the nonce", async () => {
+      const store: Record<string, OAuthAuthCode> = {};
+      const forgetfulRepository: OAuthAuthCodeRepository = {
+        issueAuthCode(issuingClient, issuingUser, _scopes) {
+          return {
+            code: "opaque-forgetful-code",
+            user: issuingUser,
+            client: issuingClient,
+            redirectUri: "http://example.com",
+            expiresAt: new DateInterval("1h").getEndDate(),
+            scopes: [],
+          };
+        },
+        async persist(authCode) {
+          const authCodePersistedWithoutNonce = { ...authCode, nonce: undefined };
+          store[authCode.code] = authCodePersistedWithoutNonce;
+        },
+        async isRevoked() {
+          return false;
+        },
+        async getByIdentifier(code) {
+          return store[code];
+        },
+        async revoke() {
+          return;
+        },
+      };
+
+      const forgetfulGrant = new AuthCodeGrant(
+        forgetfulRepository,
+        inMemoryUserRepository,
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        new JwtService("secret-key"),
+        {
+          ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS,
+          requiresPKCE: false,
+          useOpaqueAuthorizationCodes: true,
+          oidc: oidcOptions,
+        },
+      );
+
+      allowOpenidScope();
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+      authorizationRequest.nonce = "nonce-should-survive";
+
+      await expect(forgetfulGrant.completeAuthorizationRequest(authorizationRequest)).rejects.toThrowError(
+        /must persist the nonce field on OAuthAuthCode/,
+      );
+    });
+  });
+
+  describe("OIDC ID token issuance", () => {
+    const oidcOptions: OidcOptions = {
+      authorizationEndpoint: "https://issuer.example/authorize",
+      tokenEndpoint: "https://issuer.example/token",
+      userinfoEndpoint: "https://issuer.example/userinfo",
+      jwksUri: "https://issuer.example/jwks",
+      getUserClaims: async () => ({ sub: "abc123" }),
+    };
+
+    const decodeJoseHeader = (token: string) =>
+      JSON.parse(Buffer.from(token.split(".")[0], "base64url").toString("utf8"));
+
+    const issueOpenidCode = async (oidcGrant: AuthCodeGrant, nonce?: string) => {
+      client.scopes = [scope1, { name: "openid" }];
+      inMemoryDatabase.clients[client.id] = client;
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [{ name: "openid" }];
+      authorizationRequest.nonce = nonce;
+      const redirectResponse = await oidcGrant.completeAuthorizationRequest(authorizationRequest);
+      return String(new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code"));
+    };
+
+    it("mints a signed id_token alongside the access token for the openid scope", async () => {
+      const oidcGrant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      const code = await issueOpenidCode(oidcGrant, "nonce-1");
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+      const response = await oidcGrant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+      expect(response.body.id_token).toEqual(expect.any(String));
+      const idClaims = decode(response.body.id_token) as Record<string, any>;
+      expect(idClaims.iss).toBe("https://issuer.example");
+      expect(idClaims.sub).toBe("abc123");
+      expect(idClaims.aud).toBe(client.id);
+      expect(idClaims.nonce).toBe("nonce-1");
+      expect(idClaims.at_hash).toEqual(expect.any(String));
+      expect(idClaims.exp).toBeTruthy();
+      expect(idClaims.iat).toBeTruthy();
+
+      const accessHeader = decodeJoseHeader(response.body.access_token);
+      expect(accessHeader.typ).toBe("at+jwt");
+      expect(accessHeader.alg).toBe("RS256");
+
+      const idHeader = decodeJoseHeader(response.body.id_token);
+      expect(idHeader.typ).toBe("JWT");
+      expect(idHeader.alg).toBe("RS256");
+    });
+
+    it("omits the id_token when the openid scope is not granted", async () => {
+      const oidcGrant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      client.scopes = [scope1];
+      inMemoryDatabase.clients[client.id] = client;
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      authorizationRequest.scopes = [scope1];
+      const redirectResponse = await oidcGrant.completeAuthorizationRequest(authorizationRequest);
+      const code = String(new URLSearchParams(redirectResponse.headers.location.split("?")[1]).get("code"));
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: "http://example.com",
+          client_id: client.id,
+        },
+      });
+      const response = await oidcGrant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+      expect(response.body.id_token).toBeUndefined();
+      // OIDC is enabled, so the access token is still tagged at+jwt even without openid.
+      expect(decodeJoseHeader(response.body.access_token).typ).toBe("at+jwt");
+    });
+
+    it("rejects replay of a redeemed authorization code and mints no second id_token", async () => {
+      const oidcGrant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      const code = await issueOpenidCode(oidcGrant, "nonce-replay");
+
+      const buildTokenRequest = () =>
+        new OAuthRequest({
+          body: {
+            grant_type: "authorization_code",
+            code,
+            redirect_uri: "http://example.com",
+            client_id: client.id,
+          },
+        });
+
+      const firstResponse = await oidcGrant.respondToAccessTokenRequest(buildTokenRequest(), new DateInterval("1h"));
+      expect(firstResponse.body.id_token).toEqual(expect.any(String));
+
+      await expect(oidcGrant.respondToAccessTokenRequest(buildTokenRequest(), new DateInterval("1h"))).rejects.toThrow(
+        OAuthException,
+      );
+    });
+
+    const redeemOpenidCode = async (oidcGrant: AuthCodeGrant, nonce?: string) => {
+      const code = await issueOpenidCode(oidcGrant, nonce);
+      request = new OAuthRequest({
+        body: { grant_type: "authorization_code", code, redirect_uri: "http://example.com", client_id: client.id },
+      });
+      return oidcGrant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+    };
+
+    it("adds custom claims from getIdTokenClaims to the id_token payload", async () => {
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: { ...oidcOptions, getIdTokenClaims: () => ({ roles: ["admin"], tenant: "acme" }) },
+      });
+      const response = await redeemOpenidCode(oidcGrant, "nonce-custom");
+
+      const idClaims = decode(response.body.id_token) as Record<string, any>;
+      expect(idClaims.roles).toEqual(["admin"]);
+      expect(idClaims.tenant).toBe("acme");
+      expect(idClaims.iss).toBe("https://issuer.example");
+      expect(idClaims.nonce).toBe("nonce-custom");
+    });
+
+    it("passes the OIDC context to getIdTokenClaims", async () => {
+      let received: any;
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: {
+          ...oidcOptions,
+          getIdTokenClaims: ctx => {
+            received = ctx;
+            return {};
+          },
+        },
+      });
+      await redeemOpenidCode(oidcGrant, "nonce-ctx");
+
+      expect(received.subject).toBe("abc123");
+      expect(received.clientId).toBe(client.id);
+      expect(received.scopes).toContain("openid");
+    });
+
+    it("never lets getIdTokenClaims influence the JOSE header", async () => {
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: { ...oidcOptions, getIdTokenClaims: () => ({ alg: "HS256", typ: "fake", kid: "evil" }) },
+      });
+      const response = await redeemOpenidCode(oidcGrant, "nonce-hdr");
+
+      const idHeader = decodeJoseHeader(response.body.id_token);
+      expect(idHeader.alg).toBe("RS256");
+      expect(idHeader.typ).toBe("JWT");
+      expect(idHeader.kid).not.toBe("evil");
+    });
+
+    it("yields exactly the protocol claim set when no hook is configured", async () => {
+      const oidcGrant = createOidcGrant({ issuer: "https://issuer.example", requiresPKCE: false, oidc: oidcOptions });
+      const response = await redeemOpenidCode(oidcGrant, "nonce-lean");
+
+      const idClaims = decode(response.body.id_token) as Record<string, any>;
+      expect(Object.keys(idClaims).sort()).toEqual(["aud", "at_hash", "exp", "iat", "iss", "nonce", "sub"].sort());
+    });
+
+    it("surfaces a throwing getIdTokenClaims hook as invalid_grant", async () => {
+      const oidcGrant = createOidcGrant({
+        issuer: "https://issuer.example",
+        requiresPKCE: false,
+        oidc: {
+          ...oidcOptions,
+          getIdTokenClaims: () => {
+            throw new Error("consumer mistake");
+          },
+        },
+      });
+
+      await expect(redeemOpenidCode(oidcGrant, "nonce-throw")).rejects.toMatchObject({
+        errorType: "invalid_grant",
+      });
     });
   });
 

@@ -112,6 +112,26 @@ export default defineConfig({
               text: "/token/introspect",
               link: "/docs/endpoints/introspect",
             },
+            { text: "/userinfo", link: "/docs/endpoints/userinfo" },
+            {
+              text: "/.well-known/openid-configuration",
+              link: "/docs/endpoints/discovery",
+            },
+            {
+              text: "OIDC conformance smoke test",
+              link: "/docs/endpoints/oidc_conformance",
+            },
+          ],
+        },
+        {
+          text: "OpenID Connect",
+          items: [
+            { text: "Getting Started with OIDC", link: "/docs/oidc/getting_started" },
+            { text: "Keypair Lifecycle", link: "/docs/oidc/keypair_lifecycle" },
+            { text: "Hooks", link: "/docs/oidc/hooks" },
+            { text: "/userinfo", link: "/docs/endpoints/userinfo" },
+            { text: "/.well-known/openid-configuration", link: "/docs/endpoints/discovery" },
+            { text: "Conformance smoke test", link: "/docs/endpoints/oidc_conformance" },
           ],
         },
         {

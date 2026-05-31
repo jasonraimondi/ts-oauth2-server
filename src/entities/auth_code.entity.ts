@@ -12,4 +12,19 @@ export interface OAuthAuthCode {
   user?: OAuthUser | null;
   client: OAuthClient;
   scopes: OAuthScope[];
+  /**
+   * OIDC `nonce` from the authorization request. Opaque-code repositories must
+   * persist this field or OIDC nonce binding is lost across the round trip.
+   */
+  nonce?: string | null;
+  /**
+   * OIDC end-user authentication time (epoch seconds), supplied by the consumer
+   * on the authorization request. Required when `max_age` was requested.
+   */
+  authTime?: number | null;
+  /**
+   * OIDC `max_age` (seconds) from the authorization request, used to enforce
+   * authentication freshness at token time.
+   */
+  maxAge?: number | null;
 }

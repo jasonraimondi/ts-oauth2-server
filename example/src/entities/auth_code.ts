@@ -31,6 +31,13 @@ export class AuthCode implements AuthCodeModel, OAuthAuthCode {
   expiresAt: Date;
   createdAt: Date;
   scopes: Scope[];
+  // OIDC fields. Opaque-code repositories MUST persist and hydrate these — the
+  // library rebuilds the opaque code's payload from the stored row, so a dropped
+  // `nonce` is lost across the round trip. JWT auth codes carry these in the
+  // token itself and avoid this persistence obligation.
+  nonce: string | null;
+  authTime: number | null;
+  maxAge: number | null;
 
   constructor({ user, client, scopes, ...entity }: AuthCodeModel & Required & Optional) {
     this.code = entity.code;
@@ -44,6 +51,9 @@ export class AuthCode implements AuthCodeModel, OAuthAuthCode {
     this.scopes = scopes?.map(s => new Scope(s)) ?? [];
     this.expiresAt = new Date();
     this.createdAt = new Date();
+    this.nonce = entity.nonce ?? null;
+    this.authTime = entity.authTime ?? null;
+    this.maxAge = entity.maxAge ?? null;
   }
 
   get isExpired(): boolean {

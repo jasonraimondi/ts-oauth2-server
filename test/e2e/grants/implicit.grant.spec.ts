@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from "crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { decode } from "jsonwebtoken";
 
@@ -17,6 +18,7 @@ import {
   OAuthRequest,
   OAuthScope,
   OAuthUser,
+  type OidcOptions,
   REGEX_ACCESS_TOKEN,
   roundToSeconds,
 } from "../../../src/index.js";
@@ -30,6 +32,12 @@ function createGrant(options?: Partial<typeof DEFAULT_AUTHORIZATION_SERVER_OPTIO
     new JwtService("secret-key"),
     { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, ...options },
   );
+}
+
+function rsaPem(): string {
+  return generateKeyPairSync("rsa", { modulusLength: 2048 })
+    .privateKey.export({ format: "pem", type: "pkcs8" })
+    .toString();
 }
 
 describe("implicit grant", () => {
@@ -237,6 +245,39 @@ describe("implicit grant", () => {
       const authorizeResponseParams = new URLSearchParams(query);
       expect(authorizeResponseParams.get("access_token")).toMatch(REGEX_ACCESS_TOKEN);
       expect(authorizeResponseParams.get("state")).toBe("abc123-state");
+    });
+
+    it("injects the issuer into the at+jwt access token when oidc is configured", async () => {
+      // arrange
+      const issuer = "https://issuer.example";
+      const oidc: OidcOptions = {
+        authorizationEndpoint: `${issuer}/authorize`,
+        tokenEndpoint: `${issuer}/token`,
+        userinfoEndpoint: `${issuer}/userinfo`,
+        jwksUri: `${issuer}/jwks`,
+        getUserClaims: async subject => ({ sub: subject }),
+      };
+      grant = new ImplicitGrant(
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        new JwtService({ key: rsaPem() }),
+        { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, issuer, oidc },
+      );
+      const authorizationRequest = new AuthorizationRequest("implicit", client, "http://example.com");
+      authorizationRequest.user = user;
+      authorizationRequest.isAuthorizationApproved = true;
+
+      // act
+      const response = await grant.completeAuthorizationRequest(authorizationRequest);
+      const authorizeResponseParams = new URLSearchParams(response.headers.location.split("#")[1]);
+      const accessToken = String(authorizeResponseParams.get("access_token"));
+      const decodedPayload = <ITokenData>decode(accessToken);
+      const decodedHeader = (decode(accessToken, { complete: true }) as { header: { typ?: string } }).header;
+
+      // assert: an at+jwt token must carry iss or AccessTokenVerifier rejects it on issuer mismatch
+      expect(decodedHeader.typ).toBe("at+jwt");
+      expect(decodedPayload.iss).toBe(issuer);
     });
 
     it("will not complete if isAuthorizationApproved=false", async () => {

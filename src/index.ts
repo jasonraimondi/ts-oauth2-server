@@ -5,6 +5,20 @@ export * from "./entities/scope.entity.js";
 export * from "./entities/token.entity.js";
 export * from "./entities/user.entity.js";
 export * from "./exceptions/oauth.exception.js";
+export * from "./oidc/access_token_verifier.js";
+export * from "./oidc/claims.js";
+export * from "./oidc/discovery.js";
+export * from "./oidc/id_token.js";
+export * from "./oidc/subject.js";
+export * from "./oidc/userinfo.js";
+export { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "./options.js";
+export type {
+  OidcDiscoveryMetadata,
+  OidcGetIdTokenClaims,
+  OidcGetUserClaims,
+  OidcIdTokenClaimsContext,
+  OidcOptions,
+} from "./options.js";
 export * from "./repositories/access_token.repository.js";
 export * from "./repositories/auth_code.repository.js";
 export * from "./repositories/client.repository.js";

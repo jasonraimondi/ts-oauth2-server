@@ -7,8 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **OpenID Connect (OIDC) support.** Opt in by setting the top-level `issuer` and a nested `oidc` config block (with an RS256 `JwtService`). The authorization-code flow then issues a signed `id_token` alongside the access token, and three new endpoints become available: `authorizationServer.userInfo(req)`, `authorizationServer.openidConfiguration()`, and `authorizationServer.jwks()`. Access-token verification for UserInfo runs through a reusable `AccessTokenVerifier` seam. See the [OIDC getting-started guide](https://tsoauth2server.com/docs/oidc/getting_started) and [upgrade guide](https://tsoauth2server.com/docs/upgrade_guide). The individual building blocks are listed below.
+- Add RS256 `JwtService` key options with public JWKS export and RFC 7638 thumbprint `kid` defaults.
+- Add `OAuthException.invalidToken()` and `OAuthException.insufficientScope()` helpers for OIDC bearer-token responses.
+- Add the optional `oidc` authorization-server config block, construction guards, `jwks()` endpoint response, and reusable `AccessTokenVerifier` seam.
+- Add OIDC Core §5.4 scope-to-claim mapping and scope-gated claim filtering helpers.
+- Parse openid-scoped OIDC authorization parameters (`nonce`, `max_age`, `prompt`, `login_hint`, `display`, `ui_locales`, `acr_values`, `id_token_hint`) onto `AuthorizationRequest`; consumers set `authTime` after authentication when `max_age` is requested.
+- Thread OIDC `nonce`, `authTime`/`auth_time`, and `maxAge`/`max_age` through the auth code entity and payload for both JWT and opaque codes, with a fail-loud guard when an opaque-code repository drops the persisted `nonce` (or `authTime` required by `max_age`) and `max_age` freshness enforcement at token time.
+- Issue a signed `id_token` alongside the access token in the authorization code flow when the `openid` scope is granted, carrying `iss`, `sub`, `aud`, `exp`, `iat`, conditional `nonce`/`auth_time`, and `at_hash`. Adds `buildIdTokenClaims`, `calculateAtHash`, and `oidcSubjectIdentifier` helpers, and auto-recognizes the standard OIDC scopes (`openid`, `profile`, `email`, `address`, `phone`) for the authorization-code grant only when OIDC is enabled.
+- Add the optional `getIdTokenClaims` OIDC hook for adding custom claims (e.g. roles, tenant, acr) to issued ID tokens. An explicit strip-then-merge against the exported `PROTOCOL_CLAIM_NAMES` constant guarantees protocol claims always win and hook output reaches the JWT payload only, never the JOSE header; a throwing hook surfaces as `invalid_grant`.
+- Add the optional `OAuthTokenRepository.isAccessTokenRevoked?` hook so UserInfo can reject flag-revoked access tokens that still have live token rows; without it, UserInfo detects deleted or expired tokens via `getByAccessToken`.
+
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.
+- When OIDC is enabled, access tokens minted through the built-in grants now carry the JOSE header `typ: "at+jwt"` (RFC 9068). The `BearerTokenResponse` body gains an optional `id_token` string for OIDC `openid` authorization-code flows. Non-OIDC token wire format is unchanged.
+- `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options. It also rejects any token whose payload is not a JSON object (the method has always declared a `Record<string, unknown>` return), so a string-payload JWT no longer resolves with the raw string.
+- `JwtService.sign()` now forwards signing options, including JOSE header overrides such as `typ: "at+jwt"`.
+- Internal: stop importing the removed `crypto.JsonWebKey` type (dropped in `@types/node` v25); the RSA JWK export is now typed against a small local interface so `tsc` passes. No public API or runtime change.
+
+### Known limitations (OIDC v1)
+- No `id_token` is issued on the refresh-token grant — only in the authorization-code exchange.
+- No `offline_access` auto-recognition; refresh-token issuance stays consumer-owned.
+- RS256 only — ES256 and overlapping multi-key rotation are deferred (a single-key model cannot satisfy OIDC Discovery §3 with an ES256 key).
+- UserInfo returns plain JSON only; signed/encrypted UserInfo responses are not supported.
+- Opaque authorization codes require the consumer repository to persist `nonce`, `authTime`, and `maxAge` when present; JWT authorization codes are recommended for OIDC.
 
 ## [4.3.5] - 2026-05-08
 

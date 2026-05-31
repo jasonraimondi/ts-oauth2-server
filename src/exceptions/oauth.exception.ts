@@ -2,6 +2,7 @@ export const HttpStatus = {
   NOT_ACCEPTABLE: 406,
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
   INTERNAL_SERVER_ERROR: 500,
   OK: 200,
 };
@@ -11,6 +12,8 @@ export enum ErrorType {
   InvalidClient = "invalid_client",
   InvalidGrant = "invalid_grant",
   InvalidScope = "invalid_scope",
+  InvalidToken = "invalid_token",
+  InsufficientScope = "insufficient_scope",
   UnauthorizedScope = "unauthorized_scope",
   UnauthorizedClient = "unauthorized_client",
   UnsupportedGrantType = "unsupported_grant_type",
@@ -124,6 +127,31 @@ export class OAuthException extends Error {
    */
   static unsupportedTokenType(): OAuthException {
     return new OAuthException("Unsupported token_type_hint", ErrorType.UnsupportedTokenType);
+  }
+
+  static invalidToken(errorDescription?: string): OAuthException {
+    return new OAuthException(
+      "Invalid token",
+      ErrorType.InvalidToken,
+      errorDescription,
+      undefined,
+      HttpStatus.UNAUTHORIZED,
+    );
+  }
+
+  /**
+   * RFC 6750 §3.1 `insufficient_scope` (403). Exposed for consumers building
+   * resource-server endpoints. The built-in UserInfo handler does not use this —
+   * it emits its own bearer response carrying a `scope="openid"` challenge.
+   */
+  static insufficientScope(errorDescription?: string): OAuthException {
+    return new OAuthException(
+      "Insufficient scope",
+      ErrorType.InsufficientScope,
+      errorDescription,
+      undefined,
+      HttpStatus.FORBIDDEN,
+    );
   }
 
   static badRequest(message: string): OAuthException {

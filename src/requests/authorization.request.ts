@@ -13,6 +13,30 @@ export class AuthorizationRequest {
   codeChallenge?: string;
   codeChallengeMethod?: CodeChallengeMethod;
 
+  /**
+   * OIDC `nonce`, bound into the issued ID token to mitigate replay. Only parsed
+   * for openid-scoped authorization requests; otherwise always undefined.
+   */
+  nonce?: string;
+  /**
+   * OIDC end-user authentication time (epoch seconds). Consumer-supplied after
+   * the user authenticates; required when `maxAge` is present on an openid-scoped request.
+   */
+  authTime?: number;
+  /**
+   * OIDC `max_age` (seconds). Parsed from openid-scoped requests; enforced for freshness.
+   */
+  maxAge?: number;
+
+  // Parsed but inert OIDC authorization parameters for openid-scoped requests
+  // (exposed for the consumer, not acted on by the library).
+  prompt?: string;
+  loginHint?: string;
+  display?: string;
+  uiLocales?: string;
+  acrValues?: string;
+  idTokenHint?: string;
+
   constructor(
     public readonly grantTypeId: GrantIdentifier,
     public readonly client: OAuthClient,

@@ -59,6 +59,17 @@ export interface OAuthTokenRepository {
   isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 
   /**
+   * (Optional) Called by the OIDC UserInfo endpoint to detect flag-based
+   * revocation of an access token — i.e. the token row still exists with a
+   * future expiry but has been marked revoked. Without this hook UserInfo can
+   * only treat a token as revoked once it is deleted from storage or expires.
+   * Mirrors {@link isRefreshTokenRevoked} for access tokens.
+   * @param accessToken The access token to check
+   * @returns Promise resolving to a boolean indicating revocation status
+   */
+  isAccessTokenRevoked?(accessToken: OAuthToken): Promise<boolean>;
+
+  /**
    * Fetches a refresh token entity from storage by refresh token string.
    * @param refreshTokenToken The refresh token string
    * @returns Promise resolving to an OAuthToken
