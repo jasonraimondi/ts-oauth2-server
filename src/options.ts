@@ -15,8 +15,7 @@ export interface AuthorizationServerOptions {
   authenticateRevoke: boolean;
   /**
    * Controls how `implicit` grant responses append tokens to the redirect URI.
-   * OAuth 2.0 recommends `fragment`; `query` is preserved for backwards compatibility.
-   * The default will change to `fragment` in the next major version.
+   * OAuth 2.0 recommends `fragment`; set `query` only for legacy clients.
    */
   implicitRedirectMode: "query" | "fragment";
   logger?: LoggerService;
@@ -39,5 +38,5 @@ export const DEFAULT_AUTHORIZATION_SERVER_OPTIONS: AuthorizationServerOptions = 
   scopeDelimiter: " ",
   authenticateIntrospect: true,
   authenticateRevoke: true,
-  implicitRedirectMode: "query",
+  implicitRedirectMode: "fragment",
 };

@@ -1,5 +1,27 @@
 # Upgrade Guide
 
+## To v5
+
+### Implicit Redirect Mode Defaults to Fragment
+
+The implicit grant now appends access tokens to redirect URIs using URI fragments by default, as recommended by [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2).
+
+Before (v4.x):
+
+```ts
+new AuthorizationServer(..., {
+  implicitRedirectMode: "query",
+});
+```
+
+After (v5.x):
+
+```ts
+new AuthorizationServer(..., {
+  implicitRedirectMode: "fragment", // set to "query" to match 4.x
+});
+```
+
 ## To v4
 
 ### Breaking Change
@@ -18,8 +40,7 @@ new AuthorizationServer(..., {
 })
 ```
 
-Before (v4.x):
-
+After (v4.x):
 
 ```ts
 new AuthorizationServer(..., {

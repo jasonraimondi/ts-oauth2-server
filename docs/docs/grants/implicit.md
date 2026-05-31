@@ -12,15 +12,9 @@ If you're developing a web application with a backend, consider using the standa
 
 ## Redirect Mode
 
-By default, the implicit grant appends tokens to the redirect URI using query parameters for backwards compatibility. [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2) recommends using URI fragments instead.
+By default, the implicit grant appends tokens to the redirect URI using URI fragments, as recommended by [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2).
 
-:::warning
-
-In the next major version, the default will change from `"query"` to `"fragment"` to align with RFC 6749. To prepare, explicitly set `implicitRedirectMode: "query"` if you depend on the current behavior.
-
-:::
-
-To enable fragment mode:
+To use the previous query parameter behavior for legacy clients:
 
 ```ts
 const authorizationServer = new AuthorizationServer(
@@ -29,15 +23,15 @@ const authorizationServer = new AuthorizationServer(
   scopeRepository,
   new JwtService("secret-key"),
   {
-    implicitRedirectMode: "fragment",
+    implicitRedirectMode: "query",
   },
 );
 ```
 
 | Mode | Redirect Example |
 | --- | --- |
-| `"query"` (default) | `https://example.com/callback?access_token=...&token_type=Bearer` |
-| `"fragment"` | `https://example.com/callback#access_token=...&token_type=Bearer` |
+| `"fragment"` (default) | `https://example.com/callback#access_token=...&token_type=Bearer` |
+| `"query"` | `https://example.com/callback?access_token=...&token_type=Bearer` |
 
 ## Resources
 

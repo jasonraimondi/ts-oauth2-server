@@ -194,7 +194,7 @@ describe("implicit grant", () => {
   });
 
   describe("complete authorization request", () => {
-    it("is successful", async () => {
+    it("defaults to URI fragment mode", async () => {
       // arrange
       const now = roundToSeconds(Date.now());
       const authorizationRequest = new AuthorizationRequest("implicit", client, "http://example.com");
@@ -204,20 +204,23 @@ describe("implicit grant", () => {
 
       // act
       const response = await grant.completeAuthorizationRequest(authorizationRequest);
-      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
-      const decodedCode = <ITokenData>decode(String(authorizeResponseQuery.get("access_token")));
+      const location = response.headers.location;
+      const authorizeResponseParams = new URLSearchParams(location.split("#")[1]);
+      const decodedCode = <ITokenData>decode(String(authorizeResponseParams.get("access_token")));
 
       // assert
-      expect(authorizeResponseQuery.get("state")).toBe("abc123-state");
+      expect(location).toContain("#");
+      expect(location).not.toContain("?access_token=");
+      expect(authorizeResponseParams.get("state")).toBe("abc123-state");
       expect(decodedCode.sub).toBe(user.id);
       expect(decodedCode.jti).toMatch(REGEX_ACCESS_TOKEN);
       expect(decodedCode.exp).toBeGreaterThan(now);
       expect(decodedCode.iat).toBe(now);
     });
 
-    it("can append tokens in URI fragment mode", async () => {
+    it("can append tokens in query mode", async () => {
       // arrange
-      grant = createGrant({ implicitRedirectMode: "fragment" });
+      grant = createGrant({ implicitRedirectMode: "query" });
       const authorizationRequest = new AuthorizationRequest("implicit", client, "http://example.com/callback");
       authorizationRequest.user = user;
       authorizationRequest.isAuthorizationApproved = true;
@@ -228,10 +231,10 @@ describe("implicit grant", () => {
       const location = response.headers.location;
 
       // assert
-      expect(location).toContain("#");
-      expect(location).not.toContain("?access_token=");
-      const fragment = location.split("#")[1];
-      const authorizeResponseParams = new URLSearchParams(fragment);
+      expect(location).toContain("?access_token=");
+      expect(location).not.toContain("#access_token=");
+      const query = location.split("?")[1];
+      const authorizeResponseParams = new URLSearchParams(query);
       expect(authorizeResponseParams.get("access_token")).toMatch(REGEX_ACCESS_TOKEN);
       expect(authorizeResponseParams.get("state")).toBe("abc123-state");
     });
