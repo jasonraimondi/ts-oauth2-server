@@ -15,3 +15,8 @@ lerna-debug.log*
 
 # OS X
 .DS_Store
+.plan-bender/
+.plan-bender.local.json
+.claude/skills/bender-*
+.pi/skills/bender-*
+.idea/awsToolkit.xml
