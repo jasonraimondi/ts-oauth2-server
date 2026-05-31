@@ -91,7 +91,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     this.guardAgainstStaleAuthentication(validatedPayload);
 
-    const userId = validatedPayload.user_id;
+    const userId = validatedPayload.user_id ?? undefined;
 
     const user = userId
       ? await this.userRepository.getUserByCredentials(userId, undefined, this.identifier, client)
@@ -136,7 +136,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         );
       }
 
-      const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method;
+      const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method ?? undefined;
 
       let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
 
