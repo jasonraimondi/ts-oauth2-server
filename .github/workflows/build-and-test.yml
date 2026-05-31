@@ -38,6 +38,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile --production false
+      - run: pnpm run typecheck
       - run: pnpm test:cov
         env:
           CI: true
