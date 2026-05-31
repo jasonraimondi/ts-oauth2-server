@@ -69,7 +69,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=22"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.6",

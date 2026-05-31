@@ -12,6 +12,8 @@
 
 A standards compliant implementation of an OAuth 2.0 authorization server for Nodejs that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript.
 
+Requires `node >= 22`.
+
 ## Quick Start
 
 This section provides a high-level overview of setting up the OAuth2 server.

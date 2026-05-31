@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **BREAKING**: Raise the minimum supported Node.js runtime to 22.
+
 ## [4.3.5] - 2026-05-08
 
 ### Fixed
