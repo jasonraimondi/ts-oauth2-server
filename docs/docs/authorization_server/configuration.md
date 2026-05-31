@@ -8,33 +8,35 @@ The default configuration is great for most users. You might not need to tweak a
 
 The authorization server has a few optional settings with the following default values;
 
-| Option                   | Type                | Default   | Details                                                                                                                                                                                                                                                                   |
-| ------------------------ | ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `requiresPKCE`           | boolean             | true      | PKCE is enabled by default and recommended for all users. To support a legacy client without PKCE, disable this option. [[Learn more]][requires-pkce]                                                                                                                     |
-| `requiresS256`           | boolean             | true      | Disabled by default. If you want to require all clients to use S256, you can enable that here. [[Learn more]][requires-s256]                                                                                                                                              |
-| `notBeforeLeeway`        | number              | 0         | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. Its value MUST be a number containing a NumericDate value.                                                                                                 |
-| `tokenCID`               | "id" or "name"      | "id"      | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`.<br /><br />In 3.x the default is **"id"**, in v2.x the default was **"name"**. [[Learn more]][token-cid]                                                                                       |
-| `issuer`                 | string \| undefined | undefined | Sets the JWT `accessToken.iss` to this value.                                                                                                                                                                                                                             |
-| `authenticateIntrospect` | boolean             | true      | Authorize the [/introspect](../endpoints/introspect.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) <br /><br />In 4.x the default is **true**, in v3.x the default was **false**. |
-| `authenticateRevoke`     | boolean             | true      | Authorize the [/revoke](../endpoints/revoke.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header) <br /><br />In 4.x the default is **true**, in v3.x the default was **false**.                             |
-| `logger`                 | LoggerService \| undefined | undefined | Optional logger service to capture debugging information, particularly useful for tracking token operations like revocations. |
-| `useOpaqueAuthorizationCodes` | boolean        | false     | When enabled, authorization codes are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
-| `useOpaqueRefreshTokens` | boolean        | false     | When enabled, refresh tokens are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups. |
+| Option                   | Type                | Default   | Details                                                                                                                                                                                                                                                                                  |
+| ------------------------ | ------------------- | --------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `requiresPKCE`           | boolean             | true      | PKCE is enabled by default and recommended for all users. To support a legacy client without PKCE, disable this option. [[Learn more]][requires-pkce]                                                                                                                                    |
+| `requiresS256`           | boolean             | true      | S256 PKCE is required by default. To allow clients to use the `plain` PKCE challenge method, disable this option. [[Learn more]][requires-s256]                                                                                                                                          |
+| `notBeforeLeeway`        | number              | 0         | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. Its value MUST be a number containing a NumericDate value.                                                                                                                |
+| `tokenCID`               | "id" or "name"      | "id"      | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`. [[Learn more]][token-cid]                                                                                                                                                                                     |
+| `issuer`                 | string \| undefined | undefined | Sets the JWT `accessToken.iss` to this value.                                                                                                                                                                                                                                            |
+| `scopeDelimiter`         | string              | " "       | Sets the delimiter used to join and split OAuth scope strings.                                                                                                                                                                                                                           |
+| `authenticateIntrospect` | boolean             | true      | Authorize the [/introspect](../endpoints/introspect.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header)                                                                                                |
+| `authenticateRevoke`     | boolean             | true      | Authorize the [/revoke](../endpoints/revoke.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header).                                                                                                       |
+| `logger`                 | LoggerService \| undefined | undefined | Optional logger service to capture debugging information, particularly useful for tracking token operations like revocations.                                                                                                                                                            |
+| `useOpaqueAuthorizationCodes` | boolean        | false     | When enabled, authorization codes are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups.      |
+| `useOpaqueRefreshTokens` | boolean        | false     | When enabled, refresh tokens are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque refresh tokens are stored server-side and validated through repository lookups.  |
 | `implicitRedirectMode`   | "query" \| "fragment" | "fragment" | Controls how the [implicit grant](../grants/implicit.md) appends tokens to the redirect URI. OAuth 2.0 ([RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2)) recommends `"fragment"`. Set `"query"` only for legacy clients that depend on the previous behavior. |
 
 ```ts
 type AuthorizationServerOptions = {
-  requiresPKCE: true;
-  requiresS256: false;
-  notBeforeLeeway: 0;
+  notBeforeLeeway: number;
+  requiresPKCE: boolean;
+  requiresS256: boolean;
   tokenCID: "id" | "name";
-  issuer: undefined;
+  issuer?: string;
+  scopeDelimiter: string;
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
+  implicitRedirectMode: "query" | "fragment";
   logger?: LoggerService;
   useOpaqueAuthorizationCodes?: boolean;
   useOpaqueRefreshTokens?: boolean;
-  implicitRedirectMode: "query" | "fragment";
 };
 ```
 
