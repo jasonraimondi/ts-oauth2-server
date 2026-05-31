@@ -31,6 +31,10 @@ Out of the box it supports the following grants:
 - [Implicit grant](https://tsoauth2server.com/docs/grants/implicit) // not recommended 
 - [Resource owner password credentials grant](https://tsoauth2server.com/docs/grants/password) // not recommended
 
+Implicit redirect mode:
+
+The implicit grant appends tokens to the redirect URI fragment by default, as recommended by RFC 6749. Set `implicitRedirectMode: "query"` only for legacy clients that depend on the previous query-string behavior.
+
 OpenID Connect support:
 
 OIDC is opt-in and built on the authorization code grant. When enabled with an `issuer`, an RS256 `JwtService`, and an `oidc` configuration block, authorization code exchanges granted the `openid` scope include a signed `id_token`.

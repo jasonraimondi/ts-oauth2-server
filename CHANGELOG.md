@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.
+- **BREAKING**: The implicit grant now appends tokens to the redirect URI using URI fragments by default, as recommended by RFC 6749 §4.2.2. Set `implicitRedirectMode: "query"` to preserve the previous query-string behavior for legacy clients.
 - When OIDC is enabled, access tokens minted through the built-in grants now carry the JOSE header `typ: "at+jwt"` (RFC 9068). The `BearerTokenResponse` body gains an optional `id_token` string for OIDC `openid` authorization-code flows. Non-OIDC token wire format is unchanged.
 - `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options. It also rejects any token whose payload is not a JSON object (the method has always declared a `Record<string, unknown>` return), so a string-payload JWT no longer resolves with the raw string.
 - `JwtService.sign()` now forwards signing options, including JOSE header overrides such as `typ: "at+jwt"`.
