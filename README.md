@@ -6,11 +6,11 @@
 [![Test Coverage](https://codecov.io/gh/jasonraimondi/ts-oauth2-server/branch/main/graph/badge.svg?token=F7VTS15XOJ)](https://codecov.io/gh/jasonraimondi/ts-oauth2-server)
 [![NPM Downloads](https://img.shields.io/npm/dt/@jmondi/oauth2-server?label=npm%20downloads&style=flat-square)](https://www.npmjs.com/package/@jmondi/oauth2-server)
 
-`@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server written in TypeScript. 
+`@jmondi/oauth2-server` is a standards compliant implementation of an OAuth 2.0 authorization server written in TypeScript.
 
 Requires `node >= 22`. [Read the docs](https://tsoauth2server.com/)
 
-The following RFCs are implemented:
+The following OAuth and OpenID Connect specifications are implemented:
 
 - [RFC6749 "OAuth 2.0"](https://tools.ietf.org/html/rfc6749)
 - [RFC6750 "The OAuth 2.0 Authorization Framework: Bearer Token Usage"](https://tools.ietf.org/html/rfc6750)
@@ -19,6 +19,9 @@ The following RFCs are implemented:
 - [RFC7636 "Proof Key for Code Exchange by OAuth Public Clients"](https://tools.ietf.org/html/rfc7636)
 - [RFC7662 "OAuth 2.0 Token Introspection"](https://tools.ietf.org/html/rfc7662)
 - [RFC8693 "OAuth 2.0 Token Exchange"](https://datatracker.ietf.org/doc/html/rfc8693)
+- [RFC9068 "JWT Profile for OAuth 2.0 Access Tokens"](https://www.rfc-editor.org/rfc/rfc9068)
+- [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)
+- [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 
 Out of the box it supports the following grants:
 
@@ -27,6 +30,18 @@ Out of the box it supports the following grants:
 - [Refresh grant](https://tsoauth2server.com/docs/grants/refresh_token)
 - [Implicit grant](https://tsoauth2server.com/docs/grants/implicit) // not recommended 
 - [Resource owner password credentials grant](https://tsoauth2server.com/docs/grants/password) // not recommended
+
+OpenID Connect support:
+
+OIDC is opt-in and built on the authorization code grant. When enabled with an `issuer`, an RS256 `JwtService`, and an `oidc` configuration block, authorization code exchanges granted the `openid` scope include a signed `id_token`.
+
+The OIDC helpers expose the standard endpoints through the same `ResponseInterface` used by the OAuth endpoints:
+
+- `authorizationServer.openidConfiguration()` for `/.well-known/openid-configuration`
+- `authorizationServer.jwks()` for publishing the public JWKS
+- `authorizationServer.userInfo(req)` for scope-filtered UserInfo claims
+
+OIDC configuration also supports `getUserClaims`, optional `getIdTokenClaims`, standard OIDC scope recognition for the authorization code grant, and `typ: "at+jwt"` access tokens. See the [OIDC getting-started guide](https://tsoauth2server.com/docs/oidc/getting_started) for a full example.
 
 Framework support:
 
