@@ -1,6 +1,6 @@
 {
   "name": "@jmondi/oauth2-server",
-  "version": "4.3.5",
+  "version": "5.0.0-rc.0",
   "type": "module",
   "author": "Jason Raimondi <jason@raimondi.us>",
   "funding": "https://github.com/sponsors/jasonraimondi",

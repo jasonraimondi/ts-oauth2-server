@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [5.0.0-rc.0] - 2026-05-31
 
 ### Added
 - **OpenID Connect (OIDC) support.** Opt in by setting the top-level `issuer` and a nested `oidc` config block (with an RS256 `JwtService`). The authorization-code flow then issues a signed `id_token` alongside the access token, and three new endpoints become available: `authorizationServer.userInfo(req)`, `authorizationServer.openidConfiguration()`, and `authorizationServer.jwks()`. Access-token verification for UserInfo runs through a reusable `AccessTokenVerifier` seam. See the [OIDC getting-started guide](https://tsoauth2server.com/docs/oidc/getting_started) and [upgrade guide](https://tsoauth2server.com/docs/upgrade_guide). The individual building blocks are listed below.
