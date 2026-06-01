@@ -12,7 +12,8 @@ Automates the release process for the ts-oauth2-server project by:
 2. Generating changelog entries based on git commits since the last tagged version
 3. Updating the CHANGELOG.md file with proper formatting
 4. Maintaining Keep a Changelog format and Semantic Versioning compliance
-5. Pausing for user confirmation, then committing, tagging, pushing, and creating the GitHub release (which triggers npm + JSR publish via `.github/workflows/publish.yml`)
+5. Always running the full pre-flight (`pnpm typecheck && pnpm build && pnpm test`) before release, aborting if any step fails
+6. Pausing for user confirmation, then committing, tagging, pushing, and creating the GitHub release (which triggers npm + JSR publish via `.github/workflows/publish.yml`)
 
 ## When to Use This Skill
 Use this skill when the user requests:
@@ -35,10 +36,12 @@ Supported version bump types (following semver):
 - **patch**: Bug fixes (1.0.0 → 1.0.1)
 - **minor**: New features (1.0.0 → 1.1.0)
 - **major**: Breaking changes (1.0.0 → 2.0.0)
-- **prepatch**: Pre-release patch (1.0.0 → 1.0.1-0)
-- **preminor**: Pre-release minor (1.0.0 → 1.1.0-0)
-- **premajor**: Pre-release major (1.0.0 → 2.0.0-0)
-- **prerelease**: Increment pre-release (1.0.0-0 → 1.0.0-1)
+- **prepatch**: Pre-release patch (1.0.0 → 1.0.1-rc.0)
+- **preminor**: Pre-release minor (1.0.0 → 1.1.0-rc.0)
+- **premajor**: Pre-release major (1.0.0 → 2.0.0-rc.0)
+- **prerelease**: Increment pre-release (1.0.0-rc.0 → 1.0.0-rc.1)
+
+> **Prerelease format (REQUIRED): `-rc.#`.** This project's prereleases are always `X.Y.Z-rc.N`, starting at `rc.0` and incrementing the trailing number (`rc.0` → `rc.1` → …). Never use bare `-0` or `-next.N` suffixes. The new prerelease number must be strictly greater than the previous one for the same `X.Y.Z`.
 
 ### Implementation Steps
 
@@ -54,11 +57,12 @@ function getCurrentVersion(): string {
 
 #### 2. Calculate New Version
 ```typescript
+// Prereleases use the REQUIRED `-rc.#` convention (e.g. 5.0.0-rc.0, 5.0.0-rc.1).
 function bumpVersion(current: string, bumpType: string): string {
   const parts = current.split('-');
   const [major, minor, patch] = parts[0].split('.').map(Number);
-  const prerelease = parts[1];
-  
+  const prerelease = parts[1]; // e.g. "rc.0"
+
   switch (bumpType) {
     case 'major':
       return `${major + 1}.0.0`;
@@ -67,17 +71,21 @@ function bumpVersion(current: string, bumpType: string): string {
     case 'patch':
       return `${major}.${minor}.${patch + 1}`;
     case 'premajor':
-      return `${major + 1}.0.0-0`;
+      return `${major + 1}.0.0-rc.0`;
     case 'preminor':
-      return `${major}.${minor + 1}.0-0`;
+      return `${major}.${minor + 1}.0-rc.0`;
     case 'prepatch':
-      return `${major}.${minor}.${patch + 1}-0`;
+      return `${major}.${minor}.${patch + 1}-rc.0`;
     case 'prerelease':
       if (prerelease) {
-        const num = parseInt(prerelease) || 0;
-        return `${parts[0]}-${num + 1}`;
+        // Increment the trailing rc number: "rc.0" -> "rc.1". Reject non-rc suffixes.
+        const match = prerelease.match(/^rc\.(\d+)$/);
+        if (!match) {
+          throw new Error(`Prerelease must use the -rc.# format, got: ${prerelease}`);
+        }
+        return `${parts[0]}-rc.${parseInt(match[1], 10) + 1}`;
       }
-      return `${major}.${minor}.${patch + 1}-0`;
+      return `${major}.${minor}.${patch + 1}-rc.0`;
     default:
       throw new Error(`Invalid bump type: ${bumpType}`);
   }
@@ -132,8 +140,21 @@ Follow Keep a Changelog format:
 #### 6. Update Files
 Update both `package.json` and `jsr.json` with the new version, and prepend the new changelog entry to CHANGELOG.md under the `## [Unreleased]` section.
 
-#### 7. Confirm With User, Then Commit + Tag + Push + GitHub Release
-After the file edits land, **stop and ask the user** for confirmation before any git mutation. Do NOT proceed automatically — the user may want to review the diff or hand-edit changelog wording first.
+#### 7. Run the Full Pre-flight (REQUIRED)
+**Always** run the full pre-flight locally before pausing for confirmation. The publish workflow runs `pnpm build && pnpm test` in CI, but failures there fire only *after* the release event — too late to undo a consumed version. Catch them locally first.
+
+Run all three, in order, and abort the release if any fails:
+
+```bash
+pnpm typecheck   # tsc -p tsconfig.build.json --noEmit
+pnpm build       # tsdown
+pnpm test        # vitest run
+```
+
+If any step fails, do NOT proceed to commit/tag/release — surface the failure and stop. `pnpm build` writes to the gitignored `dist/`, so it does not dirty the release commit; confirm `git status --short` shows only `CHANGELOG.md`, `package.json`, and `jsr.json` before committing.
+
+#### 8. Confirm With User, Then Commit + Tag + Push + GitHub Release
+After the file edits land **and the pre-flight is green**, **stop and ask the user** for confirmation before any git mutation. Do NOT proceed automatically — the user may want to review the diff or hand-edit changelog wording first.
 
 Once confirmed, run these in order:
 
@@ -153,7 +174,7 @@ gh release create vX.Y.Z --title "vX.Y.Z" --notes "<changelog body for this vers
 
 For the `--notes` body, pass the section content from CHANGELOG.md for the new version (everything between the `## [X.Y.Z]` header and the next `##` header), without the version header itself. Use a HEREDOC for multiline notes.
 
-For prereleases (e.g. `4.4.0-0`), add `--prerelease` to `gh release create` so the workflow's prerelease branch publishes to npm under the `next` dist-tag.
+For prereleases (always `-rc.#`, e.g. `5.0.0-rc.0`), add `--prerelease` to `gh release create` so the workflow's prerelease branch publishes to npm under the `next` dist-tag.
 
 After `gh release create` returns the release URL, share it with the user and note that npm + JSR publishing is now running in CI.
 
@@ -352,6 +373,8 @@ Bumping version: patch
 New version: 4.1.2
 Found 5 commits since v4.1.1
 Updated package.json, jsr.json, CHANGELOG.md
+
+Pre-flight: typecheck ✓  build ✓  test ✓
 
 Files prepared for v4.1.2.
 
