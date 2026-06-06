@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0-rc.1] - 2026-06-06
+
+### Fixed
+- Default-import `jsonwebtoken` so the built ESM bundle loads under native Node. The named `import { sign, verify }` resolved to `undefined` when the CJS-only `jsonwebtoken` package was loaded from the compiled ESM output, throwing at runtime. ([#232](https://github.com/jasonraimondi/ts-oauth2-server/pull/232))
+
 ## [5.0.0-rc.0] - 2026-05-31
 
 ### Added
