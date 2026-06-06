@@ -1,15 +1,13 @@
 import { createHash, createPrivateKey, createPublicKey, type KeyObject } from "crypto";
-import {
-  decode as jwtDecode,
-  sign as jwtSign,
-  verify as jwtVerify,
-  type Algorithm,
-  type Secret,
-  type SignOptions,
-  type VerifyOptions,
-} from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import type { Algorithm, Secret, SignOptions, VerifyOptions } from "jsonwebtoken";
 import { OAuthClient } from "../entities/client.entity.js";
 import { OAuthUser } from "../entities/user.entity.js";
+
+// jsonwebtoken is CommonJS and its named exports aren't statically detectable by
+// Node's ESM loader, so a named import breaks the built ESM bundle under native
+// Node. Import the default and destructure the callables we use.
+const { decode: jwtDecode, sign: jwtSign, verify: jwtVerify } = jwt;
 
 export type ExtraAccessTokenFields = Record<string, string | number | boolean | (string | number | boolean)[]>;
 export type ExtraAccessTokenFieldArgs = {
