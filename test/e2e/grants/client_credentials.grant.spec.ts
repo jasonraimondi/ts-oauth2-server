@@ -743,6 +743,7 @@ describe("client_credentials grant", () => {
 
     it("allows a confidential client to introspect another client's token (default)", async () => {
       grant = createGrant();
+      inMemoryDatabase.tokens[tokenId].client = publicClient; // token issued to a DIFFERENT client
       const token = await grant.jwt.sign({ jti: tokenId });
       request = new OAuthRequest({
         headers: {
