@@ -22,6 +22,28 @@ new AuthorizationServer(..., {
 });
 ```
 
+### Revoke and Introspect authenticate client identity
+
+The `/token/revoke` and `/token/introspect` endpoints now authenticate the **client's identity** (its `client_id`, plus `client_secret` for confidential clients) instead of asserting membership in the `client_credentials` grant ([RFC 7009 §2.1](https://datatracker.ietf.org/doc/html/rfc7009#section-2.1), [RFC 7662 §2.1](https://datatracker.ietf.org/doc/html/rfc7662#section-2.1)).
+
+In v4 a client had to be authorized for the `client_credentials` grant to call these endpoints, which wrongly rejected legitimate clients — a public PKCE SPA or an auth-code-only confidential client could not revoke or introspect its own tokens. In v5 the grant-membership requirement is gone: revoke now accepts any registered client revoking its own tokens (revocation stays scoped to the client's own tokens). Introspection adds a separate confidential-client requirement — see below.
+
+No action is required for `client_credentials` clients; their behavior is unchanged.
+
+### Introspection requires a confidential client by default
+
+`/token/introspect` now requires the introspecting client to be **confidential** (registered with a `client_secret`) by default, per [RFC 7662 §4](https://datatracker.ietf.org/doc/html/rfc7662#section-4) ("protected resources ... specifically authorized"). A public (secretless) client is rejected with `401 invalid_client`.
+
+This is governed by the new `introspectionRequiresConfidentialClient` option, which defaults to `true`:
+
+```ts
+new AuthorizationServer(..., {
+  introspectionRequiresConfidentialClient: true, // default; set to false to allow public clients to introspect
+});
+```
+
+The option has no effect when `authenticateIntrospect` is `false`. Revoke is unaffected — public clients may still revoke their own tokens.
+
 ### OIDC support
 
 The OIDC release is **additive** — non-OIDC flows are unchanged and you opt in by setting the `issuer` and `oidc` options. A few changes affect existing users regardless of OIDC; review them before upgrading. See the [CHANGELOG](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/CHANGELOG.md) for the full list.
