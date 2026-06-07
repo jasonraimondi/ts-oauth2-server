@@ -740,5 +740,47 @@ describe("client_credentials grant", () => {
       await expect(promise).rejects.toThrowError(/Introspection requires a confidential client/);
       await expect(promise).rejects.toMatchObject({ status: 401 });
     });
+
+    it("allows a confidential client to introspect another client's token (default)", async () => {
+      grant = createGrant();
+      const token = await grant.jwt.sign({ jti: tokenId });
+      request = new OAuthRequest({
+        headers: {
+          authorization: "Basic " + base64encode(`${confidentialClient.id}:${confidentialClient.secret}`),
+        },
+        body: { token, token_type_hint: "access_token" },
+      });
+
+      const response = await grant.respondToIntrospectRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body.active).toBe(true);
+    });
+
+    it("allows a public client when introspectionRequiresConfidentialClient is false", async () => {
+      grant = createGrant({ introspectionRequiresConfidentialClient: false });
+      const token = await grant.jwt.sign({ jti: tokenId });
+      request = new OAuthRequest({
+        body: { token, token_type_hint: "access_token", client_id: publicClient.id },
+      });
+
+      const response = await grant.respondToIntrospectRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body.active).toBe(true);
+    });
+
+    it("allows a public client when authenticateIntrospect is false (gate short-circuits)", async () => {
+      grant = createGrant({ authenticateIntrospect: false });
+      const token = await grant.jwt.sign({ jti: tokenId });
+      request = new OAuthRequest({
+        body: { token, token_type_hint: "access_token" },
+      });
+
+      const response = await grant.respondToIntrospectRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(response.body.active).toBe(true);
+    });
   });
 });
