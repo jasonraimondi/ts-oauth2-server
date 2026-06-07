@@ -4,6 +4,7 @@ import { DateInterval } from "../utils/date_interval.js";
 import { AbstractGrant, ParsedAccessToken, ParsedRefreshToken } from "./abstract/abstract.grant.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthToken } from "../entities/token.entity.js";
+import { isClientConfidential, OAuthClient } from "../entities/client.entity.js";
 import type { OAuthTokenIntrospectionResponse } from "../authorization_server.js";
 
 export class ClientCredentialsGrant extends AbstractGrant {
@@ -34,7 +35,12 @@ export class ClientCredentialsGrant extends AbstractGrant {
   }
 
   async respondToIntrospectRequest(req: RequestInterface): Promise<ResponseInterface> {
-    if (this.options.authenticateIntrospect) await this.validateClientIdentity(req);
+    let client: OAuthClient | undefined;
+    if (this.options.authenticateIntrospect) client = await this.validateClientIdentity(req);
+
+    if (client && this.options.introspectionRequiresConfidentialClient && !isClientConfidential(client)) {
+      throw OAuthException.invalidClient("Introspection requires a confidential client.");
+    }
 
     const { parsedToken, oauthToken, expiresAt, tokenType } = await this.tokenFromRequest(req);
 

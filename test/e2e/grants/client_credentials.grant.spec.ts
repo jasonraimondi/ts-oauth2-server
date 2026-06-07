@@ -696,4 +696,49 @@ describe("client_credentials grant", () => {
       });
     });
   });
+
+  describe("RFC 7662 §4 — introspection requires a confidential client", () => {
+    const tokenId = "introspect-target-token";
+    let confidentialClient: OAuthClient;
+    let publicClient: OAuthClient;
+
+    beforeEach(() => {
+      confidentialClient = {
+        id: "confidential-rs",
+        name: "resource server",
+        secret: "rs-secret",
+        redirectUris: [],
+        allowedGrants: ["client_credentials"],
+        scopes: [],
+      };
+      publicClient = {
+        id: "public-spa-introspect",
+        name: "public spa",
+        redirectUris: ["http://localhost"],
+        allowedGrants: ["authorization_code"],
+        scopes: [],
+      };
+      inMemoryDatabase.clients[confidentialClient.id] = confidentialClient;
+      inMemoryDatabase.clients[publicClient.id] = publicClient;
+
+      inMemoryDatabase.tokens[tokenId] = {
+        accessToken: tokenId,
+        accessTokenExpiresAt: new DateInterval("1h").getEndDate(),
+        client: confidentialClient,
+        scopes: [],
+      } as OAuthToken;
+    });
+
+    it("rejects a public client with 401 invalid_client (default)", async () => {
+      grant = createGrant();
+      const token = await grant.jwt.sign({ jti: tokenId });
+      request = new OAuthRequest({
+        body: { token, token_type_hint: "access_token", client_id: publicClient.id },
+      });
+
+      const promise = grant.respondToIntrospectRequest(request);
+      await expect(promise).rejects.toThrowError(/Introspection requires a confidential client/);
+      await expect(promise).rejects.toMatchObject({ status: 401 });
+    });
+  });
 });
