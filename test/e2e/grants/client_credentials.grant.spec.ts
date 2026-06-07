@@ -694,6 +694,21 @@ describe("client_credentials grant", () => {
         expect(response.status).toBe(200);
         expect(response.body.active).toBe(true);
       });
+
+      it("rejects introspection when the client secret is wrong (invalid_client)", async () => {
+        grant = createGrant({ authenticateIntrospect: true });
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          headers: {
+            authorization: "Basic " + base64encode(`${authCodeClient.id}:wrong-secret`),
+          },
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        const promise = grant.respondToIntrospectRequest(request);
+        await expect(promise).rejects.toThrowError(/Client has been revoked or is invalid/);
+        await expect(promise).rejects.toMatchObject({ status: 401 });
+      });
     });
   });
 
