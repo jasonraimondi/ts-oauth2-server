@@ -192,18 +192,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.3] - 2025-03-28
 
+### Added
+- Export `guardAgainstInvalidClientScopes` utility for validating requested scopes against a client's allowed scopes
+
 ### Fixed
-- Various bug fixes and improvements
+- Call `scopeRepository.finalize()` in the client_credentials and refresh_token grants, which was previously skipped ([#159](https://github.com/jasonraimondi/ts-oauth2-server/issues/159))
+- Return HTTP 401 instead of 400 for unauthorized client and unauthorized scope exceptions
 
 ## [4.0.2] - 2024-08-24
 
-### Fixed
-- Various bug fixes and improvements
+### Added
+- Export the `isOAuthError` helper
+- Nuxt adapter documentation
 
 ## [4.0.1] - 2024-08-12
 
 ### Fixed
-- Various bug fixes and improvements
+- Express adapter: derive the response status from `res.statusCode`, fixing build errors and incorrect status-code propagation
 
 ## [4.0.0] - 2024-08-11
 
@@ -232,211 +237,306 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Preparation for v4.0.0 authentication defaults
 
-## [3.5.0] - 2024-01-01
+## [3.5.0] - 2024-08-04
+
+_Only 3.5.0-alpha.0 shipped; never published as final — these changes shipped in 3.6.0._
 
 ### Added
-- Various feature improvements
-
-## [3.4.1] - 2024-01-01
-
-### Fixed
-- Various bug fixes
-
-## [3.4.0] - 2024-01-01
-
-### Added
-- Various feature improvements
-
-## [3.3.1] - 2024-01-01
-
-### Fixed
-- Various bug fixes
-
-## [3.3.0] - 2024-01-01
-
-### Added
-- Various feature improvements
-
-## [3.2.0] - 2024-01-01
-
-### Added
-- Various feature improvements
-
-## [3.1.0] - 2024-01-01
-
-### Added
-- Various feature improvements
-
-## [3.0.4] - 2024-01-01
-
-### Fixed
-- Various bug fixes
-
-## [3.0.2] - 2024-01-01
-
-### Fixed
-- Various bug fixes
-
-## [3.0.1] - 2024-01-01
-
-### Fixed
-- Various bug fixes
-
-## [3.0.0] - 2024-01-01
-
-### Added
-- Docusaurus documentation site refactor
-- Vanilla adapter for framework-agnostic usage
-- responseToVanilla adapter
-- JSR.json file for JSR (JavaScript Registry) support
-- Support for issuer and audience in extraParams
-- Custom grants support
-- Token-exchange grant type (RFC 8693)
-- Redirect URI with port support
+- Token introspection (RFC 7662): `AuthorizationServer.introspect()`, `canRespondToIntrospectRequest`/`respondToIntrospectRequest` on the grant interface, and an exported `OAuthTokenIntrospectionResponse` type
+- Token introspection support for the client_credentials grant
+- Optional `getByAccessToken` on `OAuthTokenRepository` (required only when introspecting access tokens)
+- Configurable `scopeDelimiter` option (defaults to a space)
 
 ### Changed
-- **BREAKING**: Remove setOptions method
-- **BREAKING**: Add options as grant constructor argument
-- Default options system implementation
-- More explicit imports for better tree-shaking
+- **BREAKING**: `requestFromVanilla` is now async and returns a `Promise<OAuthRequest>`
+- The vanilla adapter now supports readable-stream request bodies
+
+## [3.4.1] - 2024-07-25
 
 ### Fixed
-- Various improvements and bug fixes
+- `OAuthException`s are no longer swallowed by the Express and Fastify error handlers when multiple `OAuthException` classes exist across bundles; detection now uses a marker-based `isOAuthError` helper instead of `instanceof` ([#82](https://github.com/jasonraimondi/ts-oauth2-server/issues/82))
 
-## [2.6.1] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.6.0] - 2023-01-01
+## [3.4.0] - 2024-07-05
 
 ### Added
-- Various feature improvements
-
-## [2.5.0] - 2023-01-01
-
-### Added
-- Various feature improvements
-
-## [2.4.0] - 2023-01-01
-
-### Added
-- Various feature improvements
-
-## [2.3.0] - 2023-01-01
-
-### Added
-- Various feature improvements
-
-## [2.2.5] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.2.4] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.2.3] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.2.2] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.2.1] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.2.0] - 2023-01-01
-
-### Added
-- Various feature improvements
-
-## [2.1.0] - 2023-01-01
-
-### Added
-- Various feature improvements
-
-## [2.0.5] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.0.4] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.0.3] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.0.2] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.0.1] - 2023-01-01
-
-### Fixed
-- Various bug fixes
-
-## [2.0.0] - 2023-01-01
-
-### Added
-- Various feature improvements
+- Vanilla (Web-standard `Request`/`Response`) adapter — `requestFromVanilla`, `responseFromVanilla`, and `responseToVanilla` — exported via the new `./vanilla` entry point
 
 ### Changed
-- **BREAKING**: Major version upgrade with significant changes
+- Import `crypto` (bare specifier) instead of `node:crypto` for broader runtime compatibility
+- Add explicit return types to the Fastify adapter functions
 
-## [1.3.0] - 2022-01-01
+### Fixed
+- `requestFromVanilla` now parses the request body regardless of HTTP method
+
+## [3.3.1] - 2024-05-28
 
 ### Added
-- Various feature improvements
+- JSR publishing support (`jsr.json`)
 
-## [1.2.0] - 2022-01-01
+### Fixed
+- Export the Express and Fastify adapters on JSR via the `./express` and `./fastify` subpaths
+- Return no credentials from basic-auth parsing when the decoded value lacks both a client id and secret
+
+## [3.3.0] - 2024-05-27
 
 ### Added
-- Various feature improvements
+- Custom grant support — register any `AbstractGrant` instance (new `CustomGrant` base with a `custom:${string}` identifier)
+- Support `issuer` and `audience` in access-token JWT claims via the new `issuer` option and `aud`/`audience` request parameters
 
-## [1.1.1] - 2022-01-01
+### Changed
+- The audience claim now accepts a single string or an array of strings
+- Accept any `AbstractGrant` instance as a custom grant, no longer requiring the `custom:` identifier prefix
 
 ### Fixed
-- Various bug fixes
+- `OAuthResponse.get()` returned an empty string instead of the requested header value
 
-## [1.1.0] - 2022-01-01
+## [3.2.0] - 2024-03-06
 
 ### Added
-- Various feature improvements
+- Token-exchange grant (RFC 8693): `urn:ietf:params:oauth:grant-type:token-exchange` via the new `TokenExchangeGrant` and `ProcessTokenExchangeFn`
+- Documentation for the token-exchange grant
 
-## [1.0.4] - 2022-01-01
+## [3.1.0] - 2024-02-10
 
-### Fixed
-- Various bug fixes
+_First npm-published release of the 3.0.4 line (3.0.4 was tagged but never published); no further changes._
 
-## [1.0.3] - 2022-01-01
+## [3.0.4] - 2024-02-10
 
-### Fixed
-- Various bug fixes
+_Tagged but never published to npm; superseded by 3.1.0 the same day._
 
-## [1.0.2] - 2022-01-01
+### Added
+- Match redirect URIs while ignoring the port (compare protocol, host, and path) ([#104](https://github.com/jasonraimondi/ts-oauth2-server/issues/104))
 
-### Fixed
-- Various bug fixes
-
-## [1.0.1] - 2022-01-01
+## [3.0.2] - 2023-07-04
 
 ### Fixed
-- Various bug fixes
+- Remove `@swc/core` from runtime dependencies (it is a dev-only tool)
 
-## [1.0.0] - 2022-01-01
+## [3.0.1] - 2023-06-10
+
+### Changed
+- Publish both CommonJS and ESM builds (via tsup), restoring CommonJS consumption
+
+## [3.0.0] - 2023-06-07
+
+### Added
+- Support `extraTokenFields` in the client_credentials grant ([#79](https://github.com/jasonraimondi/ts-oauth2-server/issues/79))
+- Pass the authenticated `client` to the `extraTokenFields` method
+- Make the user and auth-code repositories optional, required only by the grants that need them (authorization_code, password)
+- Replace VuePress with VitePress for the documentation site
+- v2-to-v3 migration guide
+
+### Changed
+- **BREAKING**: Ship as ESM-only; the CommonJS build is dropped (reverted in 3.0.1)
+- **BREAKING**: Default `tokenCID` is now `"id"` (was `"name"`)
+- **BREAKING**: Remove the `setOptions` method
+- **BREAKING**: Pass options as a grant constructor argument
+- Add a default options system
+- Require Node.js >= 16
+- Use explicit imports for better tree-shaking
+
+### Removed
+- **BREAKING**: Remove the deprecated `response` parameter from `respondToAccessTokenRequest`
+
+### Fixed
+- Fix package export typings for the ESM module
+- Include the Express and Fastify adapter typings in the publish config
+- Fix type resolution for subpath (submodule) imports
+
+## [2.6.1] - 2022-12-30
+
+### Security
+- Upgrade `jsonwebtoken` from 8.5.1 to 9.0.0
+
+## [2.6.0] - 2022-12-18
+
+### Added
+- Revoke all tokens descended from an authorization code when that code is reused, via the new optional `OAuthTokenRepository.revokeDescendantsOf()` and an `originatingAuthCodeId` field on `OAuthToken` ([#62](https://github.com/jasonraimondi/ts-oauth2-server/issues/62))
+
+### Changed
+- **BREAKING**: `OAuthTokenRepository.revoke()` is required again (reverting the optional marker added in 2.5.0)
+
+## [2.5.0] - 2022-12-06
+
+### Added
+- Token revocation (RFC 7009): `AuthorizationServer.revoke(req)`, with revoke support in the refresh-token and authorization-code grants
+- Allow `userRepository.extraAccessTokenFields()` to set the `iss` and `aud` access-token claims ([#67](https://github.com/jasonraimondi/ts-oauth2-server/issues/67))
+
+### Changed
+- Mark `OAuthTokenRepository.revoke()` as optional
+
+## [2.4.0] - 2022-10-02
+
+### Added
+- Add an index signature (`[key: string]: any`) to the `OAuthClient` interface so consumers can attach custom fields
+
+### Changed
+- **BREAKING**: `OAuthTokenRepository.issueRefreshToken()` now receives the `OAuthClient` as a second argument ([#61](https://github.com/jasonraimondi/ts-oauth2-server/issues/61))
+
+### Fixed
+- Widen the `makeRedirectUrl` params type to match the `URLSearchParams` constructor signature ([#66](https://github.com/jasonraimondi/ts-oauth2-server/issues/66))
+
+## [2.3.0] - 2022-09-23
+
+### Added
+- Add the `requiresS256` server option to reject the `plain` `code_challenge_method` and require PKCE S256 ([#57](https://github.com/jasonraimondi/ts-oauth2-server/issues/57))
+
+### Fixed
+- Throw an OAuth `400` exception on a malformed JWT instead of crashing ([#59](https://github.com/jasonraimondi/ts-oauth2-server/issues/59))
+- Return an informative exception when `client_id` is missing from a `response_type=code` request, instead of silently declining to handle it ([#56](https://github.com/jasonraimondi/ts-oauth2-server/issues/56))
+
+## [2.2.5] - 2022-08-24
+
+### Fixed
+- Restrict the build `tsconfig` to `src`, keeping root files out of the published package
+
+## [2.2.4] - 2022-06-20
+
+### Fixed
+- Export `OAuthException` from the package entry point (previously not re-exported)
+
+## [2.2.3] - 2022-05-06
+
+### Changed
+- Drop the `Readonly<...>` wrappers from `AuthorizationServerOptions` properties (`notBeforeLeeway`, `requiresPKCE`, `tokenCID`)
+
+### Fixed
+- The implicit grant now responds only to authorization requests and correctly reports that it cannot handle access-token requests
+
+## [2.2.2] - 2021-11-16
+
+### Added
+- Add the `tokenCID` server option (`"id" | "name"`, default `"name"`) to choose the JWT `cid` claim source (defaults to `"id"` in 3.0.0)
+
+## [2.2.1] - 2021-11-16
+
+### Deprecated
+- `respondToAccessTokenRequest(request, response)` — the `response` argument is now ignored; call `respondToAccessTokenRequest(request)`. Logs a deprecation warning; removed in 3.0.0
+
+## [2.2.0] - 2021-11-11
+
+### Added
+- Support returning a `Promise` from `OAuthAuthCodeRepository.issueAuthCode` (`OAuthAuthCode | Promise<OAuthAuthCode>`)
+- Add an optional `iat` argument to the `getSecondsUntil` time helper
+
+### Fixed
+- Await async `issueAuthCode` so auth-code repositories returning a `Promise` work correctly
+- Adapt JWT seconds handling to node-jsonwebtoken (floor-based seconds calculation)
+
+## [2.1.0] - 2021-10-13
+
+_Maintenance release — no functional changes since 2.0.5._
+
+## [2.0.5] - 2021-10-13
+
+### Added
+- Add the `notBeforeLeeway` server option to offset the JWT `nbf` (Not Before) claim
+
+## [2.0.4] - 2021-10-12
+
+### Added
+- Security policy (`SECURITY.md`)
+
+### Fixed
+- Strip the query component from `redirect_uri` before matching it against a client's registered redirect URIs
+
+## [2.0.3] - 2021-09-22
+
+### Added
+- `OAuthUserIdentifier` type; user identifiers may now be `string | number` across the user/scope repositories and the authorization_code grant
+
+### Fixed
+- Replace the tsdx build with plain `tsc` output so all adapters are included in the published package ([#27](https://github.com/jasonraimondi/ts-oauth2-server/issues/27))
+
+## [2.0.2] - 2021-09-22
+
+### Added
+- Export `generateRandomToken` from the package entry point
+
+## [2.0.1] - 2021-09-11
+
+### Added
+- Export the time utilities from the package entry point
+
+## [2.0.0] - 2021-09-11
+
+### Added
+- Adapter usage documentation guide
+- Export `CodeChallengeMethod` from the package entry point
+
+### Changed
+- **BREAKING**: `handleExpressResponse` signature changed from `(req, res, response)` to `(expressResponse, oauthResponse)`
+- **BREAKING**: Rename the Fastify adapter's `handleFastifyResponse(req, res, response)` to `handleFastifyReply(res, response)`
+
+### Removed
+- **BREAKING**: Drop barrelsby; the package entry point no longer re-exports incidental internals such as `OAuthException`
+
+## [1.3.0] - 2021-09-11
+
+_Only pre-releases (1.3.0-rc.0…rc.4) shipped; never published as final — these changes shipped in 2.0.0._
+
+### Added
+- Framework adapter modules `./adapters/express` and `./adapters/fastify` exposing the `requestFrom*`/`responseFrom*` helpers, adding Fastify support alongside Express
+- `handleExpressResponse`/`handleExpressError` and `handleFastifyResponse`/`handleFastifyError` helpers, plus a `generateRandomToken` util
+- Prisma + Express, Prisma + Fastify, and TypeORM + Express integration examples
+
+### Changed
+- **BREAKING**: Move the Express/Fastify request and response helpers out of the package root into the `./adapters/express` and `./adapters/fastify` entry points
+- **BREAKING**: Stop re-exporting `OAuthException`, the code verifiers (`PlainVerifier`/`S256Verifier`/`CodeChallengeMethod`), the `bearer_token`/`redirect` responses, and the `array`/`time`/`response` utils from the package root
+
+### Fixed
+- Restore `S256` (uppercase) as the canonical `code_challenge_method` value, conforming to RFC 7636 ([#25](https://github.com/jasonraimondi/ts-oauth2-server/issues/25))
+
+## [1.2.0] - 2021-06-08
+
+_Tagged only as 1.2.0-rc.0; never published to npm as a final release — these changes shipped in 2.0.0._
+
+### Added
+- Validate `code_challenge_method` on the authorization request, rejecting any value other than `S256` or `plain` with an `invalid_request` error
+
+### Changed
+- Type `codeChallengeMethod` as the `CodeChallengeMethod` string union (`S256`/`plain`) across the auth-code grant, authorization request, and `OAuthAuthCode` entity instead of a loose `string`
+- Allow `null` (in addition to `undefined`) on optional entity fields: `OAuthClient.secret`, `OAuthToken.refreshToken`/`refreshTokenExpiresAt`/`user`, and `OAuthAuthCode.redirectUri`/`codeChallenge`/`codeChallengeMethod`/`user`
+
+## [1.1.1] - 2021-05-24
+
+### Added
+- Add `enableGrantTypes()` on `AuthorizationServer` to enable multiple grants in one call, each with an optional access-token TTL
+- TypeORM integration example
+
+## [1.1.0] - 2021-05-12
+
+### Added
+- Add `setOptions()` on `AuthorizationServer` to set or override server options after construction
+
+### Changed
+- **BREAKING**: Remove the `useUrlEncode` option; PKCE S256 challenges are now always compared base64url-encoded ([#17](https://github.com/jasonraimondi/ts-oauth2-server/issues/17))
+
+### Fixed
+- Compute the PKCE S256 hash from the raw SHA-256 digest (binary) rather than its hex string, matching RFC 7636
+
+## [1.0.4] - 2021-04-26
+
+### Changed
+- `AuthorizationServer` now accepts a partial options object; only the options you override need to be supplied, with the rest falling back to defaults
+- Change the default for `useUrlEncode` from `false` to `true`
+
+## [1.0.3] - 2021-04-26
+
+### Added
+- Add the `useUrlEncode` option to `AuthorizationServerOptions` to control whether the S256 PKCE code challenge is base64url-encoded (defaults to `false`)
+- Add an optional `useUrlEncode` parameter to `ICodeChallenge.verifyCodeChallenge`
+
+## [1.0.2] - 2021-03-16
+
+### Fixed
+- Fix scope parsing in the refresh_token grant so a refresh request that omits the `scope` parameter falls back to the existing token's scopes instead of failing
+
+## [1.0.1] - 2021-02-19
+
+_Maintenance release — dependency updates and internal cleanup; no user-facing changes._
+
+## [1.0.0] - 2020-10-23
 
 ### Added
 - Initial stable release
