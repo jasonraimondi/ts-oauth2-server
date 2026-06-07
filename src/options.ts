@@ -62,6 +62,14 @@ export interface AuthorizationServerOptions {
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
   /**
+   * Require the introspecting client to be confidential (registered with a
+   * secret) per RFC 7662 §4 ("protected resources ... specifically
+   * authorized"). Defaults to `true`. Set to `false` to let public clients
+   * introspect (the pre-v5-RC behavior). Has no effect when
+   * `authenticateIntrospect` is `false`.
+   */
+  introspectionRequiresConfidentialClient: boolean;
+  /**
    * Controls how `implicit` grant responses append tokens to the redirect URI.
    * OAuth 2.0 recommends `fragment`; set `query` only for legacy clients.
    */
@@ -86,5 +94,6 @@ export const DEFAULT_AUTHORIZATION_SERVER_OPTIONS: AuthorizationServerOptions = 
   scopeDelimiter: " ",
   authenticateIntrospect: true,
   authenticateRevoke: true,
+  introspectionRequiresConfidentialClient: true,
   implicitRedirectMode: "fragment",
 };
