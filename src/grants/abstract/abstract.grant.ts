@@ -193,6 +193,46 @@ export abstract class AbstractGrant implements GrantInterface {
     return client;
   }
 
+  /**
+   * Authenticates the client for the revoke/introspect endpoints (RFC 7009 §2.1,
+   * RFC 7662 §2.1), which authenticate the client's *identity* — and its secret,
+   * for confidential clients — not its membership in a token-issuing grant.
+   *
+   * `validateClient` cannot be reused here: it asserts the client is authorized
+   * for the request's `grant_type`, which these handlers coerce to their own
+   * grant identifier (e.g. `client_credentials`). That would refuse revocation
+   * for any client not also authorized for that grant — e.g. a public PKCE SPA
+   * or an auth-code-only confidential client revoking its own token.
+   *
+   * The secret is still verified via `isClientValid` (the only repository seam
+   * that checks it), but against a grant the client actually holds, so the
+   * grant-membership assertion can never reject a legitimate client. The
+   * caller's token-ownership check provides the real authorization.
+   */
+  protected async validateClientIdentity(request: RequestInterface): Promise<OAuthClient> {
+    const [clientId, clientSecret] = this.getClientCredentials(request);
+
+    const client = await this.clientRepository.getByIdentifier(clientId);
+
+    if (isClientConfidential(client) && !clientSecret) {
+      throw OAuthException.invalidClient("Confidential clients require client_secret.");
+    }
+
+    const grantType = client.allowedGrants.includes(this.identifier) ? this.identifier : client.allowedGrants[0];
+
+    if (!grantType) {
+      throw OAuthException.invalidClient("Client has been revoked or is invalid.");
+    }
+
+    const isValid = await this.clientRepository.isClientValid(grantType, client, clientSecret);
+
+    if (!isValid) {
+      throw OAuthException.invalidClient("Client has been revoked or is invalid.");
+    }
+
+    return client;
+  }
+
   protected getClientCredentials(request: RequestInterface): [string, string | undefined] {
     const [basicAuthUser, basicAuthPass] = this.getBasicAuthCredentials(request);
 

@@ -34,9 +34,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
   }
 
   async respondToIntrospectRequest(req: RequestInterface): Promise<ResponseInterface> {
-    req.body["grant_type"] = this.identifier;
-
-    if (this.options.authenticateIntrospect) await this.validateClient(req);
+    if (this.options.authenticateIntrospect) await this.validateClientIdentity(req);
 
     const { parsedToken, oauthToken, expiresAt, tokenType } = await this.tokenFromRequest(req);
 
@@ -62,8 +60,6 @@ export class ClientCredentialsGrant extends AbstractGrant {
   }
 
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
-    req.body["grant_type"] = this.identifier;
-
     // Silently ignore - per RFC 7009, invalid tokens should not cause error responses
     // @see https://datatracker.ietf.org/doc/html/rfc7009#section-2.2
     const errorResponse = new OAuthResponse();
@@ -71,7 +67,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
     let authenticatedClient;
     if (this.options.authenticateRevoke) {
       try {
-        authenticatedClient = await this.validateClient(req);
+        authenticatedClient = await this.validateClientIdentity(req);
       } catch (err) {
         this.options.logger?.log(err);
         return errorResponse;

@@ -43,7 +43,7 @@ A complete token introspection request will include the following parameters:
 - **token** (required): The string value of the token to be introspected
 - **token_type_hint** (optional, default: access_token): A hint about the type of the token submitted for introspection. Valid values are: `access_token` and `refresh_token`
 
-The request must be authenticated using the client credentials method.
+The request must be authenticated with the requesting client's own credentials (`client_id`, plus `client_secret` for confidential clients). Any client may introspect its own tokens — the client does **not** need to be authorized for the `client_credentials` grant.
 
 :::: details View sample introspect request
 

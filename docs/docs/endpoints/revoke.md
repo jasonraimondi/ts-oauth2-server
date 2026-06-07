@@ -43,7 +43,7 @@ A complete token revocation request will include the following parameters:
 - **token** (required): The token to be revoked
 - **token_type_hint** (optional): A hint about the type of the token submitted for revocation. Valid values are: `access_token`, `refresh_token`, `auth_code`
 
-The request must be authenticated using client_credentials.
+The request must be authenticated with the requesting client's own credentials (`client_id`, plus `client_secret` for confidential clients). Any client may revoke its own tokens — the client does **not** need to be authorized for the `client_credentials` grant.
 
 :::: details View sample revoke request
 

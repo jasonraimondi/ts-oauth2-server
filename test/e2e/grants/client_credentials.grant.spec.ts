@@ -11,6 +11,7 @@ import {
   OAuthClient,
   OAuthRequest,
   OAuthScope,
+  OAuthToken,
   OidcOptions,
 } from "../../../src/index.js";
 import {
@@ -566,6 +567,132 @@ describe("client_credentials grant", () => {
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({});
+      });
+    });
+
+    // Revocation authentication must verify the client's identity, not assert
+    // membership in the (unrelated) client_credentials grant. A client that is
+    // not authorized for client_credentials — e.g. a public PKCE SPA or an
+    // auth-code-only confidential client — must still be able to revoke its own
+    // tokens. @see https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
+    describe("for a client not authorized for the client_credentials grant", () => {
+      let authCodeClient: OAuthClient;
+      const accessTokenId = "auth-code-grant-access-token";
+
+      beforeEach(() => {
+        grant = createGrant({ authenticateRevoke: true });
+
+        authCodeClient = {
+          id: "auth-code-client",
+          name: "auth code client",
+          secret: "auth-code-secret",
+          redirectUris: ["http://localhost"],
+          allowedGrants: ["authorization_code"],
+          scopes: [],
+        };
+        inMemoryDatabase.clients[authCodeClient.id] = authCodeClient;
+
+        inMemoryDatabase.tokens[accessTokenId] = {
+          accessToken: accessTokenId,
+          accessTokenExpiresAt: new DateInterval("1h").getEndDate(),
+          client: authCodeClient,
+          scopes: [],
+        } as OAuthToken;
+      });
+
+      function isRevoked(tokenId: string): boolean {
+        return inMemoryDatabase.tokens[tokenId].accessTokenExpiresAt.getTime() <= Date.now();
+      }
+
+      it("revokes the client's own access token", async () => {
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          headers: {
+            authorization: "Basic " + base64encode(`${authCodeClient.id}:${authCodeClient.secret}`),
+          },
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(isRevoked(accessTokenId)).toBe(true);
+      });
+
+      it("revokes the client's own refresh token", async () => {
+        const refreshTokenId = "auth-code-grant-refresh-token";
+        inMemoryDatabase.tokens[accessTokenId].refreshToken = refreshTokenId;
+        inMemoryDatabase.tokens[accessTokenId].refreshTokenExpiresAt = new DateInterval("1h").getEndDate();
+
+        const token = await grant.jwt.sign({
+          client_id: authCodeClient.id,
+          access_token_id: accessTokenId,
+          refresh_token_id: refreshTokenId,
+        });
+        request = new OAuthRequest({
+          headers: {
+            authorization: "Basic " + base64encode(`${authCodeClient.id}:${authCodeClient.secret}`),
+          },
+          body: { token, token_type_hint: "refresh_token" },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(isRevoked(accessTokenId)).toBe(true);
+      });
+
+      it("revokes the token for a public (secretless) client", async () => {
+        const publicClient: OAuthClient = {
+          id: "public-spa",
+          name: "public spa",
+          redirectUris: ["http://localhost"],
+          allowedGrants: ["authorization_code"],
+          scopes: [],
+        };
+        inMemoryDatabase.clients[publicClient.id] = publicClient;
+        inMemoryDatabase.tokens[accessTokenId].client = publicClient;
+
+        const token = await grant.jwt.sign({ cid: publicClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          body: { token, token_type_hint: "access_token", client_id: publicClient.id },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(isRevoked(accessTokenId)).toBe(true);
+      });
+
+      it("does not revoke when the client secret is wrong (silent failure per RFC 7009)", async () => {
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          headers: {
+            authorization: "Basic " + base64encode(`${authCodeClient.id}:wrong-secret`),
+          },
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(isRevoked(accessTokenId)).toBe(false);
+      });
+
+      it("introspects the client's own access token", async () => {
+        grant = createGrant({ authenticateIntrospect: true });
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          headers: {
+            authorization: "Basic " + base64encode(`${authCodeClient.id}:${authCodeClient.secret}`),
+          },
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        const response = await grant.respondToIntrospectRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(response.body.active).toBe(true);
       });
     });
   });
