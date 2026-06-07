@@ -122,7 +122,7 @@ The authorization server will respond with a JSON object containing the followin
 
 Additional fields may be included in the response.
 
-A client credentials grant can be used to authenticate the client.
+The client authenticates with its credentials (`client_id`, plus `client_secret` for confidential clients).
 
 ::: code-group
 
