@@ -36,6 +36,17 @@ const authoriztionServer = new AuthorizationServer(
 );
 ```
 
+By default, only **confidential clients** (those registered with a `client_secret`) may introspect, per [RFC 7662 §4](https://datatracker.ietf.org/doc/html/rfc7662#section-4) (protected resources should be "specifically authorized"). A public client is rejected with `401 invalid_client`. To allow public clients to introspect, set `introspectionRequiresConfidentialClient` to `false`. This option has no effect when `authenticateIntrospect` is `false`.
+
+```ts
+const authorizationServer = new AuthorizationServer(
+  ...,
+  {
+    introspectionRequiresConfidentialClient: false,
+  }
+);
+```
+
 ### Request
 
 A complete token introspection request will include the following parameters:
@@ -43,7 +54,7 @@ A complete token introspection request will include the following parameters:
 - **token** (required): The string value of the token to be introspected
 - **token_type_hint** (optional, default: access_token): A hint about the type of the token submitted for introspection. Valid values are: `access_token` and `refresh_token`
 
-The request must be authenticated with the requesting client's own credentials (`client_id`, plus `client_secret` for confidential clients). Any client may introspect its own tokens — the client does **not** need to be authorized for the `client_credentials` grant.
+By default the request must be authenticated with a registered **confidential** client's credentials (`client_id` + `client_secret`); public clients are rejected (see [Configure](#configure)). The authenticated client may introspect **any** token — introspection is a back-channel call (typically from a resource server) and is not scoped to tokens issued to the requesting client. The client does **not** need to be authorized for the `client_credentials` grant.
 
 :::: details View sample introspect request
 
