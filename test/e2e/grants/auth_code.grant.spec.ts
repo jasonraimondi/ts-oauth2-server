@@ -1277,10 +1277,15 @@ describe("authorization_code grant", () => {
       await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(true);
     });
 
+    // authenticateRevoke defaults to true, so these token-branch tests authenticate
+    // the (public) client via client_id; they isolate the invalid/missing/malformed-
+    // TOKEN behavior (still 200 per RFC 7009 §2.2) from the client-auth-failure branch
+    // (now 401).
     it("returns 200 for invalid token (silent failure per RFC 7009)", async () => {
       request = new OAuthRequest({
         body: {
           token: "invalid-token",
+          client_id: client.id,
         },
       });
 
@@ -1292,7 +1297,9 @@ describe("authorization_code grant", () => {
 
     it("returns 200 for missing token parameter (silent failure per RFC 7009)", async () => {
       request = new OAuthRequest({
-        body: {},
+        body: {
+          client_id: client.id,
+        },
       });
 
       const response = await grant.respondToRevokeRequest(request);
@@ -1305,6 +1312,7 @@ describe("authorization_code grant", () => {
       request = new OAuthRequest({
         body: {
           token: "not.a.jwt",
+          client_id: client.id,
         },
       });
 
@@ -1364,17 +1372,50 @@ describe("authorization_code grant", () => {
         expect(response.body).toEqual({});
       });
 
-      it("returns 200 when authentication required but not provided (silent failure)", async () => {
+      it("rejects with 401 invalid_client when authentication required but not provided", async () => {
         request = new OAuthRequest({
           body: {
             token: authorizationCode,
           },
         });
 
-        const response = await grant.respondToRevokeRequest(request);
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
+      });
 
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual({});
+      it("rejects with 401 invalid_client when the client secret is wrong and does not revoke", async () => {
+        client.secret = "secret123";
+        inMemoryDatabase.clients[client.id] = client;
+
+        request = new OAuthRequest({
+          headers: {
+            authorization: `Basic ${Buffer.from(`${client.id}:wrong-secret`).toString("base64")}`,
+          },
+          body: { token: authorizationCode },
+        });
+
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
+        await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(false);
+      });
+
+      it("rejects with 401 invalid_client for an unknown client and does not revoke", async () => {
+        request = new OAuthRequest({
+          headers: {
+            authorization: `Basic ${Buffer.from(`unknown-client:some-secret`).toString("base64")}`,
+          },
+          body: { token: authorizationCode },
+        });
+
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
+        await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(false);
       });
     });
   });

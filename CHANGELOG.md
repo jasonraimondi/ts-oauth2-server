@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- The `/token/revoke` endpoint now returns `401 invalid_client` when client authentication fails (a missing or invalid `client_id`, a wrong `client_secret`, or a confidential client with no secret) instead of silently returning `200`. RFC 7009 §2.1 requires a failed client authentication to be refused with an RFC 6749 §5.2 error response; the empty `200` is only correct for an invalid *token* (RFC 7009 §2.2). The introspect endpoint is harmonized for the missing-`client_id` case. Cross-client token-ownership mismatches and invalid/unknown/malformed tokens still return `200`. ([#234](https://github.com/jasonraimondi/ts-oauth2-server/issues/234))
+
 ## [5.0.0-rc.2] - 2026-06-07
 
 ### Added

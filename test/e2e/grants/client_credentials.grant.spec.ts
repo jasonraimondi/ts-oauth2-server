@@ -348,8 +348,14 @@ describe("client_credentials grant", () => {
       refreshToken = tokenResponse.body.refresh_token;
     });
 
+    // authenticateRevoke defaults to true, so these token-branch tests authenticate
+    // the client; they isolate the invalid/missing/malformed-TOKEN behavior (still
+    // 200 per RFC 7009 §2.2) from the client-auth-failure branch (now 401).
+    const basicAuth = () => "Basic " + base64encode(`${client.id}:${client.secret}`);
+
     it("successfully revokes valid access token", async () => {
       request = new OAuthRequest({
+        headers: { authorization: basicAuth() },
         body: {
           token: accessToken,
         },
@@ -363,6 +369,7 @@ describe("client_credentials grant", () => {
 
     it("returns 200 for invalid token (silent failure per RFC 7009)", async () => {
       request = new OAuthRequest({
+        headers: { authorization: basicAuth() },
         body: {
           token: "invalid-token",
         },
@@ -376,6 +383,7 @@ describe("client_credentials grant", () => {
 
     it("returns 200 for missing token parameter (silent failure per RFC 7009)", async () => {
       request = new OAuthRequest({
+        headers: { authorization: basicAuth() },
         body: {},
       });
 
@@ -387,6 +395,7 @@ describe("client_credentials grant", () => {
 
     it("returns 200 for malformed JWT token (silent failure per RFC 7009)", async () => {
       request = new OAuthRequest({
+        headers: { authorization: basicAuth() },
         body: {
           token: "not.a.jwt",
         },
@@ -556,17 +565,17 @@ describe("client_credentials grant", () => {
         expect(response.body).toEqual({});
       });
 
-      it("returns 200 when authentication required but not provided (silent failure)", async () => {
+      it("rejects with 401 invalid_client when authentication required but not provided", async () => {
         request = new OAuthRequest({
           body: {
             token: accessToken,
           },
         });
 
-        const response = await grant.respondToRevokeRequest(request);
-
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual({});
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
       });
     });
 
@@ -664,7 +673,7 @@ describe("client_credentials grant", () => {
         expect(isRevoked(accessTokenId)).toBe(true);
       });
 
-      it("does not revoke when the client secret is wrong (silent failure per RFC 7009)", async () => {
+      it("rejects with 401 invalid_client when the client secret is wrong and does not revoke", async () => {
         const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
         request = new OAuthRequest({
           headers: {
@@ -673,10 +682,66 @@ describe("client_credentials grant", () => {
           body: { token, token_type_hint: "access_token" },
         });
 
-        const response = await grant.respondToRevokeRequest(request);
-
-        expect(response.status).toBe(200);
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
         expect(isRevoked(accessTokenId)).toBe(false);
+      });
+
+      it("rejects with 401 invalid_client when client_id is missing and does not revoke", async () => {
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
+        expect(isRevoked(accessTokenId)).toBe(false);
+      });
+
+      it("rejects with 401 invalid_client for an unknown client and does not revoke", async () => {
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          headers: {
+            authorization: "Basic " + base64encode(`unknown-client:some-secret`),
+          },
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
+        expect(isRevoked(accessTokenId)).toBe(false);
+      });
+
+      it("rejects with 401 invalid_client for a confidential client with no secret and does not revoke", async () => {
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          body: { token, token_type_hint: "access_token", client_id: authCodeClient.id },
+        });
+
+        await expect(grant.respondToRevokeRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
+        expect(isRevoked(accessTokenId)).toBe(false);
+      });
+
+      it("rejects introspection when client_id is missing (invalid_client)", async () => {
+        grant = createGrant({ authenticateIntrospect: true });
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        await expect(grant.respondToIntrospectRequest(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
       });
 
       it("introspects the client's own access token", async () => {

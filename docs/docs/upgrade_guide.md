@@ -28,6 +28,8 @@ The `/token/revoke` and `/token/introspect` endpoints now authenticate the **cli
 
 In v4 a client had to be authorized for the `client_credentials` grant to call these endpoints, which wrongly rejected legitimate clients — a public PKCE SPA or an auth-code-only confidential client could not revoke or introspect its own tokens. In v5 the grant-membership requirement is gone: revoke now accepts any registered client revoking its own tokens (revocation stays scoped to the client's own tokens). Introspection adds a separate confidential-client requirement — see below.
 
+A failed client authentication on `/token/revoke` now returns `401 invalid_client`. In v4 — and through `v5.0.0-rc.2` — revoke silently returned `200` when client authentication failed (a missing or invalid `client_id`, a wrong `client_secret`, or a confidential client with no secret), which could mislead a caller into believing a still-live token had been revoked. Per [RFC 7009 §2.1](https://datatracker.ietf.org/doc/html/rfc7009#section-2.1) a failed client authentication is now refused with an [RFC 6749 §5.2](https://datatracker.ietf.org/doc/html/rfc6749#section-5.2) `invalid_client` error, harmonizing revoke with introspect (which already threw). An invalid, unknown, or malformed *token* still returns `200` ([RFC 7009 §2.2](https://datatracker.ietf.org/doc/html/rfc7009#section-2.2)), as does an authenticated client revoking a token it does not own.
+
 No action is required for `client_credentials` clients; their behavior is unchanged.
 
 ### Introspection requires a confidential client by default

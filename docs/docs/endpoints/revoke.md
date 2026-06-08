@@ -97,11 +97,15 @@ token=xxxxxxxxxx
 
 The authorization server will respond with:
 
-- An HTTP 200 (OK) status code if the token was successfully revoked or if the client submitted an invalid token
-- An HTTP 400 (Bad Request) status code if the request is invalid or malformed
-- An HTTP 401 (Unauthorized) status code if the client is not authorized to revoke the token
+- An HTTP 200 (OK) status code if the token was successfully revoked, or if the submitted token is invalid, unknown, expired, or malformed. Per [RFC 7009 §2.2](https://datatracker.ietf.org/doc/html/rfc7009#section-2.2) an invalid token is **not** an error. A 200 is also returned when an authenticated client submits a token it does not own — the token is left untouched, which avoids leaking token validity to other clients.
+- An HTTP 401 (Unauthorized) status code with an `invalid_client` error if client authentication fails — a missing or invalid `client_id`, a wrong `client_secret`, or a confidential client that presents no secret. Per [RFC 7009 §2.1](https://datatracker.ietf.org/doc/html/rfc7009#section-2.1) a failed client authentication is refused with an [RFC 6749 §5.2](https://datatracker.ietf.org/doc/html/rfc6749#section-5.2) error response, even though an invalid *token* is not.
+- An HTTP 400 (Bad Request) status code if the request is otherwise invalid or malformed (for example, an unsupported `token_type_hint`).
 
-The response body will be empty for successful revocations. For error responses, the server may include additional error information as specified in the OAuth 2.0 specification
+The response body is empty for a 200. For error responses the server includes the OAuth 2.0 error fields.
+
+:::warning A failed client authentication is a `401`, not a silent `200`
+Distinguish the two failure modes: an **invalid token** (with valid or disabled client authentication) returns `200`, but a **failed client authentication** returns `401 invalid_client`. A client that fails to authenticate therefore receives an error rather than a misleading success — do not read a `200` as confirmation that authentication succeeded.
+:::
 
 :::info Supports the following RFCs
 [RFC7009 (OAuth 2.0 Token Revocation)](https://datatracker.ietf.org/doc/html/rfc7009)
