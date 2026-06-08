@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0-rc.2] - 2026-06-07
+
+### Added
+- Add the `introspectionRequiresConfidentialClient` option (default `true`) to control whether the Token Introspection endpoint (RFC 7662 §4) rejects public clients. Set it to `false` to allow public clients to introspect their own tokens.
+
+### Changed
+- **BREAKING**: The Token Introspection endpoint now requires a confidential client by default (RFC 7662 §4), rejecting public clients with `invalid_client`. Opt out with `introspectionRequiresConfidentialClient: false`.
+- The revoke (RFC 7009) and introspect (RFC 7662) endpoints now authenticate the *client's identity* — and its secret, for confidential clients — rather than asserting membership in the `client_credentials` grant. ([#233](https://github.com/jasonraimondi/ts-oauth2-server/pull/233))
+
+### Fixed
+- Token revocation no longer rejects legitimate clients that are not authorized for the `client_credentials` grant. A public PKCE SPA or an auth-code-only confidential client can now revoke its own tokens; previously the grant-membership check refused them. ([#233](https://github.com/jasonraimondi/ts-oauth2-server/pull/233))
+
 ## [5.0.0-rc.1] - 2026-06-06
 
 ### Fixed
