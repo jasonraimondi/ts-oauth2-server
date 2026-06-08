@@ -11,6 +11,10 @@ export interface OAuthClientRepository {
 
   /**
    * Validates the client using the grant type and optional client secret.
+   *
+   * Secret verification must be grant-independent: the revoke/introspect
+   * identity check (`AbstractGrant.validateClientIdentity`) may call this with
+   * any grant the client holds, not just the one being exercised.
    * @param grantType The grant type identifier
    * @param client The OAuth client entity
    * @param clientSecret Optional client secret string

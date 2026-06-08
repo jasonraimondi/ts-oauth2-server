@@ -4,6 +4,7 @@ import { DateInterval } from "../utils/date_interval.js";
 import { AbstractGrant, ParsedAccessToken, ParsedRefreshToken } from "./abstract/abstract.grant.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthToken } from "../entities/token.entity.js";
+import { isClientConfidential, OAuthClient } from "../entities/client.entity.js";
 import type { OAuthTokenIntrospectionResponse } from "../authorization_server.js";
 
 export class ClientCredentialsGrant extends AbstractGrant {
@@ -34,9 +35,12 @@ export class ClientCredentialsGrant extends AbstractGrant {
   }
 
   async respondToIntrospectRequest(req: RequestInterface): Promise<ResponseInterface> {
-    req.body["grant_type"] = this.identifier;
+    let client: OAuthClient | undefined;
+    if (this.options.authenticateIntrospect) client = await this.validateClientIdentity(req);
 
-    if (this.options.authenticateIntrospect) await this.validateClient(req);
+    if (client && this.options.introspectionRequiresConfidentialClient && !isClientConfidential(client)) {
+      throw OAuthException.invalidClient("Introspection requires a confidential client.");
+    }
 
     const { parsedToken, oauthToken, expiresAt, tokenType } = await this.tokenFromRequest(req);
 
@@ -62,8 +66,6 @@ export class ClientCredentialsGrant extends AbstractGrant {
   }
 
   async respondToRevokeRequest(req: RequestInterface): Promise<ResponseInterface> {
-    req.body["grant_type"] = this.identifier;
-
     // Silently ignore - per RFC 7009, invalid tokens should not cause error responses
     // @see https://datatracker.ietf.org/doc/html/rfc7009#section-2.2
     const errorResponse = new OAuthResponse();
@@ -71,7 +73,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
     let authenticatedClient;
     if (this.options.authenticateRevoke) {
       try {
-        authenticatedClient = await this.validateClient(req);
+        authenticatedClient = await this.validateClientIdentity(req);
       } catch (err) {
         this.options.logger?.log(err);
         return errorResponse;

@@ -45,11 +45,20 @@ The published set of public keys (`{ keys: [...] }`) relying parties use to veri
 A registered application requesting tokens. In OIDC contexts this is also called the "Relying Party (RP)" — same entity.
 _Avoid_: introducing "Relying Party" as if it were a separate concept; it is the OIDC name for **Client**.
 
+**Confidential Client**:
+A **Client** whose registered entity carries a secret (`isClientConfidential` ⇔ `!!client.secret`). Only confidential clients may introspect by default (RFC 7662 §4).
+_Avoid_: "secure client", "trusted client" — say Confidential Client.
+
+**Public Client**:
+A **Client** registered without a secret (e.g. a browser SPA using PKCE). May obtain and revoke its own tokens, but is rejected from introspection unless `introspectionRequiresConfidentialClient` is disabled.
+_Avoid_: "insecure client", "secretless client".
+
 **Issuer**:
 The authorization server's identity — a single URL that is simultaneously the `iss` claim value, the Discovery `issuer`, and the base path of the Discovery Document. Mandatory when OIDC is enabled.
 
 ## Relationships
 
+- A **Client** is either a **Confidential Client** or a **Public Client**, determined by whether its registration carries a secret.
 - A **Client** completes the authorization code flow to obtain an **Access Token**, plus an **ID Token** when the `openid` scope is granted.
 - An **ID Token** carries only **Protocol Claims**; **Scope-Derived Claims** are obtained separately from **UserInfo**.
 - **UserInfo** trusts an **Access Token**; the **Claims Resolver** supplies the attributes it returns.
@@ -68,3 +77,4 @@ The authorization server's identity — a single URL that is simultaneously the 
 - "claims" was used for both the fixed ID-token set and the scope-gated user attributes — resolved into distinct terms: **Protocol Claims** vs **Scope-Derived Claims**.
 - "Relying Party" / "RP" is not a separate concept — it is the OIDC name for **Client**.
 - "audience" / `aud` means different things on an Access Token (resource) vs an ID Token (client) — always qualify which token.
+- "secure client" / "insecure client" were used for the secret-presence distinction — resolved into **Confidential Client** vs **Public Client**.
