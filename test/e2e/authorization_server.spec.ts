@@ -401,10 +401,13 @@ describe("authorization_server", () => {
         });
       });
 
-      it("throws when missing client id and secret", async () => {
+      it("rejects with 401 invalid_client when missing client id and secret", async () => {
         request.body = { grant_type: "client_credentials" };
 
-        await expect(authorizationServer.introspect(request)).rejects.toThrowError(/Check the `client_id` parameter/i);
+        await expect(authorizationServer.introspect(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
       });
     });
 
@@ -590,12 +593,13 @@ describe("authorization_server", () => {
         });
       });
 
-      it("returns 200 when missing client id and secret (silent failure per RFC 7009)", async () => {
+      it("rejects with 401 invalid_client when missing client id and secret", async () => {
         request.body = {};
 
-        const response = await authorizationServer.revoke(request);
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual({});
+        await expect(authorizationServer.revoke(request)).rejects.toMatchObject({
+          status: 401,
+          errorType: "invalid_client",
+        });
       });
     });
 

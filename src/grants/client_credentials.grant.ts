@@ -2,7 +2,7 @@ import { RequestInterface } from "../requests/request.js";
 import { OAuthResponse, ResponseInterface } from "../responses/response.js";
 import { DateInterval } from "../utils/date_interval.js";
 import { AbstractGrant, ParsedAccessToken, ParsedRefreshToken } from "./abstract/abstract.grant.js";
-import { OAuthException } from "../exceptions/oauth.exception.js";
+import { ErrorType, OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthToken } from "../entities/token.entity.js";
 import { isClientConfidential, OAuthClient } from "../entities/client.entity.js";
 import type { OAuthTokenIntrospectionResponse } from "../authorization_server.js";
@@ -36,7 +36,15 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
   async respondToIntrospectRequest(req: RequestInterface): Promise<ResponseInterface> {
     let client: OAuthClient | undefined;
-    if (this.options.authenticateIntrospect) client = await this.validateClientIdentity(req);
+    if (this.options.authenticateIntrospect) {
+      try {
+        client = await this.validateClientIdentity(req);
+      } catch (err) {
+        this.options.logger?.log(err);
+        if (err instanceof OAuthException && err.errorType !== ErrorType.InvalidRequest) throw err;
+        throw OAuthException.invalidClient();
+      }
+    }
 
     if (client && this.options.introspectionRequiresConfidentialClient && !isClientConfidential(client)) {
       throw OAuthException.invalidClient("Introspection requires a confidential client.");
@@ -76,7 +84,8 @@ export class ClientCredentialsGrant extends AbstractGrant {
         authenticatedClient = await this.validateClientIdentity(req);
       } catch (err) {
         this.options.logger?.log(err);
-        return errorResponse;
+        if (err instanceof OAuthException && err.errorType !== ErrorType.InvalidRequest) throw err;
+        throw OAuthException.invalidClient();
       }
     }
 

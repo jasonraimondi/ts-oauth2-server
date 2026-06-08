@@ -8,7 +8,7 @@ import { OAuthToken } from "../entities/token.entity.js";
 import { OAuthUser, OAuthUserIdentifier } from "../entities/user.entity.js";
 import { buildIdTokenClaims, mergeIdTokenClaims } from "../oidc/id_token.js";
 import { oidcSubjectIdentifier } from "../oidc/subject.js";
-import { OAuthException } from "../exceptions/oauth.exception.js";
+import { ErrorType, OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthTokenRepository } from "../repositories/access_token.repository.js";
 import { OAuthAuthCodeRepository } from "../repositories/auth_code.repository.js";
 import { OAuthClientRepository } from "../repositories/client.repository.js";
@@ -512,7 +512,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
         authenticatedClient = await this.validateClient(req);
       } catch (err) {
         this.options.logger?.log(err);
-        return errorResponse;
+        if (err instanceof OAuthException && err.errorType !== ErrorType.InvalidRequest) throw err;
+        throw OAuthException.invalidClient();
       }
     }
 
