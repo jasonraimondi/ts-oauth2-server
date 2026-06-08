@@ -709,6 +709,58 @@ describe("client_credentials grant", () => {
         await expect(promise).rejects.toThrowError(/Client has been revoked or is invalid/);
         await expect(promise).rejects.toMatchObject({ status: 401 });
       });
+
+      // A client carrying no grants at all has nothing to authenticate against;
+      // validateClientIdentity's empty-allowedGrants guard rejects it.
+      it("rejects a client with no allowed grants (invalid_client)", async () => {
+        grant = createGrant({ authenticateIntrospect: true });
+        const noGrantsClient: OAuthClient = {
+          id: "no-grants-client",
+          name: "no grants client",
+          secret: "no-grants-secret",
+          redirectUris: ["http://localhost"],
+          allowedGrants: [],
+          scopes: [],
+        };
+        inMemoryDatabase.clients[noGrantsClient.id] = noGrantsClient;
+
+        const token = await grant.jwt.sign({ cid: noGrantsClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          headers: {
+            authorization: "Basic " + base64encode(`${noGrantsClient.id}:${noGrantsClient.secret}`),
+          },
+          body: { token, token_type_hint: "access_token" },
+        });
+
+        const promise = grant.respondToIntrospectRequest(request);
+        await expect(promise).rejects.toThrowError(/Client has been revoked or is invalid/);
+        await expect(promise).rejects.toMatchObject({ status: 401 });
+      });
+
+      // Token-ownership is the real authorization for public clients: identity
+      // auth passes without a secret, so the cid check is the only boundary
+      // stopping a public client from revoking a token it does not own.
+      it("does not revoke another client's token for a public (secretless) client", async () => {
+        const attackerClient: OAuthClient = {
+          id: "public-attacker",
+          name: "public attacker",
+          redirectUris: ["http://localhost"],
+          allowedGrants: ["authorization_code"],
+          scopes: [],
+        };
+        inMemoryDatabase.clients[attackerClient.id] = attackerClient;
+
+        // accessTokenId belongs to authCodeClient, not the attacker
+        const token = await grant.jwt.sign({ cid: authCodeClient.id, jti: accessTokenId });
+        request = new OAuthRequest({
+          body: { token, token_type_hint: "access_token", client_id: attackerClient.id },
+        });
+
+        const response = await grant.respondToRevokeRequest(request);
+
+        expect(response.status).toBe(200);
+        expect(isRevoked(accessTokenId)).toBe(false);
+      });
     });
   });
 
