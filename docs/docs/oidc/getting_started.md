@@ -80,6 +80,10 @@ Request the `openid` scope (plus any of `profile`, `email`, `address`, `phone`) 
 
 To confirm the whole surface works against a real relying party, run the [OIDC conformance smoke test](../endpoints/oidc_conformance.md).
 
+::: warning Opaque codes must persist `nonce` / `auth_time`
+If you enable opaque authorization codes (`useOpaqueAuthorizationCodes: true`), your `OAuthAuthCodeRepository` must persist and hydrate `nonce` (and `authTime` when `max_age` is requested), or the code exchange fails loud with `invalid_grant`. The library rebuilds the opaque code's payload from the stored row, so a dropped field is lost across the authorize → token round trip. JWT authorization codes carry these fields inside the signed code and are recommended for OIDC.
+:::
+
 ## Access token format
 
 The access token is a JWT tagged `typ: at+jwt` ([RFC 9068](https://www.rfc-editor.org/rfc/rfc9068)), but two claims intentionally deviate from the strict profile for backward compatibility:
