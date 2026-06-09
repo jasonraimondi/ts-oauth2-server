@@ -82,10 +82,6 @@ export default defineConfig({
               text: "Database Schema",
               link: "/docs/getting_started/database_schema",
             },
-            {
-              text: "Protecting Resources",
-              link: "/docs/getting_started/protecting_resources",
-            },
           ],
         },
         {
@@ -124,17 +120,6 @@ export default defineConfig({
           ],
         },
         {
-          text: "OpenID Connect",
-          items: [
-            { text: "Getting Started with OIDC", link: "/docs/oidc/getting_started" },
-            { text: "Keypair Lifecycle", link: "/docs/oidc/keypair_lifecycle" },
-            { text: "Hooks", link: "/docs/oidc/hooks" },
-            { text: "/userinfo", link: "/docs/endpoints/userinfo" },
-            { text: "/.well-known/openid-configuration", link: "/docs/endpoints/discovery" },
-            { text: "Conformance smoke test", link: "/docs/endpoints/oidc_conformance" },
-          ],
-        },
-        {
           text: "Grants",
           items: [
             { text: "Overview", link: "/docs/grants/" },
@@ -160,6 +145,17 @@ export default defineConfig({
           ],
         },
         {
+          text: "OpenID Connect",
+          items: [
+            { text: "Getting Started with OIDC", link: "/docs/oidc/getting_started" },
+            { text: "Keypair Lifecycle", link: "/docs/oidc/keypair_lifecycle" },
+            { text: "Hooks", link: "/docs/oidc/hooks" },
+            { text: "/userinfo", link: "/docs/endpoints/userinfo" },
+            { text: "/.well-known/openid-configuration", link: "/docs/endpoints/discovery" },
+            { text: "Conformance smoke test", link: "/docs/endpoints/oidc_conformance" },
+          ],
+        },
+        {
           text: "Adapters",
           items: [
             { text: "Overview", link: "/docs/adapters/" },
@@ -169,19 +165,12 @@ export default defineConfig({
             { text: "Vanilla", link: "/docs/adapters/vanilla" },
           ],
         },
-        {
-          text: "Extras",
-          items: [
-            {
-              text: "Access Tokens",
-              link: "/docs/Extras/access_tokens",
-            },
-            { text: "Glossary", link: "/docs/Extras/glossary" },
-            { text: "References", link: "/docs/Extras/references" },
-          ],
-        },
-        { text: "FAQ", link: "/docs/faqs" },
         { text: "Upgrade Guide", link: "/docs/upgrade_guide" },
+
+            {
+              text: "Protecting Resources",
+              link: "/docs/getting_started/protecting_resources",
+            },
       ],
     },
 
