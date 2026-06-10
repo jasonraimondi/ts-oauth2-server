@@ -98,6 +98,7 @@
     "node": ">=22"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.3",
     "@types/body-parser": "^1.19.6",
     "@types/express": "^5.0.6",
     "@types/ms": "^2.1.0",
@@ -109,6 +110,7 @@
     "h3": "1.15.11",
     "jose": "^6.2.3",
     "prettier": "^3.8.3",
+    "publint": "^0.3.21",
     "tsdown": "^0.21.10",
     "typescript": "^6.0.3",
     "vite": "^8.0.10",
