@@ -13,9 +13,6 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   fixedExtension: false,
-  outputOptions: {
-    keepNames: true,
-  },
   deps: {
     neverBundle: ["express", "fastify", "h3", /^@fastify\//, /^@types\//],
   },
