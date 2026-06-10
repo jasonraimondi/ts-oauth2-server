@@ -347,11 +347,36 @@ describe("authorization_server", () => {
     let accessToken: OAuthToken;
     let request: OAuthRequest;
 
-    const accessTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imphc29uQHJhaW1vbmRpLnVzIiwiY2xpZW50IjoiU3ZlbHRlIEtpdCIsImNpZCI6IjE2YzExODEyLTg5ZGEtNGQ2OC05ZTljLTc3MTUzMjNlMzRmNSIsInNjb3BlIjoiIiwic3ViIjoiMDE5MGVmZTctNzUwMy03ZGQyLTg1MTYtNjM3NWZkNWRlODhiIiwiZXhwIjoxNzIyNTY5NDQ2LCJuYmYiOjE3MjI1NjU4NDYsImlhdCI6MTcyMjU2NTg0NiwianRpIjoiZDcxZTI3ZDdiMWNhNDczZDMxNWJiYzk1NTM0ODg4YTgwNzQ5NTdiNWNiODJkOWE3N2QzODY2ODliNTQ5NzA2MjZlYjM3N2UyYmMwZjlkZGMifQ.HsHqJOjCFt6KiT6H1y13QbMxUljqkFaFVT0WPxrO25Q";
+    // Signed with the server's own secret: introspection/revocation verify the
+    // signature before trusting any claim, so unverifiable fixtures resolve to
+    // active:false / a silent no-op.
+    const accessTokenJWT = jwt.sign(
+      {
+        email: "jason@raimondi.us",
+        client: "Svelte Kit",
+        cid: "16c11812-89da-4d68-9e9c-7715323e34f5",
+        scope: "",
+        sub: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+        exp: 1722569446,
+        nbf: 1722565846,
+        iat: 1722565846,
+        jti: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+      },
+      "secret-key",
+    );
     const parsedAccessToken = jwt.decode(accessTokenJWT) as ParsedAccessToken;
-    const refreshTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIxNmMxMTgxMi04OWRhLTRkNjgtOWU5Yy03NzE1MzIzZTM0ZjUiLCJhY2Nlc3NfdG9rZW5faWQiOiJkNzFlMjdkN2IxY2E0NzNkMzE1YmJjOTU1MzQ4ODhhODA3NDk1N2I1Y2I4MmQ5YTc3ZDM4NjY4OWI1NDk3MDYyNmViMzc3ZTJiYzBmOWRkYyIsInJlZnJlc2hfdG9rZW5faWQiOiI5NzQxMDZlNjBiZDk0YTU5MzE0YzMxMzY5ZDlhZDg0ZWYwNTU3MGFiZmQ3N2JmYWI0YmUxMGYzMmY5MDQxZDBlMmRmMzE2YmY2MTM5ZjJiOCIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjAxOTBlZmU3LTc1MDMtN2RkMi04NTE2LTYzNzVmZDVkZTg4YiIsImV4cGlyZV90aW1lIjoxNzIyNTczMDQ3LCJpYXQiOjE3MjI1NjU4NDZ9.vpPKS9grMO5gIUQJI2ss525bwxNez9Xo0Rv6Y10DSqY";
+    const refreshTokenJWT = jwt.sign(
+      {
+        client_id: "16c11812-89da-4d68-9e9c-7715323e34f5",
+        access_token_id: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+        refresh_token_id: "974106e60bd94a59314c31369d9ad84ef05570abfd77bfab4be10f32f9041d0e2df316bf6139f2b8",
+        scope: "",
+        user_id: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+        expire_time: 1722573047,
+        iat: 1722565846,
+      },
+      "secret-key",
+    );
     const parsedRefreshToken = jwt.decode(refreshTokenJWT) as ParsedRefreshToken;
 
     beforeEach(() => {
@@ -512,7 +537,8 @@ describe("authorization_server", () => {
           "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
         );
         expect(response.body.active).toBe(true);
-        expect(response.body.client_id).toBe("16c11812-89da-4d68-9e9c-7715323e34f5");
+        // the persisted row's client wins over the token's client_id claim
+        expect(response.body.client_id).toBe("1");
         expect(response.body.expire_time).toBe(1722573047);
         expect(response.body.iat).toBe(1722565846);
         expect(response.body.refresh_token_id).toBe(
@@ -521,6 +547,126 @@ describe("authorization_server", () => {
         expect(response.body.scope).toBe("");
         expect(response.body.token_type).toBe("refresh_token");
         expect(response.body.user_id).toBe("0190efe7-7503-7dd2-8516-6375fd5de88b");
+      });
+
+      it("succeeds by refresh token without a token_type_hint", async () => {
+        accessToken = {
+          accessToken: "176aa0a5-acc7-4ef7-8ff3-17cace20f83e",
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          refreshToken: parsedRefreshToken.refresh_token_id,
+          refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        request.body = { token: refreshTokenJWT };
+        const response = await authorizationServer.introspect(request);
+
+        expect(response.body.active).toBe(true);
+        expect(response.body.token_type).toBe("refresh_token");
+      });
+
+      it("returns active false for a token with an invalid signature", async () => {
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        const forgedToken = jwt.sign({ ...parsedAccessToken, scope: "admin" }, "attacker-key");
+
+        request.body = { token: forgedToken };
+        const response = await authorizationServer.introspect(request);
+
+        expect(response.body).toEqual({ active: false });
+      });
+
+      it("reports persisted scope and client_id over the token's claims", async () => {
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [{ name: "scope-1" }],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        const divergedToken = jwt.sign({ ...parsedAccessToken, scope: "scope-1 scope-2 admin" }, "secret-key");
+
+        request.body = { token: divergedToken };
+        const response = await authorizationServer.introspect(request);
+
+        expect(response.body.active).toBe(true);
+        expect(response.body.scope).toBe("scope-1");
+        expect(response.body.client_id).toBe("1");
+      });
+
+      it("returns active false for an unknown refresh token instead of throwing", async () => {
+        request.body = { token: refreshTokenJWT, token_type_hint: "refresh_token" };
+
+        const response = await authorizationServer.introspect(request);
+
+        expect(response.body).toEqual({ active: false });
+      });
+
+      it("returns active false when the access token lookup rejects", async () => {
+        const backupFn = inMemoryAccessTokenRepository.getByAccessToken;
+        inMemoryAccessTokenRepository.getByAccessToken = async () => {
+          throw new Error("token not found");
+        };
+
+        request.body = { token: accessTokenJWT };
+
+        await expect(authorizationServer.introspect(request))
+          .resolves.toMatchObject({ body: { active: false } })
+          .finally(() => {
+            inMemoryAccessTokenRepository.getByAccessToken = backupFn;
+          });
+      });
+
+      it("returns active false when the refresh token is flag-revoked", async () => {
+        accessToken = {
+          accessToken: "176aa0a5-acc7-4ef7-8ff3-17cace20f83e",
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          refreshToken: parsedRefreshToken.refresh_token_id,
+          refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        const backupFn = inMemoryAccessTokenRepository.isRefreshTokenRevoked;
+        inMemoryAccessTokenRepository.isRefreshTokenRevoked = async () => true;
+        try {
+          request.body = { token: refreshTokenJWT, token_type_hint: "refresh_token" };
+          const response = await authorizationServer.introspect(request);
+
+          expect(response.body).toEqual({ active: false });
+        } finally {
+          inMemoryAccessTokenRepository.isRefreshTokenRevoked = backupFn;
+        }
+      });
+
+      it("returns active false when the access token is flag-revoked", async () => {
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        inMemoryAccessTokenRepository.isAccessTokenRevoked = async () => true;
+        try {
+          request.body = { token: accessTokenJWT };
+          const response = await authorizationServer.introspect(request);
+
+          expect(response.body).toEqual({ active: false });
+        } finally {
+          delete inMemoryAccessTokenRepository.isAccessTokenRevoked;
+        }
       });
     });
   });
@@ -539,11 +685,36 @@ describe("authorization_server", () => {
     let accessToken: OAuthToken;
     let request: OAuthRequest;
 
-    const accessTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imphc29uQHJhaW1vbmRpLnVzIiwiY2xpZW50IjoiU3ZlbHRlIEtpdCIsImNpZCI6IjE2YzExODEyLTg5ZGEtNGQ2OC05ZTljLTc3MTUzMjNlMzRmNSIsInNjb3BlIjoiIiwic3ViIjoiMDE5MGVmZTctNzUwMy03ZGQyLTg1MTYtNjM3NWZkNWRlODhiIiwiZXhwIjoxNzIyNTY5NDQ2LCJuYmYiOjE3MjI1NjU4NDYsImlhdCI6MTcyMjU2NTg0NiwianRpIjoiZDcxZTI3ZDdiMWNhNDczZDMxNWJiYzk1NTM0ODg4YTgwNzQ5NTdiNWNiODJkOWE3N2QzODY2ODliNTQ5NzA2MjZlYjM3N2UyYmMwZjlkZGMifQ.HsHqJOjCFt6KiT6H1y13QbMxUljqkFaFVT0WPxrO25Q";
+    // Signed with the server's own secret: introspection/revocation verify the
+    // signature before trusting any claim, so unverifiable fixtures resolve to
+    // active:false / a silent no-op.
+    const accessTokenJWT = jwt.sign(
+      {
+        email: "jason@raimondi.us",
+        client: "Svelte Kit",
+        cid: "16c11812-89da-4d68-9e9c-7715323e34f5",
+        scope: "",
+        sub: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+        exp: 1722569446,
+        nbf: 1722565846,
+        iat: 1722565846,
+        jti: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+      },
+      "secret-key",
+    );
     const parsedAccessToken = jwt.decode(accessTokenJWT) as ParsedAccessToken;
-    const refreshTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIxNmMxMTgxMi04OWRhLTRkNjgtOWU5Yy03NzE1MzIzZTM0ZjUiLCJhY2Nlc3NfdG9rZW5faWQiOiJkNzFlMjdkN2IxY2E0NzNkMzE1YmJjOTU1MzQ4ODhhODA3NDk1N2I1Y2I4MmQ5YTc3ZDM4NjY4OWI1NDk3MDYyNmViMzc3ZTJiYzBmOWRkYyIsInJlZnJlc2hfdG9rZW5faWQiOiI5NzQxMDZlNjBiZDk0YTU5MzE0YzMxMzY5ZDlhZDg0ZWYwNTU3MGFiZmQ3N2JmYWI0YmUxMGYzMmY5MDQxZDBlMmRmMzE2YmY2MTM5ZjJiOCIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjAxOTBlZmU3LTc1MDMtN2RkMi04NTE2LTYzNzVmZDVkZTg4YiIsImV4cGlyZV90aW1lIjoxNzIyNTczMDQ3LCJpYXQiOjE3MjI1NjU4NDZ9.vpPKS9grMO5gIUQJI2ss525bwxNez9Xo0Rv6Y10DSqY";
+    const refreshTokenJWT = jwt.sign(
+      {
+        client_id: "16c11812-89da-4d68-9e9c-7715323e34f5",
+        access_token_id: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+        refresh_token_id: "974106e60bd94a59314c31369d9ad84ef05570abfd77bfab4be10f32f9041d0e2df316bf6139f2b8",
+        scope: "",
+        user_id: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+        expire_time: 1722573047,
+        iat: 1722565846,
+      },
+      "secret-key",
+    );
     const parsedRefreshToken = jwt.decode(refreshTokenJWT) as ParsedRefreshToken;
 
     beforeEach(() => {
@@ -680,6 +851,43 @@ describe("authorization_server", () => {
         expect(response.status).toBe(200);
         expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
         expect(inMemoryDatabase.tokens[accessToken.accessToken].refreshTokenExpiresAt).toEqual(new Date(0));
+      });
+
+      it("succeeds by refresh token without a token_type_hint", async () => {
+        accessToken = {
+          accessToken: "176aa0a5-acc7-4ef7-8ff3-17cace20f83e",
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          refreshToken: parsedRefreshToken.refresh_token_id,
+          refreshTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        request.body = { token: refreshTokenJWT };
+        const response = await authorizationServer.revoke(request);
+
+        expect(response.status).toBe(200);
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).toEqual(new Date(0));
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].refreshTokenExpiresAt).toEqual(new Date(0));
+      });
+
+      it("does not revoke a token with an invalid signature", async () => {
+        accessToken = {
+          accessToken: parsedAccessToken.jti,
+          accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+          client,
+          scopes: [],
+        };
+        inMemoryDatabase.tokens[accessToken.accessToken] = accessToken;
+
+        const forgedToken = jwt.sign({ ...parsedAccessToken }, "attacker-key");
+
+        request.body = { token: forgedToken, token_type_hint: "access_token" };
+        const response = await authorizationServer.revoke(request);
+
+        expect(response.status).toBe(200);
+        expect(inMemoryDatabase.tokens[accessToken.accessToken].accessTokenExpiresAt).not.toEqual(new Date(0));
       });
 
       it("succeeds by authorization code", async () => {

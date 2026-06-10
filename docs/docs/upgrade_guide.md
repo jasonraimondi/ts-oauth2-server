@@ -24,6 +24,14 @@ new AuthorizationServer(..., { introspectionRequiresConfidentialClient: false })
 
 **`JwtService.verify()` is stricter.** It pins to the service's configured algorithm, ignoring any `algorithms` you pass, and rejects non-object payloads. Only relevant if you call it directly.
 
+**Revoke and introspect verify the token's signature.** Previously both endpoints decoded the presented JWT without checking its signature, so introspection echoed whatever claims the caller supplied. Now a token is only looked up — and its claims only echoed — after it verifies against the server's `JwtService`; an unverifiable token introspects as `{ "active": false }` and revokes as a silent `200`. Three things follow:
+
+- **Key rotation:** tokens signed by a retired key can no longer be introspected or revoked by presenting the JWT — revoke or expire them server-side when rotating.
+- **Custom `JwtInterface`:** your `verify(token, options)` must honor `ignoreExpiration`, or revoking already-expired tokens silently no-ops.
+- **Response fields:** `active`, `scope`, `client_id`, and `token_type` now always reflect stored state rather than the token's claims.
+
+Alongside this, behavior that was previously broken is now correct, with no action needed: refresh tokens are found without a `token_type_hint`, opaque refresh tokens can be introspected and revoked, introspecting an unknown token returns `{ "active": false }` instead of a `500`, and introspection reports `active: false` for tokens your repository flags via `isRefreshTokenRevoked` / the optional `isAccessTokenRevoked`.
+
 **`redirect_uri` validation is stricter.** The parameter is now parsed with the native WHATWG URL parser (replacing the unmaintained `uri-js`). Unparseable values (e.g. `https://` with no host) fail up front with `400 invalid_request` instead of `401 invalid_client` at client matching, and any `#` — including a bare trailing `#`, which previously slipped through — is rejected per [RFC 6749 §3.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2). There is no opt-out; remove the fragment from your redirect URI.
 
 ## Upgrading to v4 {#to-v4}

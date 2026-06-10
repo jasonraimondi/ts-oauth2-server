@@ -52,17 +52,29 @@ export class ClientCredentialsGrant extends AbstractGrant {
 
     const { parsedToken, oauthToken, expiresAt, tokenType } = await this.tokenFromRequest(req);
 
-    const active = expiresAt > new Date();
+    let active = expiresAt > new Date();
+
+    // A live row with a future expiry may still be flag-revoked; consult the same
+    // repository seams the refresh grant and UserInfo honor (RFC 7662 §2.2).
+    if (active && oauthToken) {
+      if (tokenType === "refresh_token") {
+        active = !(await this.tokenRepository.isRefreshTokenRevoked(oauthToken));
+      } else if (typeof this.tokenRepository.isAccessTokenRevoked === "function") {
+        active = !(await this.tokenRepository.isAccessTokenRevoked(oauthToken));
+      }
+    }
 
     let body: OAuthTokenIntrospectionResponse = { active: false };
 
     if (active && oauthToken) {
+      // Persisted fields win over echoed claims: introspection reports the
+      // server's current state, not the token's (see docs/adr/0008).
       body = {
+        ...(typeof parsedToken === "object" ? parsedToken : {}),
         active: true,
         scope: oauthToken.scopes.map(s => s.name).join(this.options.scopeDelimiter),
         client_id: oauthToken.client.id,
         token_type: tokenType,
-        ...(typeof parsedToken === "object" ? parsedToken : {}),
       };
     }
 
@@ -139,24 +151,46 @@ export class ClientCredentialsGrant extends AbstractGrant {
       throw OAuthException.unsupportedTokenType();
     }
 
-    const parsedToken: unknown = this.jwt.decode(token);
+    // Claims are trusted only after the signature verifies — a decoded-but-
+    // unverified payload can spoof scope/sub/ownership (see docs/adr/0008).
+    // Expiry and nbf are ignored at parse time: `active` derives from the
+    // persisted entity, and an expired token must still be revocable (RFC 7009).
+    let parsedToken: unknown = undefined;
+    try {
+      parsedToken = await this.jwt.verify(token, { ignoreExpiration: true, ignoreNotBefore: true });
+    } catch {
+      parsedToken = undefined;
+    }
 
     let oauthToken: undefined | OAuthToken = undefined;
     let expiresAt = new Date(0);
     let tokenType: "access_token" | "refresh_token" = "access_token";
 
-    if (tokenTypeHint === "refresh_token" && this.isRefreshTokenPayload(parsedToken)) {
-      oauthToken = await this.tokenRepository.getByRefreshToken(parsedToken.refresh_token_id).catch();
-      expiresAt = oauthToken?.refreshTokenExpiresAt ?? expiresAt;
-      tokenType = "refresh_token";
-    } else if (this.isAccessTokenPayload(parsedToken)) {
+    // token_type_hint is advisory (RFC 7009 §2.1): the verified payload shape
+    // identifies the token type, so refresh tokens resolve without a hint.
+    if (this.isAccessTokenPayload(parsedToken)) {
       if (typeof this.tokenRepository.getByAccessToken !== "function") {
         throw OAuthException.internalServerError("TokenRepository#getByAccessToken is not implemented");
       }
 
       // if token not found, ignore and return undefined oauthToken
-      oauthToken = await this.tokenRepository.getByAccessToken(parsedToken.jti).catch();
+      oauthToken = await this.tokenRepository.getByAccessToken(parsedToken.jti).catch(() => undefined);
       expiresAt = oauthToken?.accessTokenExpiresAt ?? expiresAt;
+    } else if (this.isRefreshTokenPayload(parsedToken)) {
+      // if token not found, ignore and return undefined oauthToken
+      oauthToken = await this.tokenRepository.getByRefreshToken(parsedToken.refresh_token_id).catch(() => undefined);
+      expiresAt = oauthToken?.refreshTokenExpiresAt ?? expiresAt;
+      tokenType = "refresh_token";
+    } else if (parsedToken === undefined && this.options.useOpaqueRefreshTokens) {
+      // Opaque refresh tokens are raw strings, not JWTs; the encoder rebuilds
+      // the payload from storage so the revoke ownership check keeps client_id.
+      const resolution = await this.refreshTokenEncoder.resolve(token).catch(() => undefined);
+      if (resolution?.token) {
+        parsedToken = resolution.payload;
+        oauthToken = resolution.token;
+        expiresAt = oauthToken.refreshTokenExpiresAt ?? expiresAt;
+        tokenType = "refresh_token";
+      }
     }
 
     return { parsedToken, oauthToken, expiresAt, tokenType };
