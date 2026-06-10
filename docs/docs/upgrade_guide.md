@@ -24,6 +24,8 @@ new AuthorizationServer(..., { introspectionRequiresConfidentialClient: false })
 
 **`JwtService.verify()` is stricter.** It pins to the service's configured algorithm, ignoring any `algorithms` you pass, and rejects non-object payloads. Only relevant if you call it directly.
 
+**`redirect_uri` validation is stricter.** The parameter is now parsed with the native WHATWG URL parser (replacing the unmaintained `uri-js`). Unparseable values (e.g. `https://` with no host) fail up front with `400 invalid_request` instead of `401 invalid_client` at client matching, and any `#` — including a bare trailing `#`, which previously slipped through — is rejected per [RFC 6749 §3.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2). There is no opt-out; remove the fragment from your redirect URI.
+
 ## Upgrading to v4 {#to-v4}
 
 Coming from v3. Only relevant if you expose the revoke or introspect endpoints.

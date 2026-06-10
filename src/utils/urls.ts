@@ -1,3 +1,11 @@
+export function tryParseUrl(url: string): URL | undefined {
+  try {
+    return new URL(url);
+  } catch {
+    return undefined;
+  }
+}
+
 export function urlsAreSameIgnoringPort(url1: string, url2: string): boolean {
   try {
     const parsedUrl1 = new URL(url1);
