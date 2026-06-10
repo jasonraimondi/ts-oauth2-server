@@ -32,6 +32,8 @@ new AuthorizationServer(..., { introspectionRequiresConfidentialClient: false })
 
 Alongside this, behavior that was previously broken is now correct, with no action needed: refresh tokens are found without a `token_type_hint`, opaque refresh tokens can be introspected and revoked, introspecting an unknown token returns `{ "active": false }` instead of a `500`, and introspection reports `active: false` for tokens your repository flags via `isRefreshTokenRevoked` / the optional `isAccessTokenRevoked`.
 
+**`redirect_uri` validation is stricter.** The parameter is now parsed with the native WHATWG URL parser (replacing the unmaintained `uri-js`). Unparseable values (e.g. `https://` with no host) fail up front with `400 invalid_request` instead of `401 invalid_client` at client matching, and any `#` — including a bare trailing `#`, which previously slipped through — is rejected per [RFC 6749 §3.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2). There is no opt-out; remove the fragment from your redirect URI.
+
 ## Upgrading to v4 {#to-v4}
 
 Coming from v3. Only relevant if you expose the revoke or introspect endpoints.

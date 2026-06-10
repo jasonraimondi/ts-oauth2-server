@@ -384,6 +384,49 @@ describe("authorization_code grant", () => {
         /Redirection endpoint must not contain url fragment based on RFC6749/,
       );
     });
+
+    it("throws for redirect_uri with bare trailing hash", async () => {
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com#",
+        },
+      });
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(
+        /Redirection endpoint must not contain url fragment based on RFC6749/,
+      );
+    });
+
+    it("throws for redirect_uri with whitespace-only fragment", async () => {
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "http://example.com#\t",
+        },
+      });
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(
+        /Redirection endpoint must not contain url fragment based on RFC6749/,
+      );
+    });
+
+    it("throws for host-less redirect_uri", async () => {
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          redirect_uri: "https://",
+        },
+      });
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(/Check the `redirect_uri` parameter/);
+    });
   });
 
   describe("complete authorization request", () => {
