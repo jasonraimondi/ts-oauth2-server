@@ -1,6 +1,6 @@
-export function parseRedirectUri(redirectUri: string): URL | undefined {
+export function tryParseUrl(url: string): URL | undefined {
   try {
-    return new URL(redirectUri);
+    return new URL(url);
   } catch {
     return undefined;
   }

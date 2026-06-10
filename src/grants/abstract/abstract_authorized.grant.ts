@@ -2,7 +2,7 @@ import { OAuthClient } from "../../entities/client.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { RequestInterface } from "../../requests/request.js";
 import { AbstractGrant } from "./abstract.grant.js";
-import { parseRedirectUri, urlsAreSameIgnoringPort } from "../../utils/urls.js";
+import { tryParseUrl, urlsAreSameIgnoringPort } from "../../utils/urls.js";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(
@@ -41,13 +41,14 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
       throw OAuthException.invalidParameter("redirect_uri");
     }
 
-    const parsed = parseRedirectUri(redirectUri);
-
-    if (!parsed) {
+    if (!tryParseUrl(redirectUri)) {
       throw OAuthException.invalidParameter("redirect_uri");
     }
 
-    if (!!parsed.hash) {
+    // Check the raw string: URL.hash is "" for both a missing fragment and an
+    // empty one (bare trailing "#"), and WHATWG parsing strips tab/newline, so
+    // fragments like "#\t" are invisible after parsing.
+    if (redirectUri.includes("#")) {
       throw OAuthException.invalidParameter(
         "redirect_uri",
         "Redirection endpoint must not contain url fragment based on RFC6749, section 3.1.2",
