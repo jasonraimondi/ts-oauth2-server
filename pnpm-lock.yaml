@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@types/jsonwebtoken':
-        specifier: ^9.0.10
-        version: 9.0.10
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
@@ -27,6 +24,9 @@ importers:
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
       '@types/ms':
         specifier: ^2.1.0
         version: 2.1.0
