@@ -1,10 +1,8 @@
-import { parse } from "uri-js";
-
 import { OAuthClient } from "../../entities/client.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { RequestInterface } from "../../requests/request.js";
 import { AbstractGrant } from "./abstract.grant.js";
-import { urlsAreSameIgnoringPort } from "../../utils/urls.js";
+import { parseRedirectUri, urlsAreSameIgnoringPort } from "../../utils/urls.js";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(
@@ -43,13 +41,13 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
       throw OAuthException.invalidParameter("redirect_uri");
     }
 
-    const parsed = parse(redirectUri);
+    const parsed = parseRedirectUri(redirectUri);
 
-    if (!parsed.scheme) {
+    if (!parsed) {
       throw OAuthException.invalidParameter("redirect_uri");
     }
 
-    if (!!parsed.fragment) {
+    if (!!parsed.hash) {
       throw OAuthException.invalidParameter(
         "redirect_uri",
         "Redirection endpoint must not contain url fragment based on RFC6749, section 3.1.2",

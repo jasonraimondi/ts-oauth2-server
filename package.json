@@ -9,7 +9,6 @@
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "start": "tsc -p tsconfig.build.json --watch",
-    "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
@@ -92,7 +91,6 @@
   },
   "dependencies": {
     "jsonwebtoken": "^9.0.3",
-    "ms": "^2.1.3",
-    "uri-js": "^4.4.1"
+    "ms": "^2.1.3"
   }
 }

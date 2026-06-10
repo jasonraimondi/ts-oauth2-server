@@ -229,6 +229,11 @@ describe("authorization_code grant", () => {
         received: "com.exampleapp.oauth2://callback",
       },
       {
+        testName: "is successful with redirect uri with bare trailing hash",
+        allowed: ["http://example.com"],
+        received: "http://example.com#",
+      },
+      {
         testName: "is successful with application style redirect uri with port",
         allowed: ["com.exampleapp.oauth2://callback"],
         received: "com.exampleapp.oauth2://callback:3000",
