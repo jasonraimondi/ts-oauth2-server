@@ -31,29 +31,54 @@
     "types": "./dist/index.d.ts",
     "exports": {
       ".": {
-        "import": "./dist/index.js",
-        "require": "./dist/index.cjs",
-        "types": "./dist/index.d.ts"
+        "import": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/index.cjs"
+        }
       },
       "./vanilla": {
-        "import": "./dist/vanilla.js",
-        "require": "./dist/vanilla.cjs",
-        "types": "./dist/vanilla.d.ts"
+        "import": {
+          "types": "./dist/vanilla.d.ts",
+          "default": "./dist/vanilla.js"
+        },
+        "require": {
+          "types": "./dist/vanilla.d.cts",
+          "default": "./dist/vanilla.cjs"
+        }
       },
       "./express": {
-        "import": "./dist/express.js",
-        "require": "./dist/express.cjs",
-        "types": "./dist/express.d.ts"
+        "import": {
+          "types": "./dist/express.d.ts",
+          "default": "./dist/express.js"
+        },
+        "require": {
+          "types": "./dist/express.d.cts",
+          "default": "./dist/express.cjs"
+        }
       },
       "./fastify": {
-        "import": "./dist/fastify.js",
-        "require": "./dist/fastify.cjs",
-        "types": "./dist/fastify.d.ts"
+        "import": {
+          "types": "./dist/fastify.d.ts",
+          "default": "./dist/fastify.js"
+        },
+        "require": {
+          "types": "./dist/fastify.d.cts",
+          "default": "./dist/fastify.cjs"
+        }
       },
       "./h3": {
-        "import": "./dist/h3.js",
-        "require": "./dist/h3.cjs",
-        "types": "./dist/h3.d.ts"
+        "import": {
+          "types": "./dist/h3.d.ts",
+          "default": "./dist/h3.js"
+        },
+        "require": {
+          "types": "./dist/h3.d.cts",
+          "default": "./dist/h3.cjs"
+        }
       }
     },
     "typesVersions": {
@@ -75,7 +100,6 @@
   "devDependencies": {
     "@types/body-parser": "^1.19.6",
     "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/ms": "^2.1.0",
     "@types/node": "^25.6.0",
     "@vitest/coverage-istanbul": "^4.1.5",
@@ -93,5 +117,13 @@
   "dependencies": {
     "jsonwebtoken": "^9.0.3",
     "ms": "^2.1.3"
+  },
+  "peerDependencies": {
+    "h3": "^1.15.0"
+  },
+  "peerDependenciesMeta": {
+    "h3": {
+      "optional": true
+    }
   }
 }
