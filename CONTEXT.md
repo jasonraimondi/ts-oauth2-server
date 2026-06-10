@@ -17,6 +17,10 @@ _Avoid_: conflating with Access Token; they have different audiences and purpose
 **Refresh Token**:
 A token used to obtain a new Access Token. In v1 the refresh flow is OIDC-unaware — it never returns an ID Token.
 
+**Active**:
+The state introspection reports for a token: its persisted record exists, the stored expiry is in the future, and it has not been revoked. Determined entirely from the server's own records — never from the presented token's claims, which a token can only be trusted to carry after its signature verifies.
+_Avoid_: equating "active" with "the JWT's `exp` hasn't passed"; the server's stored state is the truth.
+
 ### Claims
 
 **Protocol Claims**:
@@ -38,6 +42,10 @@ The `.well-known/openid-configuration` JSON describing the server's OIDC capabil
 
 **JWKS**:
 The published set of public keys (`{ keys: [...] }`) relying parties use to verify token signatures.
+
+**Token Type Hint**:
+The optional `token_type_hint` parameter a client may send to introspection/revocation. Purely advisory: the server identifies the token's type from the token itself and must locate tokens of any supported type even when the hint is absent or wrong (RFC 7009 §2.1). An unrecognized hint is still rejected outright.
+_Avoid_: treating the hint as a dispatch key that gates which lookups run.
 
 ### Roles
 

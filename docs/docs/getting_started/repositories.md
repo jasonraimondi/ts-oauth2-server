@@ -121,11 +121,11 @@ interface OAuthTokenRepository {
   // manually revoked. If the token is still valid return `false`
   isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 
-  // (Optional) Called by the OIDC /userinfo endpoint to detect flag-based
-  // revocation of an access token (the row still exists with a future expiry
-  // but has been marked revoked). Without it, /userinfo only treats a token as
-  // revoked once it is deleted from storage or expires. Return `true` if the
-  // access token has been revoked, otherwise `false`.
+  // (Optional) Called by the OIDC /userinfo endpoint and /token/introspect to
+  // detect flag-based revocation of an access token (the row still exists with
+  // a future expiry but has been marked revoked). Without it, those endpoints
+  // only treat a token as revoked once it is deleted from storage or expires.
+  // Return `true` if the access token has been revoked, otherwise `false`.
   isAccessTokenRevoked?(accessToken: OAuthToken): Promise<boolean>;
 
   // Fetch refresh token entity from storage by refresh token

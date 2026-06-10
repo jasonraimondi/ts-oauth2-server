@@ -4,11 +4,11 @@ title: /token/introspect
 
 # The Introspect Endpoint
 
-The `/token/introspect` endpoint is a back channel endpoint that returns the active state and metadata of a given token (per [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). It does not revoke tokens — for revocation use the [`/token/revoke`](./revoke.md) endpoint. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect `token_type_hint=access_token`.
+The `/token/introspect` endpoint is a back channel endpoint that returns the active state and metadata of a given token (per [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). It does not revoke tokens — for revocation use the [`/token/revoke`](./revoke.md) endpoint. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect access tokens.
 
 :::info
 - Implementing this endpoint is optional
-- This endpoint requires `TokenRepository#getByAccessToken` to be defined if using `token_type_hint=access_token`
+- This endpoint requires `TokenRepository#getByAccessToken` to be defined to introspect access tokens
 :::
 
 ```ts
@@ -52,7 +52,7 @@ const authorizationServer = new AuthorizationServer(
 A complete token introspection request will include the following parameters:
 
 - **token** (required): The string value of the token to be introspected
-- **token_type_hint** (optional, default: access_token): A hint about the type of the token submitted for introspection. Valid values are: `access_token` and `refresh_token`
+- **token_type_hint** (optional): A hint about the type of the token submitted for introspection. Valid values are: `access_token` and `refresh_token`. The hint is purely advisory — the server identifies the token's type from the token itself, so refresh tokens are found even when the hint is absent or wrong. An unrecognized hint is rejected with `unsupported_token_type`.
 
 By default the request must be authenticated with a registered **confidential** client's credentials (`client_id` + `client_secret`); public clients are rejected (see [Configure](#configure)). The authenticated client may introspect **any** token — introspection is a back-channel call (typically from a resource server) and is not scoped to tokens issued to the requesting client. The client does **not** need to be authorized for the `client_credentials` grant.
 
@@ -103,6 +103,14 @@ token=xxxxxxxxxx
 ```
 ::::
 
+### Token verification and `active`
+
+A presented JWT's claims are trusted only after its signature verifies against the server's configured `JwtService` — a token with an invalid or unverifiable signature is treated as unknown and reported `{"active": false}`, never as an error. The same applies to a well-formed token whose record no longer exists in storage.
+
+`active: true` means the server's **stored** state says so: the token's persisted record exists, its stored expiry is in the future, and it has not been revoked. Revocation is detected through `TokenRepository#isRefreshTokenRevoked` for refresh tokens and the optional `TokenRepository#isAccessTokenRevoked` for access tokens — implement the latter if your `revoke()` marks records revoked rather than deleting them or zeroing their expiry.
+
+With `useOpaqueRefreshTokens` enabled, opaque refresh token strings are resolved through `TokenRepository#getByRefreshToken` and introspect like any other token.
+
 ### Response
 
 The authorization server will respond with a JSON object containing the following fields:
@@ -121,6 +129,8 @@ The authorization server will respond with a JSON object containing the followin
 - **jti** (optional): The unique identifier for the token
 
 Additional fields may be included in the response.
+
+`active`, `scope`, `client_id`, and `token_type` always reflect the server's stored state for the token; the remaining fields echo the verified token's claims.
 
 The client authenticates with its credentials (`client_id`, plus `client_secret` for confidential clients).
 

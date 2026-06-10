@@ -26,6 +26,7 @@ Update https://tsoauth2server.com/ and this file when behavior or architecture c
 - Adapters: `./vanilla`, `./express`, `./fastify` (entry points in `package.json`)
 - PKCE verifiers: Plain, S256
 - Optional logger for token ops, revocations, grant errors
+- Introspect/revoke (shared handler in `ClientCredentialsGrant`): claims trusted only after `jwt.verify` (exp/nbf ignored — `active` derives from stored state); `token_type_hint` is advisory, dispatch is by verified payload shape; opaque refresh tokens resolve via the `RefreshTokenEncoder`; introspection `active` folds in `isRefreshTokenRevoked`/optional `isAccessTokenRevoked`; persisted fields win over echoed claims (docs/adr/0008)
 - RFCs: 6749, 6750, 7009, 7519, 7636, 7662, 8693, 9068; OpenID Connect Core 1.0
 
 ### OIDC layer (`src/oidc/`)

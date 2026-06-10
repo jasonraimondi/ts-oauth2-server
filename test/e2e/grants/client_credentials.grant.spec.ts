@@ -916,4 +916,89 @@ describe("client_credentials grant", () => {
       expect(response.body.active).toBe(true);
     });
   });
+
+  // Opaque refresh tokens are raw strings, not JWTs — introspection and
+  // revocation resolve them through the grant's RefreshTokenEncoder.
+  // @see https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
+  describe("with opaque refresh tokens", () => {
+    const opaqueRefreshToken = "opaque-refresh-token-string";
+    let tokenRow: OAuthToken;
+
+    beforeEach(() => {
+      grant = createGrant({ useOpaqueRefreshTokens: true });
+
+      tokenRow = {
+        accessToken: "opaque-access-token-id",
+        accessTokenExpiresAt: new DateInterval("1h").getEndDate(),
+        refreshToken: opaqueRefreshToken,
+        refreshTokenExpiresAt: new DateInterval("1h").getEndDate(),
+        client,
+        scopes: [],
+      };
+      inMemoryDatabase.tokens[tokenRow.accessToken] = tokenRow;
+    });
+
+    function isRevoked(): boolean {
+      return inMemoryDatabase.tokens[tokenRow.accessToken].accessTokenExpiresAt.getTime() <= Date.now();
+    }
+
+    it("introspects an opaque refresh token", async () => {
+      request = new OAuthRequest({
+        headers: { authorization: "Basic " + base64encode(`${client.id}:${client.secret}`) },
+        body: { token: opaqueRefreshToken, token_type_hint: "refresh_token" },
+      });
+
+      const response = await grant.respondToIntrospectRequest(request);
+
+      expect(response.body.active).toBe(true);
+      expect(response.body.token_type).toBe("refresh_token");
+      expect(response.body.client_id).toBe(client.id);
+    });
+
+    it("revokes an opaque refresh token", async () => {
+      request = new OAuthRequest({
+        headers: { authorization: "Basic " + base64encode(`${client.id}:${client.secret}`) },
+        body: { token: opaqueRefreshToken, token_type_hint: "refresh_token" },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(isRevoked()).toBe(true);
+    });
+
+    it("revokes an opaque refresh token without a token_type_hint", async () => {
+      request = new OAuthRequest({
+        headers: { authorization: "Basic " + base64encode(`${client.id}:${client.secret}`) },
+        body: { token: opaqueRefreshToken },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(isRevoked()).toBe(true);
+    });
+
+    it("does not revoke an opaque refresh token owned by another client", async () => {
+      const otherClient: OAuthClient = {
+        id: "other-client",
+        name: "other client",
+        secret: "other-secret",
+        redirectUris: ["http://localhost"],
+        allowedGrants: ["client_credentials"],
+        scopes: [],
+      };
+      inMemoryDatabase.clients[otherClient.id] = otherClient;
+
+      request = new OAuthRequest({
+        headers: { authorization: "Basic " + base64encode(`${otherClient.id}:${otherClient.secret}`) },
+        body: { token: opaqueRefreshToken },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      expect(isRevoked()).toBe(false);
+    });
+  });
 });

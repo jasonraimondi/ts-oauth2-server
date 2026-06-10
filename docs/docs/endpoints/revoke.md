@@ -41,9 +41,11 @@ const authoriztionServer = new AuthorizationServer(
 A complete token revocation request will include the following parameters:
 
 - **token** (required): The token to be revoked
-- **token_type_hint** (optional): A hint about the type of the token submitted for revocation. Valid values are: `access_token`, `refresh_token`, `auth_code`
+- **token_type_hint** (optional): A hint about the type of the token submitted for revocation. Valid values are: `access_token`, `refresh_token`, `auth_code`. The hint is purely advisory — the server identifies the token's type from the token itself, so refresh tokens are revoked even when the hint is absent or wrong. An unrecognized hint is rejected with `unsupported_token_type`.
 
 The request must be authenticated with the requesting client's own credentials (`client_id`, plus `client_secret` for confidential clients). Any client may revoke its own tokens — the client does **not** need to be authorized for the `client_credentials` grant.
+
+A presented JWT is revoked only if its signature verifies against the server's configured `JwtService`; a forged or unverifiable token is silently ignored (still a `200`, per RFC 7009 §2.2). An expired access token can still be revoked — useful for killing its associated refresh token. With `useOpaqueRefreshTokens` enabled, opaque refresh token strings are resolved through `TokenRepository#getByRefreshToken` and revoke like any other token.
 
 :::: details View sample revoke request
 
