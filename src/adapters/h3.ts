@@ -68,16 +68,16 @@ export async function requestFromH3(event: H3Event): Promise<OAuthRequest> {
  * });
  * ```
  */
-export function handleH3Response(event: H3Event, oauthResponse: OAuthResponse): void {
+export async function handleH3Response(event: H3Event, oauthResponse: OAuthResponse): Promise<void> {
   if (oauthResponse.status === 302) {
     if (!oauthResponse.headers.location) throw new Error("missing redirect location");
-    sendRedirect(event, oauthResponse.headers.location, 302);
+    await sendRedirect(event, oauthResponse.headers.location, 302);
     return;
   }
 
   setResponseStatus(event, oauthResponse.status);
   setHeaders(event, oauthResponse.headers);
-  send(event, JSON.stringify(oauthResponse.body), "application/json");
+  await send(event, JSON.stringify(oauthResponse.body), "application/json");
 }
 
 /**
@@ -104,11 +104,11 @@ export function handleH3Response(event: H3Event, oauthResponse: OAuthResponse): 
  * });
  * ```
  */
-export function handleH3Error(e: unknown | OAuthException, event: H3Event): void {
+export async function handleH3Error(e: unknown | OAuthException, event: H3Event): Promise<void> {
   if (isOAuthError(e)) {
     setResponseStatus(event, e.status);
     setHeaders(event, { "content-type": "application/json" });
-    send(
+    await send(
       event,
       JSON.stringify({
         status: e.status,
@@ -126,7 +126,7 @@ export function handleH3Error(e: unknown | OAuthException, event: H3Event): void
 
   setResponseStatus(event, oauthError.status);
   setHeaders(event, { "content-type": "application/json" });
-  send(
+  await send(
     event,
     JSON.stringify({
       status: oauthError.status,
