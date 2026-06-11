@@ -1,6 +1,6 @@
 import { createHash, createPrivateKey, createPublicKey, type KeyObject } from "crypto";
 import jwt from "jsonwebtoken";
-import type { Algorithm, Secret, SignOptions, VerifyOptions } from "jsonwebtoken";
+import type { Algorithm, Secret, SignOptions, VerifyOptions } from "./jwt_types.js";
 import { OAuthClient } from "../entities/client.entity.js";
 import { OAuthUser } from "../entities/user.entity.js";
 
