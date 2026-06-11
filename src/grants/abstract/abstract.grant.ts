@@ -16,7 +16,7 @@ import { ResponseInterface } from "../../responses/response.js";
 import { arrayDiff } from "../../utils/array.js";
 import { base64decode } from "../../utils/base64.js";
 import { DateInterval } from "../../utils/date_interval.js";
-import type { SignOptions } from "jsonwebtoken";
+import type { SignOptions } from "../../utils/jwt_types.js";
 import { ExtraAccessTokenFields, JwtInterface } from "../../utils/jwt.js";
 import { isAutoRecognizedOidcScope } from "../../oidc/claims.js";
 import { getSecondsUntil, roundToSeconds } from "../../utils/time.js";
