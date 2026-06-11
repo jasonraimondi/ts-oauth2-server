@@ -1,0 +1,41 @@
+# Supply-chain hardening for pnpm — https://pnpm.io/supply-chain-security
+# The pnpm version itself is pinned (with an integrity hash) via the
+# "packageManager" field in package.json.
+
+# Minimum minutes that must pass after a version is published before pnpm will
+# install it, giving the ecosystem time to detect and pull a compromised release
+# before it lands here. 10080 = 7 days.
+minimumReleaseAge: 10080
+
+# Drift detection before running scripts is explicitly DISABLED. The strict value
+# (`error`) was the goal, but on pnpm 11.5.3 this check compares a settings snapshot
+# containing unstable/derived values (e.g. enableGlobalVirtualStore, and the
+# single-package "workspace" structure this file introduces) and false-positives on
+# every script run. Leaving it at the default (`install`) is worse — it silently
+# purges and reinstalls node_modules before each script. So it is turned off here;
+# lockfile/manifest drift is instead enforced by `pnpm install --frozen-lockfile` in
+# the GitHub Actions workflows. Revisit `error` if a later pnpm release fixes this.
+verifyDepsBeforeRun: false
+
+# Transitive (sub-)dependencies must resolve from the registry; block git,
+# tarball, and other exotic sources slipping in underneath a direct dependency.
+# This is pnpm 11's default — pinned explicitly so the posture is self-evident
+# and survives a future change of default.
+blockExoticSubdeps: true
+
+# Fail the install if a package's signing/provenance trust regresses relative to
+# a previously installed release.
+trustPolicy: no-downgrade
+
+# Audited exceptions to the trust policy. semver@6.3.1 is a transitive dependency
+# of Babel (@babel/core -> @babel/helper-compilation-targets, pulled in by
+# @vitest/coverage-istanbul). It is a legacy 6.x release of the npm-maintained
+# `semver` package that predates provenance signing, so no-downgrade reads it as a
+# regression against the signed 7.x line. Reviewed and trusted.
+trustPolicyExclude:
+  - 'semver@6.3.1'
+
+# Build (lifecycle) scripts are denied by default in pnpm 11, and no dependency
+# in this project requires one, so there is no `allowBuilds` allowlist. If a
+# future dependency legitimately needs to build, run `pnpm approve-builds` to add
+# it here — do not set `dangerouslyAllowAllBuilds`.
