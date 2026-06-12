@@ -34,6 +34,29 @@ Alongside this, behavior that was previously broken is now correct, with no acti
 
 **`redirect_uri` validation is stricter.** The parameter is now parsed with the native WHATWG URL parser (replacing the unmaintained `uri-js`). Unparseable values (e.g. `https://` with no host) fail up front with `400 invalid_request` instead of `401 invalid_client` at client matching, and any `#` — including a bare trailing `#`, which previously slipped through — is rejected per [RFC 6749 §3.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2). There is no opt-out; remove the fragment from your redirect URI.
 
+**Redirect URIs match exactly.** The authorization endpoint previously ignored port and query differences when comparing `redirect_uri` against the client's registered URIs. It now requires an exact match ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)); only `http`-scheme loopback URIs — `http://localhost`, `http://127.0.0.1`, `http://[::1]` — may use a different port than registered ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). A request that omits `redirect_uri` is also now rejected unless the client has exactly one registered URI. There is no opt-out — the lenient comparison could deliver authorization codes to a different origin on shared hosts.
+
+A redirect URI whose query string never changes can simply be registered verbatim — `https://app.example.com/callback?tenant=acme` matches itself exactly. Clients that appended *dynamic* query parameters (e.g. `redirect_uri=https://app.example.com/callback?returnTo=/settings`) should carry that data in `state` instead, per [RFC 6749 §3.1.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.2):
+
+```ts
+// Before: the redirect_uri varied per request —
+// now rejected unless that exact variant is registered
+const redirectUri = "https://app.example.com/callback?returnTo=/settings";
+
+// After: the redirect_uri is byte-identical to the registered one;
+// per-request data rides in `state` (which doubles as your CSRF token)
+const state = crypto.randomUUID();
+session.oauth = { state, returnTo: "/settings" };
+const authorizeUrl =
+  `https://auth.example.com/authorize?response_type=code&client_id=${clientId}` +
+  `&redirect_uri=${encodeURIComponent("https://app.example.com/callback")}` +
+  `&state=${state}`;
+
+// In the callback handler: verify state, then recover the data
+if (req.query.state !== session.oauth.state) throw new Error("state mismatch");
+res.redirect(session.oauth.returnTo);
+```
+
 ## Upgrading to v4 {#to-v4}
 
 Coming from v3. Only relevant if you expose the revoke or introspect endpoints.

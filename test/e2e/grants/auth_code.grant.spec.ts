@@ -214,24 +214,24 @@ describe("authorization_code grant", () => {
 
     [
       {
-        testName: "is successful with redirect uri with querystring",
-        allowed: ["http://oauth2.example.com"],
+        testName: "is successful with registered redirect uri with querystring",
+        allowed: ["http://oauth2.example.com?this_should_work=true&also-this=yeah"],
         received: "http://oauth2.example.com?this_should_work=true&also-this=yeah",
       },
       {
-        testName: "is successful with redirect uri with port",
-        allowed: ["http://oauth2.example.com/callback"],
-        received: "http://oauth2.example.com:3000/callback",
+        testName: "is successful with localhost redirect uri with port",
+        allowed: ["http://localhost/callback"],
+        received: "http://localhost:3000/callback",
+      },
+      {
+        testName: "is successful with loopback ip redirect uri with port",
+        allowed: ["http://127.0.0.1/callback"],
+        received: "http://127.0.0.1:51004/callback",
       },
       {
         testName: "is successful with application style redirect uri",
         allowed: ["com.exampleapp.oauth2://callback"],
         received: "com.exampleapp.oauth2://callback",
-      },
-      {
-        testName: "is successful with application style redirect uri with port",
-        allowed: ["com.exampleapp.oauth2://callback"],
-        received: "com.exampleapp.oauth2://callback:3000",
       },
     ].map(({ testName, allowed, received }) => {
       it(testName, async () => {
@@ -252,6 +252,60 @@ describe("authorization_code grant", () => {
 
         expect(authorizationRequest.redirectUri).toBe(received);
       });
+    });
+
+    [
+      {
+        testName: "throws for redirect uri with port on a non-loopback host",
+        allowed: ["http://oauth2.example.com/callback"],
+        received: "http://oauth2.example.com:3000/callback",
+      },
+      {
+        testName: "throws for redirect uri with querystring not registered",
+        allowed: ["http://oauth2.example.com"],
+        received: "http://oauth2.example.com?this_should_work=true&also-this=yeah",
+      },
+      {
+        testName: "throws for application style redirect uri with port",
+        allowed: ["com.exampleapp.oauth2://callback"],
+        received: "com.exampleapp.oauth2://callback:3000",
+      },
+    ].map(({ testName, allowed, received }) => {
+      it(testName, async () => {
+        client.redirectUris = allowed;
+        inMemoryDatabase.clients[client.id] = client;
+        request = new OAuthRequest({
+          query: {
+            response_type: "code",
+            client_id: client.id,
+            redirect_uri: received,
+            scope: "scope-1",
+            state: "state-is-a-secret",
+            code_challenge: codeChallenge,
+            code_challenge_method: "S256",
+          },
+        });
+        const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+        await expect(authorizationRequest).rejects.toThrowError(/Invalid redirect_uri/);
+      });
+    });
+
+    it("throws when redirect_uri is missing and client has multiple registered redirect uris", async () => {
+      client.redirectUris = ["http://example.com", "http://example2.com"];
+      inMemoryDatabase.clients[client.id] = client;
+      request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          scope: "scope-1",
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256",
+        },
+      });
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      await expect(authorizationRequest).rejects.toThrowError(/must include a redirect_uri/);
     });
 
     it("is successful without using PKCE flow", async () => {

@@ -2,7 +2,7 @@ import { OAuthClient } from "../../entities/client.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { RequestInterface } from "../../requests/request.js";
 import { AbstractGrant } from "./abstract.grant.js";
-import { tryParseUrl, urlsAreSameIgnoringPort } from "../../utils/urls.js";
+import { tryParseUrl, redirectUriMatches } from "../../utils/urls.js";
 
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(
@@ -24,6 +24,12 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
     let redirectUri = this.getQueryStringParameter("redirect_uri", request);
 
     if (!redirectUri) {
+      if (client.redirectUris.length !== 1) {
+        throw OAuthException.invalidParameter(
+          "redirect_uri",
+          "The request must include a redirect_uri when zero or multiple redirect uris are registered",
+        );
+      }
       return;
     }
 
@@ -55,7 +61,7 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
       );
     }
 
-    if (!client.redirectUris.some(uri => urlsAreSameIgnoringPort(redirectUri, uri))) {
+    if (!client.redirectUris.some(uri => redirectUriMatches(redirectUri, uri))) {
       throw OAuthException.invalidClient("Invalid redirect_uri");
     }
 

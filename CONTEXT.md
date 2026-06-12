@@ -47,6 +47,18 @@ The published set of public keys (`{ keys: [...] }`) relying parties use to veri
 The optional `token_type_hint` parameter a client may send to introspection/revocation. Purely advisory: the server identifies the token's type from the token itself and must locate tokens of any supported type even when the hint is absent or wrong (RFC 7009 §2.1). An unrecognized hint is still rejected outright.
 _Avoid_: treating the hint as a dispatch key that gates which lookups run.
 
+### Redirect URIs
+
+**Registered Redirect URI**:
+A callback URI a **Client** declares at registration — the only destinations the server will ever redirect to. When a Client has more than one, every authorization request must name which one it wants.
+
+**Loopback Redirect URI**:
+An `http`-scheme redirect URI whose host is `localhost`, `127.0.0.1`, or `[::1]`. The only class of redirect URI whose port may differ between registration and request (RFC 8252 §7.3, native apps binding ephemeral ports). The scheme and host must still match exactly — `localhost` and `127.0.0.1` are not interchangeable, and a loopback-named host on `https` or a private-use scheme is not loopback.
+
+**Exact Matching**:
+The rule for comparing a requested redirect URI against a Registered Redirect URI: the two must be the same URI (after syntax normalization, RFC 3986 §6.2.2) — never a host, path, port, or query variant, and never a prefix. Sole exception: the port of a **Loopback Redirect URI**.
+_Avoid_: "prefix matching", "ignoring port", "partial matching" — none of these exist here.
+
 ### Roles
 
 **Client**:
@@ -71,6 +83,7 @@ The authorization server's identity — a single URL that is simultaneously the 
 - An **ID Token** carries only **Protocol Claims**; **Scope-Derived Claims** are obtained separately from **UserInfo**.
 - **UserInfo** trusts an **Access Token**; the **Claims Resolver** supplies the attributes it returns.
 - The **JWKS** publishes the public half of the one keypair that signs every **Access Token** and **ID Token**.
+- An authorization request's redirect URI must satisfy **Exact Matching** against one of the **Client**'s **Registered Redirect URIs**; omitting it is allowed only when exactly one is registered.
 
 ## Example dialogue
 
@@ -86,3 +99,4 @@ The authorization server's identity — a single URL that is simultaneously the 
 - "Relying Party" / "RP" is not a separate concept — it is the OIDC name for **Client**.
 - "audience" / `aud` means different things on an Access Token (resource) vs an ID Token (client) — always qualify which token.
 - "secure client" / "insecure client" were used for the secret-presence distinction — resolved into **Confidential Client** vs **Public Client**.
+- "matching" a redirect URI historically meant ignoring port and query for every host (and tests asserted it as a feature) — resolved to **Exact Matching**, with port flexibility owned exclusively by the **Loopback Redirect URI** concept.
