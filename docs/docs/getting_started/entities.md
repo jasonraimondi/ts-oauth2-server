@@ -9,7 +9,7 @@ The Client Entity represents an application that requests access to protected re
 - URIs must be absolute.
 - URIs may include query parameters in application/x-www-form-urlencoded format
 - URIs must not include fragment components.
-- At authorization time, the requested `redirect_uri` must exactly match a registered URI — host, path, port, and query string all included ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). Only `http`-scheme loopback URIs (`http://127.0.0.1`, `http://[::1]`, and — unless [`treatLocalhostAsLoopback`](../authorization_server/configuration.md) is disabled — `http://localhost`) may vary the port ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)), so register every variant you redirect to.
+- At authorization time, the requested `redirect_uri` must exactly match a registered URI — host, path, port, and query string all included ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). Only `http`-scheme loopback URIs (`http://localhost`, `http://127.0.0.1`, `http://[::1]`) may vary the port ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)), so register every variant you redirect to.
 - The `redirect_uri` request parameter may be omitted only when the client has exactly one registered URI.
 
 :::

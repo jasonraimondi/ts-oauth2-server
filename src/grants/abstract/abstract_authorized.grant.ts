@@ -61,7 +61,7 @@ export abstract class AbstractAuthorizedGrant extends AbstractGrant {
       );
     }
 
-    if (!client.redirectUris.some(uri => redirectUriMatches(redirectUri, uri, this.options))) {
+    if (!client.redirectUris.some(uri => redirectUriMatches(redirectUri, uri))) {
       throw OAuthException.invalidClient("Invalid redirect_uri");
     }
 

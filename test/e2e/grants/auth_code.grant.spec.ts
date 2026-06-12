@@ -291,26 +291,6 @@ describe("authorization_code grant", () => {
       });
     });
 
-    it("throws for localhost redirect uri with port when treatLocalhostAsLoopback is disabled", async () => {
-      const strictGrant = createGrant({ treatLocalhostAsLoopback: false });
-      client.redirectUris = ["http://localhost/callback"];
-      inMemoryDatabase.clients[client.id] = client;
-      request = new OAuthRequest({
-        query: {
-          response_type: "code",
-          client_id: client.id,
-          redirect_uri: "http://localhost:3000/callback",
-          scope: "scope-1",
-          state: "state-is-a-secret",
-          code_challenge: codeChallenge,
-          code_challenge_method: "S256",
-        },
-      });
-      const authorizationRequest = strictGrant.validateAuthorizationRequest(request);
-
-      await expect(authorizationRequest).rejects.toThrowError(/Invalid redirect_uri/);
-    });
-
     it("throws when redirect_uri is missing and client has multiple registered redirect uris", async () => {
       client.redirectUris = ["http://example.com", "http://example2.com"];
       inMemoryDatabase.clients[client.id] = client;
