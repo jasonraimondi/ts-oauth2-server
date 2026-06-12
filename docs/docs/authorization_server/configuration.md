@@ -22,6 +22,7 @@ The authorization server has a few optional settings with the following default 
 | `useOpaqueAuthorizationCodes` | boolean        | false     | When enabled, authorization codes are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups.      |
 | `useOpaqueRefreshTokens` | boolean        | false     | When enabled, refresh tokens are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque refresh tokens are stored server-side and validated through repository lookups; the [/token/revoke](../endpoints/revoke.md) and [/token/introspect](../endpoints/introspect.md) endpoints resolve them via `TokenRepository#getByRefreshToken`.  |
 | `implicitRedirectMode`   | "query" \| "fragment" | "fragment" | Controls how the [implicit grant](../grants/implicit.md) appends tokens to the redirect URI. OAuth 2.0 ([RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2)) recommends `"fragment"`. Set `"query"` only for legacy clients that depend on the previous behavior. |
+| `treatLocalhostAsLoopback` | boolean             | true      | Extends the loopback redirect-URI port exception to literal `http://localhost`. The exception itself — a registered `http://127.0.0.1` or `http://[::1]` URI matches any requested port — is spec-mandated ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)) and always on. Set `false` to require an exact port for `localhost`, per [RFC 8252 §8.3](https://datatracker.ietf.org/doc/html/rfc8252#section-8.3)'s recommendation that native clients use the IP literals instead. |
 
 ```ts
 type AuthorizationServerOptions = {
@@ -34,6 +35,7 @@ type AuthorizationServerOptions = {
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
   implicitRedirectMode: "query" | "fragment";
+  treatLocalhostAsLoopback: boolean;
   logger?: LoggerService;
   useOpaqueAuthorizationCodes?: boolean;
   useOpaqueRefreshTokens?: boolean;

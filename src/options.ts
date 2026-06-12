@@ -74,6 +74,16 @@ export interface AuthorizationServerOptions {
    * OAuth 2.0 recommends `fragment`; set `query` only for legacy clients.
    */
   implicitRedirectMode: "query" | "fragment";
+  /**
+   * Extend the loopback redirect-URI port exception to the literal
+   * `localhost` hostname. The exception itself — a registered
+   * `http://127.0.0.1` or `http://[::1]` URI matches any requested port — is
+   * spec-mandated (RFC 8252 §7.3) and always on; `localhost` is discretionary
+   * (§8.3 recommends clients use the IP literals instead). Defaults to
+   * `true`. Set to `false` to require an exact port match for
+   * `http://localhost` redirect URIs.
+   */
+  treatLocalhostAsLoopback: boolean;
   logger?: LoggerService;
   /**
    * If enabled opaque codes are used instead of JWT-based authorization codes.
@@ -96,4 +106,5 @@ export const DEFAULT_AUTHORIZATION_SERVER_OPTIONS: AuthorizationServerOptions = 
   authenticateRevoke: true,
   introspectionRequiresConfidentialClient: true,
   implicitRedirectMode: "fragment",
+  treatLocalhostAsLoopback: true,
 };

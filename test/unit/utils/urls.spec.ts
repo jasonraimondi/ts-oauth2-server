@@ -81,6 +81,28 @@ describe("redirectUriMatches", () => {
       expect(redirectUriMatches("http://127.0.0.1:3000/cb", "http://localhost/cb")).toBe(false);
       expect(redirectUriMatches("http://localhost:3000/cb", "http://127.0.0.1/cb")).toBe(false);
     });
+
+    it("only applies to the http scheme", () => {
+      expect(redirectUriMatches("https://127.0.0.1:8443/cb", "https://127.0.0.1/cb")).toBe(false);
+      expect(redirectUriMatches("https://localhost:8443/cb", "https://localhost/cb")).toBe(false);
+      expect(
+        redirectUriMatches("com.exampleapp.oauth2://localhost:3000/cb", "com.exampleapp.oauth2://localhost/cb"),
+      ).toBe(false);
+    });
+
+    describe("treatLocalhostAsLoopback: false", () => {
+      const strict = { treatLocalhostAsLoopback: false };
+
+      it("requires an exact port for localhost", () => {
+        expect(redirectUriMatches("http://localhost:3000/cb", "http://localhost/cb", strict)).toBe(false);
+        expect(redirectUriMatches("http://localhost:3000/cb", "http://localhost:3000/cb", strict)).toBe(true);
+      });
+
+      it("keeps the port exception for the loopback ip literals", () => {
+        expect(redirectUriMatches("http://127.0.0.1:51004/cb", "http://127.0.0.1/cb", strict)).toBe(true);
+        expect(redirectUriMatches("http://[::1]:51004/cb", "http://[::1]/cb", strict)).toBe(true);
+      });
+    });
   });
 
   describe("custom schemes", () => {

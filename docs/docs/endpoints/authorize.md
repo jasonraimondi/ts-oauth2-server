@@ -126,7 +126,7 @@ The `/authorize` endpoint typically accepts the following parameters:
 
 - `response_type`: Must be set to "code" for the authorization code grant
 - `client_id`: The identifier of the client requesting authorization
-- `redirect_uri`: The URI to redirect the user after authorization. Must exactly match one of the client's registered redirect URIs ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)) — host, path, port, and query string all included. The only exception: loopback hosts (`localhost`, `127.0.0.1`, `[::1]`) may use a different port than registered ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). May be omitted only when the client has exactly one registered redirect URI; otherwise the request is rejected with `invalid_request`
+- `redirect_uri`: The URI to redirect the user after authorization. Must exactly match one of the client's registered redirect URIs ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)) — host, path, port, and query string all included. The only exception: `http`-scheme loopback URIs (`http://127.0.0.1`, `http://[::1]`, and — unless [`treatLocalhostAsLoopback`](../authorization_server/configuration.md) is disabled — `http://localhost`) may use a different port than registered ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). May be omitted only when the client has exactly one registered redirect URI; otherwise the request is rejected with `invalid_request`
 - `scope`: (Optional) The scope of the access request
 - `state`: (Recommended) An opaque value used to maintain state between the request and callback
 

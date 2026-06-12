@@ -53,7 +53,7 @@ _Avoid_: treating the hint as a dispatch key that gates which lookups run.
 A callback URI a **Client** declares at registration — the only destinations the server will ever redirect to. When a Client has more than one, every authorization request must name which one it wants.
 
 **Loopback Redirect URI**:
-A redirect URI whose host is `localhost`, `127.0.0.1`, or `[::1]`. The only class of redirect URI whose port may differ between registration and request (RFC 8252 §7.3, native apps binding ephemeral ports). The host itself must still match exactly — `localhost` and `127.0.0.1` are not interchangeable.
+An `http`-scheme redirect URI whose host is `127.0.0.1`, `[::1]`, or — unless `treatLocalhostAsLoopback` is disabled — `localhost`. The only class of redirect URI whose port may differ between registration and request (RFC 8252 §7.3, native apps binding ephemeral ports; the IP literals are the spec's MUST, `localhost` is §8.3-discretionary and hence the config option). The scheme and host must still match exactly — `localhost` and `127.0.0.1` are not interchangeable, and a loopback-named host on `https` or a private-use scheme is not loopback.
 
 **Exact Matching**:
 The rule for comparing a requested redirect URI against a Registered Redirect URI: the two must be the same URI (after syntax normalization, RFC 3986 §6.2.2) — never a host, path, port, or query variant, and never a prefix. Sole exception: the port of a **Loopback Redirect URI**.
