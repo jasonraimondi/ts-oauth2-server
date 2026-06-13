@@ -155,16 +155,6 @@ export default defineConfig({
             { text: "Conformance smoke test", link: "/docs/endpoints/oidc_conformance" },
           ],
         },
-        {
-          text: "Adapters",
-          items: [
-            { text: "Overview", link: "/docs/adapters/" },
-            { text: "Express", link: "/docs/adapters/express" },
-            { text: "Fastify", link: "/docs/adapters/fastify" },
-            { text: "h3", link: "/docs/adapters/h3" },
-            { text: "Vanilla", link: "/docs/adapters/vanilla" },
-          ],
-        },
         { text: "Upgrade Guide", link: "/docs/upgrade_guide" },
 
             {
