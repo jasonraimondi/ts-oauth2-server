@@ -114,40 +114,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const authCode =
       preloadedAuthCode ?? (await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id));
 
-    if (authCode.codeChallenge) {
-      if (!validatedPayload.code_challenge) throw OAuthException.invalidParameter("code_challenge");
-
-      if (authCode.codeChallenge !== validatedPayload.code_challenge) {
-        throw OAuthException.invalidParameter("code_challenge", "Provided code challenge does not match auth code");
-      }
-
-      const codeVerifier = this.getRequestParameter("code_verifier", req);
-
-      if (!codeVerifier) {
-        throw OAuthException.invalidParameter("code_verifier");
-      }
-
-      // Validate code_verifier according to RFC-7636
-      // @see: https://tools.ietf.org/html/rfc7636#section-4.1
-      if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
-        throw OAuthException.invalidParameter(
-          "code_verifier",
-          "Code verifier must follow the specifications of RFC-7636",
-        );
-      }
-
-      const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method ?? undefined;
-
-      let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
-
-      if (codeChallengeMethod === "S256") {
-        verifier = this.codeChallengeVerifiers.S256;
-      }
-
-      if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
-        throw OAuthException.invalidGrant("Failed to verify code challenge.");
-      }
-    }
+    this.validateCodeChallenge(authCode, validatedPayload, req);
 
     const originatingAuthCodeId = validatedPayload.auth_code_id;
     let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes, originatingAuthCodeId);
@@ -175,6 +142,53 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     }
 
     return tokenResponse;
+  }
+
+  /**
+   * Enforces the PKCE code-challenge bound to the authorization code (RFC 7636).
+   * No-op when the code was issued without a challenge; otherwise the request
+   * must carry a syntactically valid `code_verifier` that the challenge method
+   * confirms, throwing an OAuthException on any mismatch.
+   */
+  private validateCodeChallenge(
+    authCode: OAuthAuthCode,
+    validatedPayload: PayloadAuthCode,
+    req: RequestInterface,
+  ): void {
+    if (!authCode.codeChallenge) return;
+
+    if (!validatedPayload.code_challenge) throw OAuthException.invalidParameter("code_challenge");
+
+    if (authCode.codeChallenge !== validatedPayload.code_challenge) {
+      throw OAuthException.invalidParameter("code_challenge", "Provided code challenge does not match auth code");
+    }
+
+    const codeVerifier = this.getRequestParameter("code_verifier", req);
+
+    if (!codeVerifier) {
+      throw OAuthException.invalidParameter("code_verifier");
+    }
+
+    // Validate code_verifier according to RFC-7636
+    // @see: https://tools.ietf.org/html/rfc7636#section-4.1
+    if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
+      throw OAuthException.invalidParameter(
+        "code_verifier",
+        "Code verifier must follow the specifications of RFC-7636",
+      );
+    }
+
+    const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method ?? undefined;
+
+    let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
+
+    if (codeChallengeMethod === "S256") {
+      verifier = this.codeChallengeVerifiers.S256;
+    }
+
+    if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
+      throw OAuthException.invalidGrant("Failed to verify code challenge.");
+    }
   }
 
   private shouldIssueIdToken(scopes: OAuthScope[]): boolean {

@@ -314,15 +314,8 @@ export class AuthorizationServer {
    * ```
    */
   respondToAccessTokenRequest(req: RequestInterface): Promise<ResponseInterface> {
-    for (const grantType of Object.values(this.enabledGrantTypes)) {
-      if (!grantType.canRespondToAccessTokenRequest(req)) {
-        continue;
-      }
-      const accessTokenTTL = this.grantTypeAccessTokenTTL[grantType.identifier];
-      return grantType.respondToAccessTokenRequest(req, accessTokenTTL);
-    }
-
-    throw OAuthException.unsupportedGrantType();
+    const grant = this.findGrantFor(grant => grant.canRespondToAccessTokenRequest(req));
+    return grant.respondToAccessTokenRequest(req, this.grantTypeAccessTokenTTL[grant.identifier]);
   }
 
   /**
@@ -344,13 +337,8 @@ export class AuthorizationServer {
    * ```
    */
   validateAuthorizationRequest(req: RequestInterface): Promise<AuthorizationRequest> {
-    for (const grant of Object.values(this.enabledGrantTypes)) {
-      if (grant.canRespondToAuthorizationRequest(req)) {
-        return grant.validateAuthorizationRequest(req);
-      }
-    }
-
-    throw OAuthException.unsupportedGrantType();
+    const grant = this.findGrantFor(grant => grant.canRespondToAuthorizationRequest(req));
+    return grant.validateAuthorizationRequest(req);
   }
 
   /**
@@ -447,13 +435,8 @@ export class AuthorizationServer {
    * ```
    */
   async revoke(req: RequestInterface): Promise<ResponseInterface> {
-    for (const grantType of Object.values(this.enabledGrantTypes)) {
-      if (grantType.canRespondToRevokeRequest(req)) {
-        return grantType.respondToRevokeRequest(req);
-      }
-    }
-
-    throw OAuthException.unsupportedGrantType();
+    const grant = this.findGrantFor(grant => grant.canRespondToRevokeRequest(req));
+    return grant.respondToRevokeRequest(req);
   }
 
   /**
@@ -478,9 +461,20 @@ export class AuthorizationServer {
    * ```
    */
   async introspect(req: RequestInterface): Promise<ResponseInterface> {
-    for (const grantType of Object.values(this.enabledGrantTypes)) {
-      if (grantType.canRespondToIntrospectRequest(req)) {
-        return grantType.respondToIntrospectRequest(req);
+    const grant = this.findGrantFor(grant => grant.canRespondToIntrospectRequest(req));
+    return grant.respondToIntrospectRequest(req);
+  }
+
+  /**
+   * Returns the first enabled grant whose `canHandle` predicate accepts the
+   * request, throwing `unsupportedGrantType` when none match. Shared by the
+   * `/token`, `/authorize`, `/token/revoke`, and `/token/introspect` dispatchers,
+   * which differ only in the predicate and the call they delegate.
+   */
+  private findGrantFor(canHandle: (grant: GrantInterface) => boolean): GrantInterface {
+    for (const grant of Object.values(this.enabledGrantTypes)) {
+      if (canHandle(grant)) {
+        return grant;
       }
     }
 
