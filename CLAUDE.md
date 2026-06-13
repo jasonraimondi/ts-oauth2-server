@@ -23,7 +23,7 @@ Update https://tsoauth2server.com/ and this file when behavior or architecture c
 - `AuthorizationServer` orchestrates flows
 - Grants (`AbstractGrant` subclasses): authorization_code, client_credentials, password, implicit, refresh_token, token_exchange
 - Repository pattern for all persistence (client, token, user, scope, auth_code) — implemented by consumers
-- Adapters: `./vanilla`, `./express`, `./fastify` (entry points in `package.json`)
+- Adapters: `./vanilla`, `./express`, `./fastify`, `./h3` (entry points in `package.json`; h3 is an optional peer dependency)
 - PKCE verifiers: Plain, S256
 - Redirect URIs: exact match after URL normalization (RFC 6749 §3.1.2.3); only `http`-scheme loopback URIs (`localhost`, `127.0.0.1`, `[::1]`) may vary the port (RFC 8252 §7.3); explicit `redirect_uri` required unless exactly one URI is registered (see `docs/adr/0007`)
 - Optional logger for token ops, revocations, grant errors
