@@ -7,11 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **BREAKING**: Redirect URIs now match exactly after WHATWG URL normalization (RFC 6749 §3.1.2.3, RFC 9700 §2.1). Port and query variance is no longer accepted for arbitrary hosts — previously a URI registered as `https://app.example.com/cb` would match a requested `https://app.example.com:8443/cb`, delivering authorization codes to a different origin on shared hosts. Only `http`-scheme loopback redirects (`localhost`, `127.0.0.1`, `[::1]`) may vary the port (RFC 8252 §7.3). ([#236](https://github.com/jasonraimondi/ts-oauth2-server/pull/236))
+- **BREAKING**: A missing `redirect_uri` parameter is now rejected with `invalid_request` unless the client has exactly one registered redirect URI, instead of silently defaulting to the first registered URI. ([#236](https://github.com/jasonraimondi/ts-oauth2-server/pull/236))
+- Replaced the unmaintained `uri-js` dependency with native WHATWG `URL` parsing on the redirect-URI validation path. Behavior is unchanged for any `redirect_uri` that previously validated; one tightening: a malformed URI such as `https://` (no host) is now rejected up front as `invalid_request` rather than failing later as `invalid_client`. ([#239](https://github.com/jasonraimondi/ts-oauth2-server/pull/239))
+- `@types/jsonwebtoken` and `@types/ms` are now optional `peerDependencies`. The published type declarations reference `jsonwebtoken`'s option types directly instead of bundling vendored copies, keeping a single source of truth. Consumers compiling with `skipLibCheck: false` install these two packages; the default `skipLibCheck: true` needs nothing. ([#242](https://github.com/jasonraimondi/ts-oauth2-server/pull/242))
+- Internal: pinned `packageManager` to `pnpm@11.5.3` and added pnpm supply-chain controls (release-age cooldown, no-downgrade trust policy, blocked exotic subdeps). No runtime or public API change. ([#240](https://github.com/jasonraimondi/ts-oauth2-server/pull/240))
+
 ### Fixed
 - Repair the published artifact so it installs and type-checks cleanly for strict consumers: drop the `__name` helper that leaked into the `.d.ts` declarations (broke `skipLibCheck: false`), emit `/// <reference types="node" />` so Node globals resolve under `moduleResolution: bundler`, declare `h3` as an optional peer dependency, add the missing `./h3` export to `jsr.json`, and correct the `publishConfig` export conditions. ([#242](https://github.com/jasonraimondi/ts-oauth2-server/pull/242))
+- The h3 adapter now `await`s h3's `send()`/`sendRedirect()`, so a handler resolves only after the response is written. The documented `return handleH3Response(...)` pattern previously resolved with `undefined` before anything reached the socket, and h3's router answered 404. ([#241](https://github.com/jasonraimondi/ts-oauth2-server/pull/241))
+- Reject every `redirect_uri` fragment, including a bare or whitespace-only one (`#`, `#\t`, `#\n`), per RFC 6749 §3.1.2. ([#239](https://github.com/jasonraimondi/ts-oauth2-server/pull/239))
 
-### Changed
-- `@types/jsonwebtoken` and `@types/ms` are now optional `peerDependencies`. The published type declarations reference `jsonwebtoken`'s option types directly instead of bundling vendored copies, keeping a single source of truth. Consumers compiling with `skipLibCheck: false` install these two packages; the default `skipLibCheck: true` needs nothing. ([#242](https://github.com/jasonraimondi/ts-oauth2-server/pull/242))
+### Security
+- Introspection and revocation now trust token claims only after `jwt.verify`; the shared handler previously used `jwt.decode()` and skipped the signature check, so a forged JWT carrying a real `jti` could spoof `scope`/`sub` in an introspection response. Tokens are now identified by their verified payload shape rather than the advisory `token_type_hint`: refresh tokens resolve without a hint, opaque refresh tokens are revocable and introspectable, unknown tokens introspect as `active: false` (RFC 7662 §2.2) instead of returning a 500, and flag-revoked tokens (via `isRefreshTokenRevoked` / the optional `isAccessTokenRevoked`) report inactive before their natural expiry. Expiry and not-before are ignored at parse time so expired tokens stay revocable, `active` derives from stored state, and persisted fields always win over echoed claims. ([#237](https://github.com/jasonraimondi/ts-oauth2-server/pull/237))
 
 ## [5.0.0-rc.3] - 2026-06-08
 
