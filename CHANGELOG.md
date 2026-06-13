@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0-rc.4] - 2026-06-12
+
 ### Changed
 - **BREAKING**: Redirect URIs now match exactly after WHATWG URL normalization (RFC 6749 §3.1.2.3, RFC 9700 §2.1). Port and query variance is no longer accepted for arbitrary hosts — previously a URI registered as `https://app.example.com/cb` would match a requested `https://app.example.com:8443/cb`, delivering authorization codes to a different origin on shared hosts. Only `http`-scheme loopback redirects (`localhost`, `127.0.0.1`, `[::1]`) may vary the port (RFC 8252 §7.3). ([#236](https://github.com/jasonraimondi/ts-oauth2-server/pull/236))
 - **BREAKING**: A missing `redirect_uri` parameter is now rejected with `invalid_request` unless the client has exactly one registered redirect URI, instead of silently defaulting to the first registered URI. ([#236](https://github.com/jasonraimondi/ts-oauth2-server/pull/236))
