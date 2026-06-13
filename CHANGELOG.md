@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Repair the published artifact so it installs and type-checks cleanly for strict consumers: drop the `__name` helper that leaked into the `.d.ts` declarations (broke `skipLibCheck: false`), emit `/// <reference types="node" />` so Node globals resolve under `moduleResolution: bundler`, declare `h3` as an optional peer dependency, add the missing `./h3` export to `jsr.json`, and correct the `publishConfig` export conditions. ([#242](https://github.com/jasonraimondi/ts-oauth2-server/pull/242))
+
+### Changed
+- `@types/jsonwebtoken` and `@types/ms` are now optional `peerDependencies`. The published type declarations reference `jsonwebtoken`'s option types directly instead of bundling vendored copies, keeping a single source of truth. Consumers compiling with `skipLibCheck: false` install these two packages; the default `skipLibCheck: true` needs nothing. ([#242](https://github.com/jasonraimondi/ts-oauth2-server/pull/242))
+
 ## [5.0.0-rc.3] - 2026-06-08
 
 ### Fixed

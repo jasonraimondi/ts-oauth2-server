@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   check_versions:
     runs-on: ubuntu-latest
@@ -18,6 +21,14 @@ jobs:
             echo "Version Mismatch"
             echo "JSR: $jsr_version"
             echo "Node: $pkg_version"
+            exit 1
+          fi
+          jsr_exports=$(jq -c '.exports | keys' jsr.json)
+          pkg_exports=$(jq -c '.exports | keys' package.json)
+          if [[ "$jsr_exports" != "$pkg_exports" ]]; then
+            echo "Export Key Mismatch"
+            echo "JSR: $jsr_exports"
+            echo "Node: $pkg_exports"
             exit 1
           fi
 
@@ -47,3 +58,59 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  validate_artifact:
+    runs-on: ubuntu-latest
+    needs: [check_versions]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version comes from the "packageManager" field in package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --production false
+      - run: pnpm dlx jsr publish --dry-run
+      - run: pnpm build
+      # pnpm pack (not npm) so publishConfig overrides are applied, same as publish
+      - run: pnpm pack --out $RUNNER_TEMP/package.tgz
+      - run: pnpm publint $RUNNER_TEMP/package.tgz
+      - run: pnpm attw $RUNNER_TEMP/package.tgz
+      - name: Smoke test packed artifact
+        run: |
+          mkdir -p $RUNNER_TEMP/smoke && cd $RUNNER_TEMP/smoke
+          npm init -y > /dev/null
+          # @types/jsonwebtoken + @types/ms are optional peers: the public types
+          # re-export jsonwebtoken's JWT option types, so a strict consumer must
+          # install them. Runtime import/require below works without them.
+          npm install --no-audit --no-fund $RUNNER_TEMP/package.tgz 'h3@^1.15.0' typescript @types/node @types/jsonwebtoken @types/ms
+          entries="['@jmondi/oauth2-server','@jmondi/oauth2-server/vanilla','@jmondi/oauth2-server/express','@jmondi/oauth2-server/fastify','@jmondi/oauth2-server/h3']"
+          node --input-type=module -e "for (const e of $entries) await import(e); console.log('ESM imports OK')"
+          node -e "for (const e of $entries) require(e); console.log('CJS requires OK')"
+          # Strict consumer compile: the framework adapters' own type packages
+          # have environment requirements of their own under skipLibCheck: false,
+          # so only the framework-free entry points are compiled here.
+          cat > tsconfig.json << 'EOF'
+          {
+            "compilerOptions": {
+              "strict": true,
+              "skipLibCheck": false,
+              "module": "esnext",
+              "moduleResolution": "bundler",
+              "target": "es2022",
+              "lib": ["es2022"],
+              "noEmit": true
+            },
+            "include": ["consumer.ts"]
+          }
+          EOF
+          cat > consumer.ts << 'EOF'
+          import { AuthorizationServer, OAuthException, JwtService, DateInterval } from "@jmondi/oauth2-server";
+          import { responseToVanilla } from "@jmondi/oauth2-server/vanilla";
+
+          const interval: DateInterval = new DateInterval("1h");
+          export { AuthorizationServer, OAuthException, JwtService, responseToVanilla, interval };
+          EOF
+          npx tsc -p tsconfig.json
+          echo "strict consumer compile OK"
