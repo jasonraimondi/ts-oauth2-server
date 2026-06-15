@@ -40,8 +40,6 @@ export interface PayloadAuthCode {
   auth_time?: number | null;
   max_age?: number | null;
 }
-/** @deprecated use `PayloadAuthCode` instead */
-export interface IAuthCodePayload extends PayloadAuthCode {}
 
 export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
 

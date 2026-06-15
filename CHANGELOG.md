@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **BREAKING**: Removed the deprecated `IAuthCodePayload` interface. Use `PayloadAuthCode` instead.
 - `@types/jsonwebtoken` and `@types/ms` are no longer `peerDependencies`. This reverses the approach taken in 5.0.0-rc.4: rather than referencing `jsonwebtoken`'s option types from the published declarations, the public JWT option types (`Algorithm`, `Secret`, `SignOptions`, `VerifyOptions`, and `ms`'s `StringValue`) are vendored into `src/utils/jwt_types.ts`, structurally identical to upstream. The published `.d.ts` files import nothing from `jsonwebtoken` or `ms`, so a consumer compiling with `skipLibCheck: false` needs neither package installed. Combined with the `/// <reference types="node" />` declaration banner added in 5.0.0-rc.4, `@jmondi/oauth2-server` now type-checks against a bare `strict` + `skipLibCheck: false` consumer with only `@types/node` present.
 
 ## [4.3.6] - 2026-07-30
