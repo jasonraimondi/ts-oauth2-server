@@ -105,7 +105,7 @@
     "@types/ms": "^2.1.0",
     "@types/node": "^25.6.0",
     "@vitest/coverage-istanbul": "^4.1.5",
-    "body-parser": "^2.2.2",
+    "body-parser": "^2.3.0",
     "express": "^5.2.1",
     "fastify": "^5.8.5",
     "h3": "1.15.11",
@@ -114,7 +114,7 @@
     "publint": "^0.3.21",
     "tsdown": "^0.21.10",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16",
+    "vite": "^8.1.5",
     "vitest": "^4.1.5"
   },
   "dependencies": {
