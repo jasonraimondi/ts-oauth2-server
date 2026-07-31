@@ -15,6 +15,7 @@ import { AuthorizationRequest } from "../requests/authorization.request.js";
 import { RequestInterface } from "../requests/request.js";
 import { RedirectResponse } from "../responses/redirect.response.js";
 import { OAuthResponse, ResponseInterface } from "../responses/response.js";
+import { timingSafeCompare } from "../utils/compare.js";
 import { DateInterval } from "../utils/date_interval.js";
 import { JwtInterface } from "../utils/jwt.js";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant.js";
@@ -106,40 +107,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const authCode =
       preloadedAuthCode ?? (await this.authCodeRepository.getByIdentifier(validatedPayload.auth_code_id));
 
-    if (authCode.codeChallenge) {
-      if (!validatedPayload.code_challenge) throw OAuthException.invalidParameter("code_challenge");
-
-      if (authCode.codeChallenge !== validatedPayload.code_challenge) {
-        throw OAuthException.invalidParameter("code_challenge", "Provided code challenge does not match auth code");
-      }
-
-      const codeVerifier = this.getRequestParameter("code_verifier", req);
-
-      if (!codeVerifier) {
-        throw OAuthException.invalidParameter("code_verifier");
-      }
-
-      // Validate code_verifier according to RFC-7636
-      // @see: https://tools.ietf.org/html/rfc7636#section-4.1
-      if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
-        throw OAuthException.invalidParameter(
-          "code_verifier",
-          "Code verifier must follow the specifications of RFC-7636",
-        );
-      }
-
-      const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method;
-
-      let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
-
-      if (codeChallengeMethod === "S256") {
-        verifier = this.codeChallengeVerifiers.S256;
-      }
-
-      if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
-        throw OAuthException.invalidGrant("Failed to verify code challenge.");
-      }
-    }
+    this.validateCodeChallenge(authCode, validatedPayload, req);
 
     const originatingAuthCodeId = validatedPayload.auth_code_id;
     let accessToken = await this.issueAccessToken(accessTokenTTL, client, user, scopes, originatingAuthCodeId);
@@ -151,6 +119,72 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const extraJwtFields = await this.extraJwtFields(req, client, user, accessToken.originatingAuthCodeId);
 
     return await this.makeBearerTokenResponse(client, accessToken, scopes, extraJwtFields);
+  }
+
+  /**
+   * Enforces the PKCE code-challenge bound to the authorization code (RFC 7636).
+   *
+   * The challenge on the resolved payload is the enforcement authority: this
+   * server mints and verifies it, while the persisted entity round-trips through
+   * consumer storage that may drop the column and would otherwise silently
+   * switch PKCE off for the whole deployment. The persisted copy is still
+   * cross-checked whenever both carry one, and the challenge method is read from
+   * whichever source supplied the challenge so a rewritten row cannot downgrade
+   * S256 to plain.
+   *
+   * A code that carries no challenge in either source is refused outright when
+   * the server requires PKCE; otherwise the check is a no-op.
+   */
+  private validateCodeChallenge(
+    authCode: OAuthAuthCode,
+    validatedPayload: PayloadAuthCode,
+    req: RequestInterface,
+  ): void {
+    const signedChallenge = validatedPayload.code_challenge;
+    const persistedChallenge = authCode?.codeChallenge;
+
+    if (signedChallenge && persistedChallenge && !timingSafeCompare(signedChallenge, persistedChallenge)) {
+      throw OAuthException.invalidGrant("Provided code challenge does not match auth code");
+    }
+
+    const codeChallenge = signedChallenge ?? persistedChallenge;
+
+    if (!codeChallenge) {
+      if (this.options.requiresPKCE) {
+        throw OAuthException.invalidGrant(
+          "The authorization server requires public clients to use PKCE RFC-7636, and this authorization code carries no code challenge",
+        );
+      }
+      return;
+    }
+
+    const codeVerifier = this.getRequestParameter("code_verifier", req);
+
+    if (!codeVerifier) {
+      throw OAuthException.invalidParameter("code_verifier");
+    }
+
+    // Validate code_verifier according to RFC-7636
+    // @see: https://tools.ietf.org/html/rfc7636#section-4.1
+    if (!REGEXP_CODE_VERIFIER.test(codeVerifier)) {
+      throw OAuthException.invalidParameter(
+        "code_verifier",
+        "Code verifier must follow the specifications of RFC-7636",
+      );
+    }
+
+    const codeChallengeMethod: CodeChallengeMethod | undefined =
+      (signedChallenge ? validatedPayload.code_challenge_method : authCode?.codeChallengeMethod) ?? undefined;
+
+    let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
+
+    if (codeChallengeMethod === "S256") {
+      verifier = this.codeChallengeVerifiers.S256;
+    }
+
+    if (!verifier.verifyCodeChallenge(codeVerifier, codeChallenge)) {
+      throw OAuthException.invalidGrant("Failed to verify code challenge.");
+    }
   }
 
   canRespondToAuthorizationRequest(request: RequestInterface): boolean {
