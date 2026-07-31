@@ -125,9 +125,10 @@ export function handleVanillaError(e: unknown | OAuthException): OAuthResponse {
     });
   }
 
-  // Convert generic errors to OAuthException
-  const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred";
-  const oauthError = OAuthException.internalServerError(errorMessage);
+  // Convert generic errors to OAuthException. The thrown message is deliberately
+  // not echoed: it can carry stack-adjacent internals or a JWT-library string
+  // that acts as a format oracle. Consumers log the original via `options.logger`.
+  const oauthError = OAuthException.internalServerError("An unexpected error occurred");
 
   return new OAuthResponse({
     status: oauthError.status,

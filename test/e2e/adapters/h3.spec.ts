@@ -167,7 +167,7 @@ describe("adapters/h3.js", () => {
       );
     });
 
-    it("should convert non-OAuthException errors to internal server error", () => {
+    it("should convert non-OAuthException errors to internal server error without echoing the message", () => {
       const error = new Error("Database connection failed");
 
       handleH3Error(error, mockEvent);
@@ -175,7 +175,12 @@ describe("adapters/h3.js", () => {
       expect(h3Mocks.setResponseStatus).toHaveBeenCalledWith(mockEvent, 500);
       expect(h3Mocks.send).toHaveBeenCalledWith(
         mockEvent,
-        expect.stringContaining("Database connection failed"),
+        expect.not.stringContaining("Database connection failed"),
+        "application/json",
+      );
+      expect(h3Mocks.send).toHaveBeenCalledWith(
+        mockEvent,
+        expect.stringContaining("An unexpected error occurred"),
         "application/json",
       );
     });

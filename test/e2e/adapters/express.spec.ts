@@ -94,7 +94,7 @@ describe("adapters/express.js", () => {
       });
     });
 
-    it("should convert non-OAuthException errors to internal server error", () => {
+    it("should convert non-OAuthException errors to internal server error without echoing the message", () => {
       const mockExpressRes = {
         status: vi.fn().mockReturnThis(),
         send: vi.fn(),
@@ -106,9 +106,9 @@ describe("adapters/express.js", () => {
       expect(mockExpressRes.status).toHaveBeenCalledWith(500);
       expect(mockExpressRes.send).toHaveBeenCalledWith({
         status: 500,
-        message: "Internal server error: Database connection failed",
+        message: "Internal server error: An unexpected error occurred",
         error: "server_error",
-        error_description: "Database connection failed",
+        error_description: "An unexpected error occurred",
       });
     });
 
