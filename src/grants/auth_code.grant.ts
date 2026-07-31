@@ -18,6 +18,7 @@ import { AuthorizationRequest } from "../requests/authorization.request.js";
 import { RequestInterface } from "../requests/request.js";
 import { RedirectResponse } from "../responses/redirect.response.js";
 import { OAuthResponse, ResponseInterface } from "../responses/response.js";
+import { timingSafeCompare } from "../utils/compare.js";
 import { DateInterval } from "../utils/date_interval.js";
 import { JwtInterface } from "../utils/jwt.js";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant.js";
@@ -166,7 +167,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     const signedChallenge = validatedPayload.code_challenge;
     const persistedChallenge = authCode?.codeChallenge;
 
-    if (signedChallenge && persistedChallenge && signedChallenge !== persistedChallenge) {
+    if (signedChallenge && persistedChallenge && !timingSafeCompare(signedChallenge, persistedChallenge)) {
       throw OAuthException.invalidGrant("Provided code challenge does not match auth code");
     }
 
