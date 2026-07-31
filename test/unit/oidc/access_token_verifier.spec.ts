@@ -8,6 +8,7 @@ import {
   type AuthorizationServerOptions,
   type OidcOptions,
 } from "../../../src/index.js";
+import type { VerifyOptions } from "../../../src/utils/jwt_types.js";
 
 function rsaPrivateKey(): string {
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
@@ -34,6 +35,14 @@ function oidcAuthorizationServerOptions(): AuthorizationServerOptions {
 
 function futureExp(): number {
   return Math.floor(Date.now() / 1000) + 60;
+}
+
+// A consumer JwtInterface that hands back expired or not-yet-valid payloads —
+// the seam must reject them on its own.
+class PermissiveJwtService extends JwtService {
+  verify(token: string, options: VerifyOptions = {}): Promise<Record<string, unknown>> {
+    return super.verify(token, { ...options, ignoreExpiration: true, ignoreNotBefore: true });
+  }
 }
 
 describe("AccessTokenVerifier", () => {
@@ -100,5 +109,44 @@ describe("AccessTokenVerifier", () => {
     );
 
     await expect(verifier.verify(token)).rejects.toMatchObject({ errorType: "invalid_token" });
+  });
+
+  it("rejects expired access tokens even when the injected jwt service ignores expiry", async () => {
+    const jwt = new PermissiveJwtService({ key: rsaPrivateKey() });
+    const verifier = new AccessTokenVerifier(jwt, oidcAuthorizationServerOptions());
+    const token = await jwt.sign(
+      { iss: issuer, sub: "user-1", exp: Math.floor(Date.now() / 1000) - 1 },
+      { header: { typ: "at+jwt" } },
+    );
+
+    await expect(verifier.verify(token)).rejects.toMatchObject({
+      errorType: "invalid_token",
+      errorDescription: "Access token is expired",
+    });
+  });
+
+  it("rejects not-yet-valid access tokens even when the injected jwt service ignores nbf", async () => {
+    const jwt = new PermissiveJwtService({ key: rsaPrivateKey() });
+    const verifier = new AccessTokenVerifier(jwt, oidcAuthorizationServerOptions());
+    const token = await jwt.sign(
+      { iss: issuer, sub: "user-1", exp: futureExp(), nbf: Math.floor(Date.now() / 1000) + 30 },
+      { header: { typ: "at+jwt" } },
+    );
+
+    await expect(verifier.verify(token)).rejects.toMatchObject({
+      errorType: "invalid_token",
+      errorDescription: "Access token is not yet valid",
+    });
+  });
+
+  it("rejects access tokens without an expiry", async () => {
+    const jwt = new JwtService({ key: rsaPrivateKey() });
+    const verifier = new AccessTokenVerifier(jwt, oidcAuthorizationServerOptions());
+    const token = await jwt.sign({ iss: issuer, sub: "user-1" }, { header: { typ: "at+jwt" } });
+
+    await expect(verifier.verify(token)).rejects.toMatchObject({
+      errorType: "invalid_token",
+      errorDescription: "Access token is expired",
+    });
   });
 });
