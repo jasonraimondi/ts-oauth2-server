@@ -30,9 +30,10 @@ app.get("/userinfo", async (req: Express.Request, res: Express.Response) => {
 
 The access token is read, in order, from:
 
-1. the `Authorization: Bearer <token>` header,
-2. an `access_token` form body parameter, or
-3. an `access_token` query parameter.
+1. the `Authorization: Bearer <token>` header, or
+2. an `access_token` form body parameter.
+
+The RFC 6750 §2.3 query-parameter form is not accepted — a token in the URL leaks into access logs, browser history and `Referer` headers.
 
 ```http
 GET /userinfo HTTP/1.1

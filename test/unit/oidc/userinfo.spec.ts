@@ -111,6 +111,17 @@ describe("AuthorizationServer userInfo", () => {
     expect(res.body.sub).toBe("abc123");
   });
 
+  it("does not accept the access token from the query string", async () => {
+    const jwt = new JwtService({ key: rsaPem() });
+    const server = createServer(jwt, async () => ({ sub: "abc123", name: "Alice" }));
+    const token = await sign(jwt, accessTokenClaims());
+
+    const res = await server.userInfo(new OAuthRequest({ query: { access_token: token } }));
+
+    expect(res.status).toBe(401);
+    expect(res.body).toMatchObject({ error: "invalid_token", error_description: "Missing access token" });
+  });
+
   it("returns 403 insufficient_scope when the openid scope is absent", async () => {
     const jwt = new JwtService({ key: rsaPem() });
     const server = createServer(jwt);

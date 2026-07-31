@@ -17,15 +17,15 @@ export interface UserInfoDependencies {
   isAccessTokenRevoked?: (accessToken: OAuthToken) => Promise<boolean>;
 }
 
+// Header and form body only. The RFC 6750 §2.3 URI-query form is not accepted:
+// a query-string token is copied into access logs, browser history and Referer
+// headers, and OpenID Connect Core §5.3.1 only requires the header form.
 function extractBearerToken(req: RequestInterface): string {
   const header = req.headers?.authorization ?? req.headers?.Authorization;
   if (typeof header === "string" && header.length > 0) return header;
 
   const fromBody = req.body?.access_token;
   if (typeof fromBody === "string" && fromBody.length > 0) return fromBody;
-
-  const fromQuery = req.query?.access_token;
-  if (typeof fromQuery === "string" && fromQuery.length > 0) return fromQuery;
 
   throw OAuthException.invalidToken("Missing access token");
 }
