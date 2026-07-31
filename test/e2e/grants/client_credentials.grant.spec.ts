@@ -109,6 +109,23 @@ describe("client_credentials grant", () => {
     expect(tokenResponse.body.refresh_token).toBeUndefined();
   });
 
+  it("rejects an unknown client with invalid_client", async () => {
+    // arrange — a repository that resolves undefined for an unknown identifier
+    request = new OAuthRequest({
+      body: {
+        grant_type: "client_credentials",
+        client_id: "does-not-exist",
+        client_secret: "whatever",
+      },
+    });
+
+    // act
+    const tokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+    // assert
+    await expect(tokenResponse).rejects.toMatchObject({ status: 401, errorType: "invalid_client" });
+  });
+
   it("successfully grants using body", async () => {
     // arrange
     request = new OAuthRequest({

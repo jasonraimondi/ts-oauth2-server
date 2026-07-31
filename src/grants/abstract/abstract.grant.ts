@@ -180,6 +180,13 @@ export abstract class AbstractGrant implements GrantInterface {
 
     const client = await this.clientRepository.getByIdentifier(clientId);
 
+    // The repository contract is to throw for an unknown client, but a
+    // repository that resolves `undefined` instead must still fail as a client
+    // authentication error rather than a 500 that discloses client existence.
+    if (!client) {
+      throw OAuthException.invalidClient();
+    }
+
     if (isClientConfidential(client) && !clientSecret) {
       throw OAuthException.invalidClient("Confidential clients require client_secret.");
     }
@@ -213,6 +220,10 @@ export abstract class AbstractGrant implements GrantInterface {
     const [clientId, clientSecret] = this.getClientCredentials(request);
 
     const client = await this.clientRepository.getByIdentifier(clientId);
+
+    if (!client) {
+      throw OAuthException.invalidClient();
+    }
 
     if (isClientConfidential(client) && !clientSecret) {
       throw OAuthException.invalidClient("Confidential clients require client_secret.");
