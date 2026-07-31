@@ -17,6 +17,7 @@ import {
   AuthorizationServerOptions,
   base64urlencode,
   DateInterval,
+  ErrorType,
   ExtraAccessTokenFieldArgs,
   IAuthCodePayload,
   JwtService,
@@ -838,6 +839,91 @@ describe("authorization_code grant", () => {
       const accessTokenResponse = grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
 
       await expect(accessTokenResponse).rejects.toThrow(OAuthException);
+    });
+  });
+
+  describe("pkce enforcement authority", () => {
+    let authorizationRequest: AuthorizationRequest;
+    let authorizationCode: string;
+
+    const issueCode = async (challenge?: string): Promise<string> => {
+      authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      if (challenge) {
+        authorizationRequest.codeChallenge = challenge;
+        authorizationRequest.codeChallengeMethod = "S256";
+      }
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const query = new URLSearchParams(redirectResponse.headers.location.split("?")[1]);
+      return String(query.get("code"));
+    };
+
+    const redeem = (body: Record<string, string> = {}) =>
+      grant.respondToAccessTokenRequest(
+        new OAuthRequest({
+          body: {
+            grant_type: "authorization_code",
+            code: authorizationCode,
+            redirect_uri: authorizationRequest.redirectUri,
+            client_id: client.id,
+            ...body,
+          },
+        }),
+        new DateInterval("1h"),
+      );
+
+    const persistedAuthCodeReturns = (overrides: Partial<OAuthAuthCode>): void => {
+      vi.spyOn(inMemoryAuthCodeRepository, "getByIdentifier").mockImplementation(async (code: string) => ({
+        ...inMemoryDatabase.authCodes[code],
+        ...overrides,
+      }));
+    };
+
+    beforeEach(async () => {
+      grant = createGrant({ issuer: "TestIssuer", useOpaqueAuthorizationCodes: false });
+      authorizationCode = await issueCode(codeChallenge);
+    });
+
+    it("still requires a code verifier when the persisted auth code omits the challenge", async () => {
+      persistedAuthCodeReturns({ codeChallenge: undefined, codeChallengeMethod: undefined });
+
+      await expect(redeem()).rejects.toThrowError(/code_verifier/);
+    });
+
+    it("verifies the code verifier against the signed challenge when the persisted auth code omits it", async () => {
+      persistedAuthCodeReturns({ codeChallenge: undefined, codeChallengeMethod: undefined });
+
+      expectTokenResponse(await redeem({ code_verifier: codeVerifier }));
+    });
+
+    it("rejects a wrong code verifier when the persisted auth code omits the challenge", async () => {
+      persistedAuthCodeReturns({ codeChallenge: undefined, codeChallengeMethod: undefined });
+
+      await expect(redeem({ code_verifier: codeVerifier + "broken" })).rejects.toThrowError(
+        /Failed to verify code challenge/,
+      );
+    });
+
+    it("rejects when the persisted challenge differs from the signed challenge", async () => {
+      persistedAuthCodeReturns({ codeChallenge: "8vAQzSPKJEVJPWD5nsNZQNzq11rLNTh_2xPr2QQfyF0" });
+
+      await expect(redeem({ code_verifier: codeVerifier })).rejects.toMatchObject({
+        errorType: ErrorType.InvalidGrant,
+      });
+    });
+
+    it("rejects redemption when pkce is required and neither source carries a challenge", async () => {
+      authorizationCode = await issueCode();
+
+      await expect(redeem()).rejects.toMatchObject({ errorType: ErrorType.InvalidGrant });
+    });
+
+    it("allows redemption without a challenge when pkce is not required", async () => {
+      grant = createGrant({ issuer: "TestIssuer", useOpaqueAuthorizationCodes: false, requiresPKCE: false });
+      authorizationCode = await issueCode();
+
+      expectTokenResponse(await redeem());
     });
   });
 

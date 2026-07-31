@@ -146,21 +146,39 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
   /**
    * Enforces the PKCE code-challenge bound to the authorization code (RFC 7636).
-   * No-op when the code was issued without a challenge; otherwise the request
-   * must carry a syntactically valid `code_verifier` that the challenge method
-   * confirms, throwing an OAuthException on any mismatch.
+   *
+   * The challenge on the resolved payload is the enforcement authority: this
+   * server mints and verifies it, while the persisted entity round-trips through
+   * consumer storage that may drop the column and would otherwise silently
+   * switch PKCE off for the whole deployment (see docs/adr/0009). The persisted
+   * copy is still cross-checked whenever both carry one, and the challenge
+   * method is read from whichever source supplied the challenge so a rewritten
+   * row cannot downgrade S256 to plain.
+   *
+   * A code that carries no challenge in either source is refused outright when
+   * the server requires PKCE; otherwise the check is a no-op.
    */
   private validateCodeChallenge(
     authCode: OAuthAuthCode,
     validatedPayload: PayloadAuthCode,
     req: RequestInterface,
   ): void {
-    if (!authCode.codeChallenge) return;
+    const signedChallenge = validatedPayload.code_challenge;
+    const persistedChallenge = authCode?.codeChallenge;
 
-    if (!validatedPayload.code_challenge) throw OAuthException.invalidParameter("code_challenge");
+    if (signedChallenge && persistedChallenge && signedChallenge !== persistedChallenge) {
+      throw OAuthException.invalidGrant("Provided code challenge does not match auth code");
+    }
 
-    if (authCode.codeChallenge !== validatedPayload.code_challenge) {
-      throw OAuthException.invalidParameter("code_challenge", "Provided code challenge does not match auth code");
+    const codeChallenge = signedChallenge ?? persistedChallenge;
+
+    if (!codeChallenge) {
+      if (this.options.requiresPKCE) {
+        throw OAuthException.invalidGrant(
+          "The authorization server requires public clients to use PKCE RFC-7636, and this authorization code carries no code challenge",
+        );
+      }
+      return;
     }
 
     const codeVerifier = this.getRequestParameter("code_verifier", req);
@@ -178,7 +196,8 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       );
     }
 
-    const codeChallengeMethod: CodeChallengeMethod | undefined = validatedPayload.code_challenge_method ?? undefined;
+    const codeChallengeMethod: CodeChallengeMethod | undefined =
+      (signedChallenge ? validatedPayload.code_challenge_method : authCode?.codeChallengeMethod) ?? undefined;
 
     let verifier: ICodeChallenge = this.codeChallengeVerifiers.plain;
 
@@ -186,7 +205,7 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
       verifier = this.codeChallengeVerifiers.S256;
     }
 
-    if (!verifier.verifyCodeChallenge(codeVerifier, validatedPayload.code_challenge)) {
+    if (!verifier.verifyCodeChallenge(codeVerifier, codeChallenge)) {
       throw OAuthException.invalidGrant("Failed to verify code challenge.");
     }
   }
