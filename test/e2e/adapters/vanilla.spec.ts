@@ -156,7 +156,7 @@ describe("adapters/vanilla.js", () => {
       });
     });
 
-    it("should convert non-OAuthException errors to internal server error", () => {
+    it("should convert non-OAuthException errors to internal server error without echoing the message", () => {
       const error = new Error("Database connection failed");
       const result = handleVanillaError(error);
 
@@ -164,9 +164,9 @@ describe("adapters/vanilla.js", () => {
       expect(result.status).toBe(500);
       expect(result.body).toEqual({
         status: 500,
-        message: "Internal server error: Database connection failed",
+        message: "Internal server error: An unexpected error occurred",
         error: "server_error",
-        error_description: "Database connection failed",
+        error_description: "An unexpected error occurred",
       });
     });
 
