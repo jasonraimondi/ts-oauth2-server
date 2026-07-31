@@ -347,12 +347,28 @@ describe("authorization_server", () => {
     let accessToken: OAuthToken;
     let request: OAuthRequest;
 
-    const accessTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imphc29uQHJhaW1vbmRpLnVzIiwiY2xpZW50IjoiU3ZlbHRlIEtpdCIsImNpZCI6IjE2YzExODEyLTg5ZGEtNGQ2OC05ZTljLTc3MTUzMjNlMzRmNSIsInNjb3BlIjoiIiwic3ViIjoiMDE5MGVmZTctNzUwMy03ZGQyLTg1MTYtNjM3NWZkNWRlODhiIiwiZXhwIjoxNzIyNTY5NDQ2LCJuYmYiOjE3MjI1NjU4NDYsImlhdCI6MTcyMjU2NTg0NiwianRpIjoiZDcxZTI3ZDdiMWNhNDczZDMxNWJiYzk1NTM0ODg4YTgwNzQ5NTdiNWNiODJkOWE3N2QzODY2ODliNTQ5NzA2MjZlYjM3N2UyYmMwZjlkZGMifQ.HsHqJOjCFt6KiT6H1y13QbMxUljqkFaFVT0WPxrO25Q";
-    const parsedAccessToken = jwt.decode(accessTokenJWT) as ParsedAccessToken;
-    const refreshTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIxNmMxMTgxMi04OWRhLTRkNjgtOWU5Yy03NzE1MzIzZTM0ZjUiLCJhY2Nlc3NfdG9rZW5faWQiOiJkNzFlMjdkN2IxY2E0NzNkMzE1YmJjOTU1MzQ4ODhhODA3NDk1N2I1Y2I4MmQ5YTc3ZDM4NjY4OWI1NDk3MDYyNmViMzc3ZTJiYzBmOWRkYyIsInJlZnJlc2hfdG9rZW5faWQiOiI5NzQxMDZlNjBiZDk0YTU5MzE0YzMxMzY5ZDlhZDg0ZWYwNTU3MGFiZmQ3N2JmYWI0YmUxMGYzMmY5MDQxZDBlMmRmMzE2YmY2MTM5ZjJiOCIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjAxOTBlZmU3LTc1MDMtN2RkMi04NTE2LTYzNzVmZDVkZTg4YiIsImV4cGlyZV90aW1lIjoxNzIyNTczMDQ3LCJpYXQiOjE3MjI1NjU4NDZ9.vpPKS9grMO5gIUQJI2ss525bwxNez9Xo0Rv6Y10DSqY";
-    const parsedRefreshToken = jwt.decode(refreshTokenJWT) as ParsedRefreshToken;
+    const parsedAccessToken: ParsedAccessToken = {
+      email: "jason@raimondi.us",
+      client: "Svelte Kit",
+      cid: "16c11812-89da-4d68-9e9c-7715323e34f5",
+      scope: "",
+      sub: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+      exp: 1722569446,
+      nbf: 1722565846,
+      iat: 1722565846,
+      jti: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+    };
+    const accessTokenJWT = jwt.sign(parsedAccessToken, "secret-key");
+    const parsedRefreshToken: ParsedRefreshToken = {
+      client_id: "16c11812-89da-4d68-9e9c-7715323e34f5",
+      access_token_id: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+      refresh_token_id: "974106e60bd94a59314c31369d9ad84ef05570abfd77bfab4be10f32f9041d0e2df316bf6139f2b8",
+      scope: "",
+      user_id: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+      expire_time: 1722573047,
+      iat: 1722565846,
+    };
+    const refreshTokenJWT = jwt.sign(parsedRefreshToken, "secret-key");
 
     beforeEach(() => {
       inMemoryDatabase.clients[client.id] = client;
@@ -509,7 +525,9 @@ describe("authorization_server", () => {
           "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
         );
         expect(response.body.active).toBe(true);
-        expect(response.body.client_id).toBe("16c11812-89da-4d68-9e9c-7715323e34f5");
+        // The persisted client wins over the token's client_id claim, which is
+        // "16c11812-89da-4d68-9e9c-7715323e34f5".
+        expect(response.body.client_id).toBe("1");
         expect(response.body.expire_time).toBe(1722573047);
         expect(response.body.iat).toBe(1722565846);
         expect(response.body.refresh_token_id).toBe(
@@ -519,6 +537,104 @@ describe("authorization_server", () => {
         expect(response.body.token_type).toBe("refresh_token");
         expect(response.body.user_id).toBe("0190efe7-7503-7dd2-8516-6375fd5de88b");
       });
+    });
+  });
+
+  describe("#introspect signature verification", () => {
+    const client: OAuthClient = {
+      id: "1",
+      name: "test client",
+      secret: "super-secret-secret",
+      redirectUris: ["http://localhost"],
+      allowedGrants: ["client_credentials"],
+      scopes: [],
+    };
+    const basicAuth = "Basic " + base64encode(`${client.id}:${client.secret}`);
+    const jti = "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc";
+
+    /** Re-encodes a signed JWT's payload, leaving the original signature in place. */
+    function tamper(token: string, changes: Record<string, unknown>): string {
+      const [header, payload, signature] = token.split(".");
+      const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+      const forged = Buffer.from(JSON.stringify({ ...decoded, ...changes })).toString("base64url");
+      return `${header}.${forged}.${signature}`;
+    }
+
+    function persistAccessToken(scopes: OAuthScope[]): void {
+      inMemoryDatabase.clients[client.id] = client;
+      inMemoryDatabase.tokens[jti] = {
+        accessToken: jti,
+        accessTokenExpiresAt: DateInterval.getDateEnd("1h"),
+        client,
+        scopes,
+      };
+    }
+
+    it("reports active:false for a token whose signature does not verify", async () => {
+      persistAccessToken([]);
+      const forged = tamper(jwt.sign({ cid: client.id, scope: "", jti }, "secret-key"), {
+        scope: "admin",
+        sub: "victim-user-id",
+      });
+
+      const request = new OAuthRequest({
+        headers: { authorization: basicAuth },
+        body: { token: forged, token_type_hint: "access_token" },
+      });
+      const response = await authorizationServer.introspect(request);
+
+      expect(response.body).toStrictEqual({ active: false });
+    });
+
+    it("reports persisted scope and client, not the claims of a validly signed token", async () => {
+      persistAccessToken([{ name: "scope-1" }]);
+      const token = jwt.sign({ cid: "some-other-client", scope: "admin", sub: "victim-user-id", jti }, "secret-key");
+
+      const request = new OAuthRequest({
+        headers: { authorization: basicAuth },
+        body: { token, token_type_hint: "access_token" },
+      });
+      const response = await authorizationServer.introspect(request);
+
+      expect(response.body.active).toBe(true);
+      expect(response.body.scope).toBe("scope-1");
+      expect(response.body.client_id).toBe("1");
+      expect(response.body.token_type).toBe("access_token");
+    });
+
+    it("reports active:false when the repository rejects an unknown token", async () => {
+      inMemoryDatabase.clients[client.id] = client;
+      const token = jwt.sign(
+        {
+          client_id: client.id,
+          access_token_id: "unknown",
+          refresh_token_id: "no-such-refresh-token",
+        },
+        "secret-key",
+      );
+
+      const request = new OAuthRequest({
+        headers: { authorization: basicAuth },
+        body: { token, token_type_hint: "refresh_token" },
+      });
+
+      await expect(authorizationServer.introspect(request)).resolves.toMatchObject({
+        body: { active: false },
+      });
+    });
+
+    it("does not revoke a token presented with an unverifiable signature", async () => {
+      persistAccessToken([]);
+      const forged = tamper(jwt.sign({ cid: client.id, scope: "", jti }, "secret-key"), { scope: "admin" });
+
+      const request = new OAuthRequest({
+        headers: { authorization: basicAuth },
+        body: { token: forged, token_type_hint: "access_token" },
+      });
+      const response = await authorizationServer.revoke(request);
+
+      expect(response.status).toBe(200);
+      expect(inMemoryDatabase.tokens[jti].accessTokenExpiresAt).not.toEqual(new Date(0));
     });
   });
 
@@ -536,12 +652,28 @@ describe("authorization_server", () => {
     let accessToken: OAuthToken;
     let request: OAuthRequest;
 
-    const accessTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imphc29uQHJhaW1vbmRpLnVzIiwiY2xpZW50IjoiU3ZlbHRlIEtpdCIsImNpZCI6IjE2YzExODEyLTg5ZGEtNGQ2OC05ZTljLTc3MTUzMjNlMzRmNSIsInNjb3BlIjoiIiwic3ViIjoiMDE5MGVmZTctNzUwMy03ZGQyLTg1MTYtNjM3NWZkNWRlODhiIiwiZXhwIjoxNzIyNTY5NDQ2LCJuYmYiOjE3MjI1NjU4NDYsImlhdCI6MTcyMjU2NTg0NiwianRpIjoiZDcxZTI3ZDdiMWNhNDczZDMxNWJiYzk1NTM0ODg4YTgwNzQ5NTdiNWNiODJkOWE3N2QzODY2ODliNTQ5NzA2MjZlYjM3N2UyYmMwZjlkZGMifQ.HsHqJOjCFt6KiT6H1y13QbMxUljqkFaFVT0WPxrO25Q";
-    const parsedAccessToken = jwt.decode(accessTokenJWT) as ParsedAccessToken;
-    const refreshTokenJWT =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiIxNmMxMTgxMi04OWRhLTRkNjgtOWU5Yy03NzE1MzIzZTM0ZjUiLCJhY2Nlc3NfdG9rZW5faWQiOiJkNzFlMjdkN2IxY2E0NzNkMzE1YmJjOTU1MzQ4ODhhODA3NDk1N2I1Y2I4MmQ5YTc3ZDM4NjY4OWI1NDk3MDYyNmViMzc3ZTJiYzBmOWRkYyIsInJlZnJlc2hfdG9rZW5faWQiOiI5NzQxMDZlNjBiZDk0YTU5MzE0YzMxMzY5ZDlhZDg0ZWYwNTU3MGFiZmQ3N2JmYWI0YmUxMGYzMmY5MDQxZDBlMmRmMzE2YmY2MTM5ZjJiOCIsInNjb3BlIjoiIiwidXNlcl9pZCI6IjAxOTBlZmU3LTc1MDMtN2RkMi04NTE2LTYzNzVmZDVkZTg4YiIsImV4cGlyZV90aW1lIjoxNzIyNTczMDQ3LCJpYXQiOjE3MjI1NjU4NDZ9.vpPKS9grMO5gIUQJI2ss525bwxNez9Xo0Rv6Y10DSqY";
-    const parsedRefreshToken = jwt.decode(refreshTokenJWT) as ParsedRefreshToken;
+    const parsedAccessToken: ParsedAccessToken = {
+      email: "jason@raimondi.us",
+      client: "Svelte Kit",
+      cid: "16c11812-89da-4d68-9e9c-7715323e34f5",
+      scope: "",
+      sub: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+      exp: 1722569446,
+      nbf: 1722565846,
+      iat: 1722565846,
+      jti: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+    };
+    const accessTokenJWT = jwt.sign(parsedAccessToken, "secret-key");
+    const parsedRefreshToken: ParsedRefreshToken = {
+      client_id: "16c11812-89da-4d68-9e9c-7715323e34f5",
+      access_token_id: "d71e27d7b1ca473d315bbc95534888a8074957b5cb82d9a77d386689b54970626eb377e2bc0f9ddc",
+      refresh_token_id: "974106e60bd94a59314c31369d9ad84ef05570abfd77bfab4be10f32f9041d0e2df316bf6139f2b8",
+      scope: "",
+      user_id: "0190efe7-7503-7dd2-8516-6375fd5de88b",
+      expire_time: 1722573047,
+      iat: 1722565846,
+    };
+    const refreshTokenJWT = jwt.sign(parsedRefreshToken, "secret-key");
 
     beforeEach(() => {
       inMemoryDatabase.clients[client.id] = client;
