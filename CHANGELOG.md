@@ -8,10 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- `@types/jsonwebtoken` and `@types/ms` are no longer `peerDependencies`. This reverses the approach taken in 5.0.0-rc.4: rather than referencing `jsonwebtoken`'s option types from the published declarations, the public JWT option types (`Algorithm`, `Secret`, `SignOptions`, `VerifyOptions`, and `ms`'s `StringValue`) are vendored into `src/utils/jwt_types.ts`, structurally identical to upstream. The published `.d.ts` files import nothing from `jsonwebtoken` or `ms`, so a consumer compiling with `skipLibCheck: false` needs neither package installed.
-
-### Fixed
-- Make the published declarations self-contained for strict consumers. Node and Web globals (`Buffer`, `KeyObject`, `URLSearchParams`, `Response`) went unresolved under `moduleResolution: bundler` because `@types/node` is not auto-included without an explicit `types` array and the dts bundler strips source-level triple-slash directives; a `/// <reference types="node" />` banner is now injected into every emitted declaration file. Combined with the vendored JWT option types above, `@jmondi/oauth2-server` type-checks against a bare `strict` + `skipLibCheck: false` consumer with only `@types/node` present.
+- `@types/jsonwebtoken` and `@types/ms` are no longer `peerDependencies`. This reverses the approach taken in 5.0.0-rc.4: rather than referencing `jsonwebtoken`'s option types from the published declarations, the public JWT option types (`Algorithm`, `Secret`, `SignOptions`, `VerifyOptions`, and `ms`'s `StringValue`) are vendored into `src/utils/jwt_types.ts`, structurally identical to upstream. The published `.d.ts` files import nothing from `jsonwebtoken` or `ms`, so a consumer compiling with `skipLibCheck: false` needs neither package installed. Combined with the `/// <reference types="node" />` declaration banner added in 5.0.0-rc.4, `@jmondi/oauth2-server` now type-checks against a bare `strict` + `skipLibCheck: false` consumer with only `@types/node` present.
 
 ## [5.0.0-rc.4] - 2026-06-12
 
@@ -159,9 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.1.1] - 2025-10-20
 
-### Fixed
-- Reset originatingAuthCodeId in refresh_token scope test
-- Package version bump for patch release
+_Version bump only; no user-facing changes._
 
 ## [4.1.0] - 2025-10-19
 
@@ -191,47 +186,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.10] - 2025-08-04
 
-### Fixed
-- Content-type header handling for charset parameters normalization
-- URL-encoded body parsing improvements
+### Chore
+- Build: emit `.d.ts` files with comments preserved (`dts.compilerOptions.removeComments: false`), so JSDoc reaches consumers' editors.
 
 ## [4.0.9] - 2025-08-04
 
-### Fixed
-- Allow empty client secrets in basic authentication
+### Chore
+- Build: stop minifying the bundle and set `keepNames: true`, so the published JavaScript retains comments and original function names.
 
 ## [4.0.8] - 2025-08-04
 
-### Fixed
-- Unauthorized client and scope exceptions now correctly throw 401 instead of 400
-- Missing finalize scopes in client credentials and refresh token grants
+### Chore
+- Add JSDoc to the public `AuthorizationServer` methods, the adapter helpers, and the repository interfaces; clarify token and auth-code expiry docs; add code-coverage reporting to CI. No source-behavior change.
 
 ## [4.0.7] - 2025-06-25
 
 ### Fixed
-- Express adapter build errors from response status handling
+- The refresh_token grant now passes the resolved `user` to `extraTokenFields`, which previously received only the `client` ([#170](https://github.com/jasonraimondi/ts-oauth2-server/pull/170))
 
 ## [4.0.6] - 2025-06-20
 
 ### Fixed
-- Introspect and revoke endpoints now return falsey values instead of throwing for invalid tokens (per OAuth spec)
-- Token revocation inconsistencies to match OAuth spec RFC 7009
+- `requestFromVanilla` normalizes the `content-type` header before matching it, so a media type carrying a charset parameter (`application/json; charset=utf-8`) is parsed instead of ignored
+- `requestFromVanilla` parses `application/x-www-form-urlencoded` bodies, which were previously fed to `JSON.parse` and threw ([#169](https://github.com/jasonraimondi/ts-oauth2-server/pull/169))
+
+### Changed
+- `requestFromVanilla` reads the body through the Web `Request`'s own `text()`/`json()` methods instead of a hand-rolled readable-stream reader, and no longer strips the `cookie` header
 
 ## [4.0.5] - 2025-06-05
 
 ### Fixed
-- RequestFromVanilla headers handling
-- Swallowed exceptions from improper exports in adapters
+- Allow empty client secrets in basic authentication. `getBasicAuthCredentials` discarded the whole credential pair when the decoded value had a client id but an empty secret, so such requests fell through as unauthenticated; it now returns the client id with an `undefined` secret ([#168](https://github.com/jasonraimondi/ts-oauth2-server/pull/168))
 
 ## [4.0.4] - 2025-06-04
 
-### Fixed
-- Crypto imports to use direct crypto instead of node:crypto
-- Vanilla adapters added to JSR exports
-- Method check removed for requestFromVanilla
-- GET method implementation
-- Audience claim now supports string array or single string value
-- Custom grant prefix override capability
+### Changed
+- Fastify adapter: `handleFastifyReply` passes an explicit `302` to `res.redirect()` rather than relying on Fastify's default status. Same status on the wire, but no longer dependent on the ambiguous single-argument overload ([#165](https://github.com/jasonraimondi/ts-oauth2-server/pull/165))
+
+### Chore
+- CI: run the test matrix on Node 20 and 22, dropping Node 18.
 
 ## [4.0.3] - 2025-03-28
 
@@ -261,8 +254,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More explicit error messages when client is determined to be invalid
 - Automatic enabling of client_credentials and refresh_token grants
 - Optional status parameter in OAuth response constructor
-- Guard utility function against invalid client scopes
-- Export of isOAuthError helper function
 
 ### Changed
 - **BREAKING**: Default authentication with client_credentials for introspect and revoke endpoints
@@ -275,10 +266,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Configuration option for toggling revoke and introspect authentication
-- Nuxt documentation
 
 ### Changed
 - Preparation for v4.0.0 authentication defaults
+
+### Fixed
+- Align token revocation with RFC 7009: revocation is handled centrally by `AuthorizationServer` rather than per-grant, and revoking an unknown or already-revoked token no longer errors
+- Introspect and revoke now return a falsey/inactive result for an invalid token instead of throwing
+- `requestFromVanilla` reads headers off the Web `Headers` object (previously `Object.entries` on it yielded nothing) and omits the `cookie` header
 
 ## [3.5.0] - 2024-08-04
 
@@ -585,7 +580,6 @@ _Maintenance release — dependency updates and internal cleanup; no user-facing
 - Initial stable release
 - Complete OAuth 2.0 authorization server implementation
 - Support for multiple grant types (authorization_code, client_credentials, password, implicit, refresh_token)
-- Framework adapters for Express and Fastify
 - Repository pattern for data persistence
 - Comprehensive test suite
 
