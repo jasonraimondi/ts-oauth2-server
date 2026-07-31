@@ -81,10 +81,11 @@ jobs:
         run: |
           mkdir -p $RUNNER_TEMP/smoke && cd $RUNNER_TEMP/smoke
           npm init -y > /dev/null
-          # @types/jsonwebtoken + @types/ms are optional peers: the public types
-          # re-export jsonwebtoken's JWT option types, so a strict consumer must
-          # install them. Runtime import/require below works without them.
-          npm install --no-audit --no-fund $RUNNER_TEMP/package.tgz 'h3@^1.15.0' typescript @types/node @types/jsonwebtoken @types/ms
+          # @types/jsonwebtoken and @types/ms are deliberately NOT installed: the
+          # JWT option types are vendored into the published declarations, and the
+          # strict compile below is what proves they stay self-contained. Adding
+          # them here would mask a regression of that vendoring.
+          npm install --no-audit --no-fund $RUNNER_TEMP/package.tgz 'h3@^1.15.0' typescript @types/node
           entries="['@jmondi/oauth2-server','@jmondi/oauth2-server/vanilla','@jmondi/oauth2-server/express','@jmondi/oauth2-server/fastify','@jmondi/oauth2-server/h3']"
           node --input-type=module -e "for (const e of $entries) await import(e); console.log('ESM imports OK')"
           node -e "for (const e of $entries) require(e); console.log('CJS requires OK')"

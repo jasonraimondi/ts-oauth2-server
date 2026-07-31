@@ -122,17 +122,9 @@
     "ms": "^2.1.3"
   },
   "peerDependencies": {
-    "@types/jsonwebtoken": "^9.0.0",
-    "@types/ms": "^2.1.0",
     "h3": "^1.15.0"
   },
   "peerDependenciesMeta": {
-    "@types/jsonwebtoken": {
-      "optional": true
-    },
-    "@types/ms": {
-      "optional": true
-    },
     "h3": {
       "optional": true
     }

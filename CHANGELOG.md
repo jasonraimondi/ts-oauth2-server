@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `@types/jsonwebtoken` and `@types/ms` are no longer `peerDependencies`. This reverses the approach taken in 5.0.0-rc.4: rather than referencing `jsonwebtoken`'s option types from the published declarations, the public JWT option types (`Algorithm`, `Secret`, `SignOptions`, `VerifyOptions`, and `ms`'s `StringValue`) are vendored into `src/utils/jwt_types.ts`, structurally identical to upstream. The published `.d.ts` files import nothing from `jsonwebtoken` or `ms`, so a consumer compiling with `skipLibCheck: false` needs neither package installed.
+
+### Fixed
+- Make the published declarations self-contained for strict consumers. Node and Web globals (`Buffer`, `KeyObject`, `URLSearchParams`, `Response`) went unresolved under `moduleResolution: bundler` because `@types/node` is not auto-included without an explicit `types` array and the dts bundler strips source-level triple-slash directives; a `/// <reference types="node" />` banner is now injected into every emitted declaration file. Combined with the vendored JWT option types above, `@jmondi/oauth2-server` type-checks against a bare `strict` + `skipLibCheck: false` consumer with only `@types/node` present.
+
 ## [5.0.0-rc.4] - 2026-06-12
 
 ### Changed
@@ -64,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING**: Raise the minimum supported Node.js runtime to 22.
 - **BREAKING**: The implicit grant now appends tokens to the redirect URI using URI fragments by default, as recommended by RFC 6749 §4.2.2. Set `implicitRedirectMode: "query"` to preserve the previous query-string behavior for legacy clients.
 - When OIDC is enabled, access tokens minted through the built-in grants now carry the JOSE header `typ: "at+jwt"` (RFC 9068). The `BearerTokenResponse` body gains an optional `id_token` string for OIDC `openid` authorization-code flows. Non-OIDC token wire format is unchanged.
+- Implicit grant access tokens now carry the `iss` claim when the `issuer` option is set. The grant previously called `jwt.extraTokenFields()` directly and was the only built-in grant that skipped issuer injection; it now routes through the same shared seam as every other grant (required so OIDC `at+jwt` tokens pass issuer verification). This applies whether or not OIDC is enabled — a non-OIDC server with `issuer` configured will see the claim appear in implicit-grant tokens that previously lacked it.
 - `JwtService.verify()` now pins verification to the service's configured algorithm and ignores caller-supplied `algorithms` options. It also rejects any token whose payload is not a JSON object (the method has always declared a `Record<string, unknown>` return), so a string-payload JWT no longer resolves with the raw string.
 - `JwtService.sign()` now forwards signing options, including JOSE header overrides such as `typ: "at+jwt"`.
 - Internal: stop importing the removed `crypto.JsonWebKey` type (dropped in `@types/node` v25); the RSA JWK export is now typed against a small local interface so `tsc` passes. No public API or runtime change.
