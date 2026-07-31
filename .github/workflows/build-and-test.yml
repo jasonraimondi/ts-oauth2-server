@@ -2,9 +2,9 @@ name: build and test
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'v[0-9]+.x' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, 'v[0-9]+.x' ]
 
 jobs:
   check_versions:
