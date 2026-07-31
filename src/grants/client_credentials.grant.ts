@@ -45,12 +45,14 @@ export class ClientCredentialsGrant extends AbstractGrant {
     let body: OAuthTokenIntrospectionResponse = { active: false };
 
     if (active && oauthToken) {
+      // Persisted fields win over echoed claims: introspection reports the
+      // server's current state, not whatever the token asserts.
       body = {
+        ...(typeof parsedToken === "object" ? parsedToken : {}),
         active: true,
         scope: oauthToken.scopes.map(s => s.name).join(this.options.scopeDelimiter),
         client_id: oauthToken.client.id,
         token_type: tokenType,
-        ...(typeof parsedToken === "object" ? parsedToken : {}),
       };
     }
 
@@ -128,14 +130,24 @@ export class ClientCredentialsGrant extends AbstractGrant {
       throw OAuthException.unsupportedTokenType();
     }
 
-    const parsedToken: unknown = this.jwt.decode(token);
+    // Claims are trusted only after the signature verifies — a decoded-but-
+    // unverified payload can spoof scope/sub/ownership (RFC 7662 §4).
+    // Expiry and nbf are ignored at parse time: `active` derives from the
+    // persisted entity, and an expired token must still be revocable.
+    let parsedToken: unknown = undefined;
+    try {
+      parsedToken = await this.jwt.verify(token, { ignoreExpiration: true, ignoreNotBefore: true });
+    } catch {
+      parsedToken = undefined;
+    }
 
     let oauthToken: undefined | OAuthToken = undefined;
     let expiresAt = new Date(0);
     let tokenType: "access_token" | "refresh_token" = "access_token";
 
     if (tokenTypeHint === "refresh_token" && this.isRefreshTokenPayload(parsedToken)) {
-      oauthToken = await this.tokenRepository.getByRefreshToken(parsedToken.refresh_token_id).catch();
+      // if token not found, ignore and return undefined oauthToken
+      oauthToken = await this.tokenRepository.getByRefreshToken(parsedToken.refresh_token_id).catch(() => undefined);
       expiresAt = oauthToken?.refreshTokenExpiresAt ?? expiresAt;
       tokenType = "refresh_token";
     } else if (this.isAccessTokenPayload(parsedToken)) {
@@ -144,7 +156,7 @@ export class ClientCredentialsGrant extends AbstractGrant {
       }
 
       // if token not found, ignore and return undefined oauthToken
-      oauthToken = await this.tokenRepository.getByAccessToken(parsedToken.jti).catch();
+      oauthToken = await this.tokenRepository.getByAccessToken(parsedToken.jti).catch(() => undefined);
       expiresAt = oauthToken?.accessTokenExpiresAt ?? expiresAt;
     }
 
