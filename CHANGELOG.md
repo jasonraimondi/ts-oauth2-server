@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `@types/jsonwebtoken` and `@types/ms` are no longer `peerDependencies`. This reverses the approach taken in 5.0.0-rc.4: rather than referencing `jsonwebtoken`'s option types from the published declarations, the public JWT option types (`Algorithm`, `Secret`, `SignOptions`, `VerifyOptions`, and `ms`'s `StringValue`) are vendored into `src/utils/jwt_types.ts`, structurally identical to upstream. The published `.d.ts` files import nothing from `jsonwebtoken` or `ms`, so a consumer compiling with `skipLibCheck: false` needs neither package installed. Combined with the `/// <reference types="node" />` declaration banner added in 5.0.0-rc.4, `@jmondi/oauth2-server` now type-checks against a bare `strict` + `skipLibCheck: false` consumer with only `@types/node` present.
 
+## [4.3.6] - 2026-07-30
+
+_Maintenance release on the 4.x line (branch `v4.x`), cut after the 5.0.0 release candidates. The same fix reached the v5 line in [5.0.0-rc.4] as part of the broader introspect/revoke rework._
+
+### Security
+- Introspection and revocation now verify the token signature before trusting any claim. The shared handler decoded the request token with `jwt.decode()`, which does not check the signature, and the introspection response spread that payload last — so a client holding a single valid token of its own could re-sign a modified payload with a garbage signature and have the endpoint echo forged `scope`, `sub`, `client_id` and custom claims. Keeping its own live `jti` made the persisted lookup succeed, so `active` stayed `true` while the attacker controlled everything reported alongside it. Only deployments that call the introspection endpoint and treat its response as their verification mechanism were affected; a resource server that verifies the JWT locally rejects the forged token before introspection is reached. Fixes a violation of RFC 7662 §4 ("If the token has been signed, the authorization server MUST validate the signature").
+
+### Fixed
+- The introspection response now spreads the token payload first, so persisted `active`, `scope`, `client_id` and `token_type` always win over echoed claims.
+- Repository lookups in the introspect/revoke handler treat a rejection as not-found. A bare `.catch()` installs no handler, so a repository that rejects for an unknown token made introspection throw instead of returning `active: false` (RFC 7662 §2.2).
+
+### Changed
+- Token signature verification ignores `exp` and `nbf` at parse time: `active` is derived from the persisted entity, and an expired token must remain revocable.
+
 ## [5.0.0-rc.4] - 2026-06-12
 
 ### Changed
