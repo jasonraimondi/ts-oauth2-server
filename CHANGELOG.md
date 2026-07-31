@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.6] - 2026-07-30
+
+### Security
+- Introspection and revocation now verify the token signature before trusting any claim. The shared handler decoded the request token with `jwt.decode()`, which does not check the signature, and the introspection response spread that payload last — so a client holding a single valid token of its own could re-sign a modified payload with a garbage signature and have the endpoint echo forged `scope`, `sub`, `client_id` and custom claims. Keeping its own live `jti` made the persisted lookup succeed, so `active` stayed `true` while the attacker controlled everything reported alongside it. Only deployments that call the introspection endpoint and treat its response as their verification mechanism were affected; a resource server that verifies the JWT locally rejects the forged token before introspection is reached. Fixes a violation of RFC 7662 §4 ("If the token has been signed, the authorization server MUST validate the signature").
+
+### Fixed
+- The introspection response now spreads the token payload first, so persisted `active`, `scope`, `client_id` and `token_type` always win over echoed claims.
+- Repository lookups in the introspect/revoke handler treat a rejection as not-found. A bare `.catch()` installs no handler, so a repository that rejects for an unknown token made introspection throw instead of returning `active: false` (RFC 7662 §2.2).
+
+### Changed
+- Token signature verification ignores `exp` and `nbf` at parse time: `active` is derived from the persisted entity, and an expired token must remain revocable.
+
 ## [4.3.5] - 2026-05-08
 
 ### Fixed
