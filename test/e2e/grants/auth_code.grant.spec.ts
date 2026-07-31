@@ -945,4 +945,61 @@ describe("authorization_code grant", () => {
       });
     });
   });
+
+  describe("revoke ownership of an unverifiable auth code", () => {
+    const attacker: OAuthClient = {
+      id: "attacker-client",
+      name: "attacker client",
+      secret: "attacker-secret",
+      redirectUris: ["http://attacker.example"],
+      allowedGrants: ["authorization_code"],
+      scopes: [],
+    };
+
+    const forgedCode = (signingKey: string, clientId: string): Promise<string> =>
+      new JwtService(signingKey).sign({
+        client_id: clientId,
+        auth_code_id: "my-super-secret-auth-code",
+        expire_time: Math.ceil(Date.now() / 1000) + 3600,
+        scopes: [],
+      });
+
+    beforeEach(async () => {
+      inMemoryDatabase.clients[attacker.id] = attacker;
+
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.user = user;
+      await grant.completeAuthorizationRequest(authorizationRequest);
+    });
+
+    it("does not revoke a victim's auth code from a forged unverifiable token", async () => {
+      grant = createGrant({ authenticateRevoke: true });
+      request = new OAuthRequest({
+        headers: {
+          authorization: `Basic ${Buffer.from(`${attacker.id}:${attacker.secret}`).toString("base64")}`,
+        },
+        body: { token: await forgedCode("not-the-servers-key", attacker.id) },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(false);
+    });
+
+    it("still revokes an unverifiable token when client authentication is disabled", async () => {
+      grant = createGrant({ authenticateRevoke: false });
+      request = new OAuthRequest({
+        body: { token: await forgedCode("a-rotated-away-signing-key", client.id) },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(true);
+    });
+  });
 });
