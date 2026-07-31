@@ -559,17 +559,27 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
 
     let providedAuthCode: string;
     let providedClientId: string;
+    let isVerified: boolean;
 
     try {
-      const { authCodeId, clientId } = await this.getAuthCodeAndClient(token);
+      const { authCodeId, clientId, verified } = await this.getAuthCodeAndClient(token);
       providedAuthCode = authCodeId;
       providedClientId = clientId;
+      isVerified = verified;
     } catch (err) {
       this.options.logger?.log(err);
       return errorResponse;
     }
 
     if (this.options.authenticateRevoke && authenticatedClient && providedAuthCode) {
+      // An unverified payload proves nothing about ownership — anyone can mint
+      // `{ auth_code_id: <victim>, client_id: <self> }` — so it can never
+      // satisfy the ownership check.
+      if (!isVerified) {
+        this.options.logger?.log("Token signature could not be verified, refusing to establish token ownership");
+        return errorResponse;
+      }
+
       if (providedClientId !== authenticatedClient.id) {
         this.options.logger?.log("Token client ID does not match authenticated client");
         return errorResponse;
@@ -594,8 +604,24 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     return { properties: payload, authCode };
   }
 
-  private async getAuthCodeAndClient(token: string): Promise<{ authCodeId: string; clientId: string }> {
+  /**
+   * Resolves the revoke endpoint's token, preferring the verified payload. RFC
+   * 7009 asks the endpoint to accept tokens it can no longer verify (a rotated
+   * signing key), so an unverified decode remains the fallback — flagged as
+   * such, because its `client_id` is attacker-controlled and the caller must
+   * not treat it as proof of ownership.
+   */
+  private async getAuthCodeAndClient(
+    token: string,
+  ): Promise<{ authCodeId: string; clientId: string; verified: boolean }> {
+    try {
+      const { payload } = await this.authCodeEncoder.resolve(token);
+      return { authCodeId: payload.auth_code_id, clientId: payload.client_id, verified: true };
+    } catch (err) {
+      this.options.logger?.log(err);
+    }
+
     const { auth_code_id, client_id } = await this.authCodeEncoder.unverifiedDecode(token);
-    return { authCodeId: auth_code_id, clientId: client_id };
+    return { authCodeId: auth_code_id, clientId: client_id, verified: false };
   }
 }
