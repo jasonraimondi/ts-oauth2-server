@@ -10,6 +10,7 @@ import {
 import {
   AuthorizationRequest,
   DateInterval,
+  ErrorType,
   ImplicitGrant,
   ITokenData,
   JwtService,
@@ -135,6 +136,26 @@ describe("implicit grant", () => {
 
       // assert
       await expect(authorizationRequest).rejects.toThrowError(/Check the `client_id` parameter/);
+    });
+
+    it("throws if the client is not allowed the implicit grant", async () => {
+      // arrange
+      client.allowedGrants = ["authorization_code"];
+      inMemoryDatabase.clients[client.id] = client;
+
+      request = new OAuthRequest({
+        query: {
+          response_type: "token",
+          client_id: client.id,
+          redirect_uri: "http://example.com",
+        },
+      });
+
+      // act
+      const authorizationRequest = grant.validateAuthorizationRequest(request);
+
+      // assert
+      await expect(authorizationRequest).rejects.toMatchObject({ errorType: ErrorType.UnauthorizedClient });
     });
 
     it("throws if missing redirect_uri", async () => {

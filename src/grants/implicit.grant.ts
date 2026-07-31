@@ -37,6 +37,16 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidClient();
     }
 
+    // The implicit grant mints its access token at the authorization endpoint,
+    // so it never reaches `validateClient` — without this guard enabling the
+    // grant for one client enables it for every registered client. There is no
+    // client secret on a front-channel authorization request, so grant
+    // membership is read from the client itself rather than through
+    // `isClientValid`, which would reject any client registered with a secret.
+    if (!client.allowedGrants.includes(this.identifier)) {
+      throw OAuthException.unauthorizedClient();
+    }
+
     const redirectUri = this.getRedirectUri(request, client);
 
     const bodyScopes = this.getQueryStringParameter("scope", request, []);
