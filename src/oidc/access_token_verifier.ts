@@ -77,6 +77,20 @@ export class AccessTokenVerifier {
       throw OAuthException.invalidToken("Access token issuer mismatch");
     }
 
+    // Lifetime is asserted here rather than left to the injected JwtInterface: a
+    // consumer service that verifies with `ignoreExpiration` (or omits `exp`
+    // entirely, which RFC 9068 §2.2 forbids) would otherwise let an expired
+    // token authenticate a resource request.
+    const now = Math.floor(Date.now() / 1000);
+
+    if (typeof payload.exp !== "number" || payload.exp <= now) {
+      throw OAuthException.invalidToken("Access token is expired");
+    }
+
+    if (typeof payload.nbf === "number" && payload.nbf > now) {
+      throw OAuthException.invalidToken("Access token is not yet valid");
+    }
+
     return payload as AccessTokenPayload;
   }
 }

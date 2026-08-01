@@ -37,6 +37,16 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
       throw OAuthException.invalidClient();
     }
 
+    // The implicit grant mints its access token at the authorization endpoint,
+    // so it never reaches `validateClient` — without this guard enabling the
+    // grant for one client enables it for every registered client. There is no
+    // client secret on a front-channel authorization request, so grant
+    // membership is read from the client itself rather than through
+    // `isClientValid`, which would reject any client registered with a secret.
+    if (!client.allowedGrants.includes(this.identifier)) {
+      throw OAuthException.unauthorizedClient();
+    }
+
     const redirectUri = this.getRedirectUri(request, client);
 
     const bodyScopes = this.getQueryStringParameter("scope", request, []);
@@ -99,11 +109,7 @@ export class ImplicitGrant extends AbstractAuthorizedGrant {
     // Route through the shared seam (req undefined — implicit has no request to
     // read `audience` from) so the OIDC `iss` claim is injected; otherwise the
     // at+jwt access token is rejected by AccessTokenVerifier on issuer mismatch.
-    const extraFields = await this.extraJwtFields(
-      undefined,
-      authorizationRequest.client,
-      authorizationRequest.user,
-    );
+    const extraFields = await this.extraJwtFields(undefined, authorizationRequest.client, authorizationRequest.user);
 
     const encryptedAccessToken = await this.encryptAccessToken(
       authorizationRequest.client,

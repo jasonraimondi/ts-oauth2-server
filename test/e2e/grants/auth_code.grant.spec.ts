@@ -17,6 +17,7 @@ import {
   AuthorizationServerOptions,
   base64urlencode,
   DateInterval,
+  ErrorType,
   ExtraAccessTokenFieldArgs,
   IAuthCodePayload,
   JwtService,
@@ -841,6 +842,91 @@ describe("authorization_code grant", () => {
     });
   });
 
+  describe("pkce enforcement authority", () => {
+    let authorizationRequest: AuthorizationRequest;
+    let authorizationCode: string;
+
+    const issueCode = async (challenge?: string): Promise<string> => {
+      authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.user = user;
+      if (challenge) {
+        authorizationRequest.codeChallenge = challenge;
+        authorizationRequest.codeChallengeMethod = "S256";
+      }
+      const redirectResponse = await grant.completeAuthorizationRequest(authorizationRequest);
+      const query = new URLSearchParams(redirectResponse.headers.location.split("?")[1]);
+      return String(query.get("code"));
+    };
+
+    const redeem = (body: Record<string, string> = {}) =>
+      grant.respondToAccessTokenRequest(
+        new OAuthRequest({
+          body: {
+            grant_type: "authorization_code",
+            code: authorizationCode,
+            redirect_uri: authorizationRequest.redirectUri,
+            client_id: client.id,
+            ...body,
+          },
+        }),
+        new DateInterval("1h"),
+      );
+
+    const persistedAuthCodeReturns = (overrides: Partial<OAuthAuthCode>): void => {
+      vi.spyOn(inMemoryAuthCodeRepository, "getByIdentifier").mockImplementation(async (code: string) => ({
+        ...inMemoryDatabase.authCodes[code],
+        ...overrides,
+      }));
+    };
+
+    beforeEach(async () => {
+      grant = createGrant({ issuer: "TestIssuer", useOpaqueAuthorizationCodes: false });
+      authorizationCode = await issueCode(codeChallenge);
+    });
+
+    it("still requires a code verifier when the persisted auth code omits the challenge", async () => {
+      persistedAuthCodeReturns({ codeChallenge: undefined, codeChallengeMethod: undefined });
+
+      await expect(redeem()).rejects.toThrowError(/code_verifier/);
+    });
+
+    it("verifies the code verifier against the signed challenge when the persisted auth code omits it", async () => {
+      persistedAuthCodeReturns({ codeChallenge: undefined, codeChallengeMethod: undefined });
+
+      expectTokenResponse(await redeem({ code_verifier: codeVerifier }));
+    });
+
+    it("rejects a wrong code verifier when the persisted auth code omits the challenge", async () => {
+      persistedAuthCodeReturns({ codeChallenge: undefined, codeChallengeMethod: undefined });
+
+      await expect(redeem({ code_verifier: codeVerifier + "broken" })).rejects.toThrowError(
+        /Failed to verify code challenge/,
+      );
+    });
+
+    it("rejects when the persisted challenge differs from the signed challenge", async () => {
+      persistedAuthCodeReturns({ codeChallenge: "8vAQzSPKJEVJPWD5nsNZQNzq11rLNTh_2xPr2QQfyF0" });
+
+      await expect(redeem({ code_verifier: codeVerifier })).rejects.toMatchObject({
+        errorType: ErrorType.InvalidGrant,
+      });
+    });
+
+    it("rejects redemption when pkce is required and neither source carries a challenge", async () => {
+      authorizationCode = await issueCode();
+
+      await expect(redeem()).rejects.toMatchObject({ errorType: ErrorType.InvalidGrant });
+    });
+
+    it("allows redemption without a challenge when pkce is not required", async () => {
+      grant = createGrant({ issuer: "TestIssuer", useOpaqueAuthorizationCodes: false, requiresPKCE: false });
+      authorizationCode = await issueCode();
+
+      expectTokenResponse(await redeem());
+    });
+  });
+
   describe("OIDC nonce, auth_time and max_age threading", () => {
     const oidcOptions: OidcOptions = {
       authorizationEndpoint: "https://issuer.example/authorize",
@@ -1514,6 +1600,63 @@ describe("authorization_code grant", () => {
         });
         await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(false);
       });
+    });
+  });
+
+  describe("revoke ownership of an unverifiable auth code", () => {
+    const attacker: OAuthClient = {
+      id: "attacker-client",
+      name: "attacker client",
+      secret: "attacker-secret",
+      redirectUris: ["http://attacker.example"],
+      allowedGrants: ["authorization_code"],
+      scopes: [],
+    };
+
+    const forgedCode = (signingKey: string, clientId: string): Promise<string> =>
+      new JwtService(signingKey).sign({
+        client_id: clientId,
+        auth_code_id: "my-super-secret-auth-code",
+        expire_time: Math.ceil(Date.now() / 1000) + 3600,
+        scopes: [],
+      });
+
+    beforeEach(async () => {
+      inMemoryDatabase.clients[attacker.id] = attacker;
+
+      const authorizationRequest = new AuthorizationRequest("authorization_code", client, "http://example.com");
+      authorizationRequest.isAuthorizationApproved = true;
+      authorizationRequest.codeChallengeMethod = "S256";
+      authorizationRequest.codeChallenge = codeChallenge;
+      authorizationRequest.user = user;
+      await grant.completeAuthorizationRequest(authorizationRequest);
+    });
+
+    it("does not revoke a victim's auth code from a forged unverifiable token", async () => {
+      grant = createGrant({ authenticateRevoke: true });
+      request = new OAuthRequest({
+        headers: {
+          authorization: `Basic ${Buffer.from(`${attacker.id}:${attacker.secret}`).toString("base64")}`,
+        },
+        body: { token: await forgedCode("not-the-servers-key", attacker.id) },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(false);
+    });
+
+    it("still revokes an unverifiable token when client authentication is disabled", async () => {
+      grant = createGrant({ authenticateRevoke: false });
+      request = new OAuthRequest({
+        body: { token: await forgedCode("a-rotated-away-signing-key", client.id) },
+      });
+
+      const response = await grant.respondToRevokeRequest(request);
+
+      expect(response.status).toBe(200);
+      await expect(inMemoryAuthCodeRepository.isRevoked("my-super-secret-auth-code")).resolves.toBe(true);
     });
   });
 });
