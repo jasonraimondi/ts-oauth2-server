@@ -99,8 +99,11 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
   }
 
   async resolve(rawCode: string): Promise<AuthCodeEncoderResolved> {
-    const properties = await this.decryptFn(rawCode).catch(e => {
-      throw OAuthException.badRequest(e?.message ?? "malformed jwt");
+    // The jsonwebtoken failure message ("invalid signature", "jwt malformed",
+    // …) is not echoed — it tells a caller probing the endpoint exactly how far
+    // its forged code got.
+    const properties = await this.decryptFn(rawCode).catch(() => {
+      throw OAuthException.badRequest("malformed jwt");
     });
 
     if (!isAuthCodePayload(properties)) {

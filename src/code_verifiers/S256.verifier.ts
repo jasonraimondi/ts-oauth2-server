@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 
 import { base64urlencode } from "../utils/base64.js";
+import { timingSafeCompare } from "../utils/compare.js";
 import { ICodeChallenge } from "./verifier.js";
 
 export class S256Verifier implements ICodeChallenge {
@@ -8,6 +9,6 @@ export class S256Verifier implements ICodeChallenge {
 
   verifyCodeChallenge(codeVerifier: string, codeChallenge: string): boolean {
     const codeHash = createHash("sha256").update(codeVerifier).digest();
-    return codeChallenge === base64urlencode(codeHash);
+    return timingSafeCompare(codeChallenge, base64urlencode(codeHash));
   }
 }

@@ -84,6 +84,19 @@ describe("JwtAuthCodeEncoder", () => {
     await expect(encoder.resolve(wireCode)).rejects.toBeInstanceOf(OAuthException);
   });
 
+  it("does not echo the jwt library failure message", async () => {
+    const otherEncoder = buildJwtEncoder(new JwtService("different-key"));
+
+    const authCode = buildAuthCode();
+    const request = new AuthorizationRequest("authorization_code", authCode.client, authCode.redirectUri ?? undefined);
+
+    const wireCode = await otherEncoder.issue(authCode, request, Math.ceil(authCode.expiresAt.getTime() / 1000));
+
+    await expect(encoder.resolve(wireCode)).rejects.toMatchObject({
+      message: expect.not.stringContaining("invalid signature"),
+    });
+  });
+
   it("unverifiedDecode() returns auth_code_id and client_id without verifying the signature", async () => {
     const otherEncoder = buildJwtEncoder(new JwtService("different-key"));
 

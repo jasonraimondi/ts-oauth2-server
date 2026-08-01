@@ -40,6 +40,12 @@ interface OAuthAuthCodeRepository {
 }
 ```
 
+:::danger PKCE depends on `getByIdentifier` round-tripping the challenge
+
+`getByIdentifier` **MUST** return the `codeChallenge` and `codeChallengeMethod` that were persisted with the code. With opaque authorization codes the stored row is the only record of the challenge, so a projection that omits those columns leaves the server unable to enforce PKCE. Redemption then fails with `invalid_grant` while `requiresPKCE` is on (the default) rather than issuing tokens without a verifier.
+
+:::
+
 ## Client Repository
 
 OAuthClientRepository interface is used for managing OAuth clients. It includes methods for fetching a client entity from storage by the client ID and for validating the client using the grant type and client secret.
@@ -59,6 +65,8 @@ interface OAuthClientRepository {
   ): Promise<boolean>;
 }
 ```
+
+`getByIdentifier` **MUST** throw for an unknown `client_id`. A repository that resolves `undefined` instead is treated as a failed client authentication (`invalid_client`), not a server error.
 
 ## Scope Repository
 

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.7] - 2026-07-31
+
+### Security
+- **PKCE is no longer skippable through the auth-code repository.** The PKCE check decided whether it applied at all from the *persisted* auth-code entity, so a repository that stored `codeChallenge` but omitted it on read silently disabled PKCE for every flow while `/authorize` still advertised S256 — an intercepted authorization code redeemed for full tokens with no `code_verifier`. The challenge on the resolved (signed, verified) code payload is now the enforcement authority, the persisted copy is cross-checked in constant time when both carry one, the challenge method is read from whichever source supplied the challenge, and a code with no challenge in either source is rejected with `invalid_grant` while `requiresPKCE` is on (the default). `authCodeRepository.getByIdentifier` MUST round-trip `codeChallenge`/`codeChallengeMethod` — with opaque codes it is the only record of them.
+- **The implicit grant now enforces `client.allowedGrants`.** It mints its access token at the authorization endpoint and so never reached `validateClient`, which meant enabling `implicit` for a single client enabled it for every registered client. An authorization request from a client without `implicit` in its allowed grants is rejected with `unauthorized_client`.
+- **Auth-code revocation establishes ownership from the verified payload.** The revoke endpoint read `auth_code_id` and `client_id` from an unverified decode, so an authenticated client could present a self-signed `{ auth_code_id: <victim's code>, client_id: <its own id> }` and revoke a code it did not own. The unverified decode remains as the RFC 7009 fallback for a code signed by a rotated-away key, but it can no longer satisfy the ownership check: with `authenticateRevoke` on, an unverifiable code is now a silent no-op.
+- **An unresolved client is `invalid_client`, not a 500.** `clientRepository.getByIdentifier` is contracted to throw for an unknown client; a repository resolving `undefined` instead crashed the confidentiality check, turning an unknown `client_id` into a 500 that worked as a client-existence oracle.
+- **500 responses no longer echo internal exception messages.** All four adapters copied a thrown `Error.message` into the response body, and the JWT auth-code encoder echoed the jsonwebtoken failure string (`invalid signature`, `jwt malformed`, …), which acts as a format oracle for a forged code. Both emit a fixed message; the original is still available through `options.logger`.
+- Code challenges are compared in constant time, in both PKCE verifiers and the signed/persisted cross-check.
+
 ## [4.3.6] - 2026-07-30
 
 ### Security

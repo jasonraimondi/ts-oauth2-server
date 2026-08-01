@@ -121,8 +121,10 @@ export function handleH3Error(e: unknown | OAuthException, event: H3Event): void
     return;
   }
 
-  const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred";
-  const oauthError = OAuthException.internalServerError(errorMessage);
+  // The thrown message is deliberately not echoed: it can carry stack-adjacent
+  // internals or a JWT-library string that acts as a format oracle. Consumers
+  // log the original via `options.logger`.
+  const oauthError = OAuthException.internalServerError("An unexpected error occurred");
 
   setResponseStatus(event, oauthError.status);
   setHeaders(event, { "content-type": "application/json" });

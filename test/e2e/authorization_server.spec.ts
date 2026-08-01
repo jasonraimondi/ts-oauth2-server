@@ -32,7 +32,6 @@ import { expectTokenResponse } from "./_helpers/assertions.js";
 import { CustomGrant } from "../../src/grants/abstract/custom.grant.js";
 import { DEFAULT_AUTHORIZATION_SERVER_OPTIONS } from "../../src/options.js";
 import { OAuthAuthCode } from "@jmondi/oauth2-server";
-import { testingJwtService } from "./_helpers/in_memory/oauth_authorization_server.js";
 
 const codeChallenge = "hA3IxucyJC0BsZH9zdYvGeK0ck2dC-seLBn20l18Iws";
 
@@ -819,10 +818,17 @@ describe("authorization_server", () => {
         };
         inMemoryDatabase.authCodes[authCode.code] = authCode;
 
-        const token = await testingJwtService.sign({
-          auth_code_id: authCode.code,
-          client_id: client.id,
-        });
+        // Signed with the server's own secret — ownership of an auth code is
+        // established from the verified payload.
+        const token = jwt.sign(
+          {
+            auth_code_id: authCode.code,
+            client_id: client.id,
+            expire_time: Math.ceil(authCode.expiresAt.getTime() / 1000),
+            scopes: [],
+          },
+          "secret-key",
+        );
 
         request.body = {
           token,
