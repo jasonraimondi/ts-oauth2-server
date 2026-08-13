@@ -104,4 +104,4 @@ This project is inspired by the [PHP League's OAuth2 Server](https://oauth2.thep
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=jasonraimondi/ts-oauth2-server&type=Timeline)](https://star-history.com/#jasonraimondi/ts-oauth2-server&Timeline)
+[![Star History Chart](https://star-history.dera.page/svg?repos=jasonraimondi/ts-oauth2-server&type=Timeline)](https://star-history.dera.page/#jasonraimondi/ts-oauth2-server&Timeline)
