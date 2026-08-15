@@ -4,7 +4,9 @@ title: /authorize
 
 # The Authorize Endpoint
 
-The `/authorize` endpoint is a front channel endpoint. It starts the authorization procedure and issues an authorization code. The Client then sends this code to the `/token` endpoint and receives an Access Token.
+The `/authorize` endpoint starts the authorization procedure and issues an authorization code. The Client then sends this code to the `/token` endpoint and receives an Access Token.
+
+This endpoint operates through the browser of the user. The Client redirects the user here, and your server redirects the user back to the Client. Thus each parameter is visible in the URL, the browser history keeps it, and the user can change it. Never send the client secret to this endpoint.
 
 :::info
 - You need this endpoint only for the authorization code grant.

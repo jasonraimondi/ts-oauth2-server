@@ -4,7 +4,9 @@ title: /token/revoke
 
 # The Revoke Endpoint
 
-The `/token/revoke` endpoint is a back channel endpoint. It revokes a token that the server issued.
+The `/token/revoke` endpoint revokes a token that the server issued.
+
+The Client calls this endpoint directly, from its server to your server. The browser is not part of the request, and thus the Client can safely send its client secret.
 
 :::info
 - This endpoint is optional.

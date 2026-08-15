@@ -4,7 +4,9 @@ title: /token/introspect
 
 # The Introspect Endpoint
 
-The `/token/introspect` endpoint is a back channel endpoint. It returns the Active state and the metadata of a token ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). This endpoint does not revoke a token. To revoke a token, use the [`/token/revoke`](./revoke.md) endpoint.
+The `/token/introspect` endpoint returns the Active state and the metadata of a token ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). This endpoint does not revoke a token. To revoke a token, use the [`/token/revoke`](./revoke.md) endpoint.
+
+The Client calls this endpoint directly, from its server to your server. The browser is not part of the request, and thus the Client can safely send its client secret.
 
 :::info
 - This endpoint is optional.
@@ -58,7 +60,7 @@ A complete introspection request contains these parameters:
 
 By default, the Client authenticates with the credentials of a Confidential Client: the `client_id` and the `client_secret`. The server rejects a Public Client. See [Configure](#configure).
 
-An authenticated Client can introspect **any** token. Introspection is a back channel call, and a resource server usually makes it. Thus the endpoint does not limit a Client to the tokens that the server issued to that Client. The Client does **not** need permission for the `client_credentials` grant.
+An authenticated Client can introspect **any** token. A resource server usually makes this call. Thus the endpoint does not limit a Client to the tokens that the server issued to that Client. The Client does **not** need permission for the `client_credentials` grant.
 
 :::: details View sample introspect request
 

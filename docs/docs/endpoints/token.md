@@ -4,7 +4,9 @@ title: /token
 
 # The Token Endpoint
 
-The `/token` endpoint is a back channel endpoint. It issues an Access Token, and it supports the grant types from the OAuth 2.0 specifications.
+The `/token` endpoint issues an Access Token, and it supports the grant types from the OAuth 2.0 specifications.
+
+The Client calls this endpoint directly, from its server to your server. The browser is not part of the request, and thus the Client can safely send its client secret.
 
 :::info
 - Send each request to `/token` with the HTTP POST method. Include the client credentials in the `Authorization` header, or in the request body.
