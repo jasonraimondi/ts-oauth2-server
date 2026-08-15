@@ -21,6 +21,10 @@ A token used to obtain a new Access Token. In v1 the refresh flow is OIDC-unawar
 The state introspection reports for a token: its persisted record exists, the stored expiry is in the future, and it has not been revoked. Determined entirely from the server's own records — never from the presented token's claims, which a token can only be trusted to carry after its signature verifies.
 _Avoid_: equating "active" with "the JWT's `exp` hasn't passed"; the server's stored state is the truth.
 
+**Opaque Token**:
+A token the server returns as a random string instead of a signed JWT, enabled per kind by `useOpaqueAuthorizationCodes` and `useOpaqueRefreshTokens`. What matters is not the encoding but where authority moves: with an opaque token the persisted row is the *only* record, so whatever a JWT would have carried must be written and read back. An **Opaque Refresh Token** resolves through `getByRefreshToken` for revocation and introspection. An **Opaque Authorization Code** has its payload rebuilt from the stored entity, so a repository that drops `nonce`, `authTime`, or the code challenge loses it across the authorize → token round trip.
+_Avoid_: treating opaque vs JWT as a formatting choice; it relocates the source of truth.
+
 ### Claims
 
 **Protocol Claims**:
@@ -31,6 +35,18 @@ User attributes (`name`, `email`, …) authorized by the granted scopes per the 
 
 **Claims Resolver**:
 The consumer-supplied `getUserClaims` callback that returns a user's attributes. The library filters its output down to what the granted scopes authorize.
+
+### Scopes
+
+**Granted Scopes**:
+The scopes a token actually carries — the set `OAuthScopeRepository.finalize()` returns. Distinct from the **Requested Scopes** a **Client** asks for, because `finalize()` may add or remove scopes, so the two sets need not match. Every downstream decision reads the granted set: the `scope` field of the token response, the filtering of **Scope-Derived Claims** at **UserInfo**, and the `openid` gate on **ID Token** issuance.
+_Avoid_: bare "the scopes" wherever the requested and granted sets could differ; and "allowed scopes" for either — that is the **Client**'s registration, a third set again.
+
+### Authorization codes
+
+**Enforcement Authority**:
+Which copy of the PKCE code challenge decides a redemption: `validatedPayload.code_challenge ?? authCode.codeChallenge`. The challenge inside the signed code outranks the one on the persisted row. When both carry a challenge they must match under a constant-time compare, and the challenge *method* is read from whichever source supplied the challenge, so a rewritten row cannot downgrade S256 to plain. When neither carries one, redemption fails `invalid_grant` while `requiresPKCE` is set. Both guards are unconditional — there is no option restoring the older row-decides behaviour (ADR 0009).
+_Avoid_: "the auth code's challenge" as though there were one copy; in JWT mode there are two, and the row is not the authority.
 
 ### Endpoints & documents
 
@@ -61,6 +77,10 @@ _Avoid_: "prefix matching", "ignoring port", "partial matching" — none of thes
 
 ### Roles
 
+**Consumer**:
+The developer who integrates this library — the party that writes the repositories, supplies the `JwtService` or a custom `JwtInterface`, wires the routes, and sets the options. A **Client** is a registered application requesting tokens *from* the consumer's server; the two are different parties. Every place the library delegates to the consumer is a seam where it must fail closed rather than trust (ADR 0004).
+_Avoid_: "client" for the integrator, and "user" for either — the user is the resource owner.
+
 **Client**:
 A registered application requesting tokens. In OIDC contexts this is also called the "Relying Party (RP)" — same entity.
 _Avoid_: introducing "Relying Party" as if it were a separate concept; it is the OIDC name for **Client**.
@@ -84,6 +104,9 @@ The authorization server's identity — a single URL that is simultaneously the 
 - **UserInfo** trusts an **Access Token**; the **Claims Resolver** supplies the attributes it returns.
 - The **JWKS** publishes the public half of the one keypair that signs every **Access Token** and **ID Token**.
 - An authorization request's redirect URI must satisfy **Exact Matching** against one of the **Client**'s **Registered Redirect URIs**; omitting it is allowed only when exactly one is registered.
+- A **Consumer** implements every repository and may supply a custom `JwtInterface`; the library fails closed at each of those seams instead of trusting them.
+- **Requested Scopes** become **Granted Scopes** at `finalize()`; every later authorization decision reads the granted set.
+- An **Opaque Token** makes the persisted row the sole record, which is precisely why **Enforcement Authority** needs its second guard — an opaque code rebuilds its payload *from* that row.
 
 ## Example dialogue
 
@@ -100,3 +123,6 @@ The authorization server's identity — a single URL that is simultaneously the 
 - "audience" / `aud` means different things on an Access Token (resource) vs an ID Token (client) — always qualify which token.
 - "secure client" / "insecure client" were used for the secret-presence distinction — resolved into **Confidential Client** vs **Public Client**.
 - "matching" a redirect URI historically meant ignoring port and query for every host (and tests asserted it as a feature) — resolved to **Exact Matching**, with port flexibility owned exclusively by the **Loopback Redirect URI** concept.
+- "client" was used for both the developer integrating the library and the registered application requesting tokens — resolved into **Consumer** vs **Client**. This file itself used "consumer" undefined before the term was pinned.
+- "scopes" was used for both the set a **Client** requests and the set `finalize()` returns — resolved into **Requested Scopes** vs **Granted Scopes**.
+- "opaque" read as a token-encoding option — resolved into a statement about authority: the persisted row becomes the only record, which is what makes the dropped-column failures (`nonce`, `authTime`, code challenge) possible.
