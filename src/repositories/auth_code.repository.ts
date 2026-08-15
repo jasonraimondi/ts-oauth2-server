@@ -3,6 +3,13 @@ import { OAuthClient } from "../entities/client.entity.js";
 import { OAuthScope } from "../entities/scope.entity.js";
 import { OAuthUser } from "../entities/user.entity.js";
 
+/**
+ * Storage for authorization codes. Required by the `authorization_code` grant
+ * only, and passed to {@link AuthorizationServer.enableGrantType} when you
+ * enable that grant.
+ *
+ * @see https://tsoauth2server.com/docs/getting_started/repositories
+ */
 export interface OAuthAuthCodeRepository {
   /**
    * Fetches an authorization code entity from storage by its identifier.

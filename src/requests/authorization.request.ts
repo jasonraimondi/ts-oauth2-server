@@ -5,6 +5,25 @@ import { OAuthUser } from "../entities/user.entity.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { GrantIdentifier } from "../grants/abstract/grant_identifier.js";
 
+/**
+ * A validated `/authorize` request, passed between the two halves of the
+ * authorization code and implicit flows.
+ *
+ * {@link AuthorizationServer.validateAuthorizationRequest} returns one. Set
+ * `user` to the authenticated end-user and `isAuthorizationApproved` to their
+ * consent decision, then pass it to
+ * {@link AuthorizationServer.completeAuthorizationRequest}.
+ *
+ * @example
+ * ```ts
+ * const authRequest = await authorizationServer.validateAuthorizationRequest(req);
+ * authRequest.user = { id: "abc" };
+ * authRequest.isAuthorizationApproved = true;
+ * const oauthResponse = await authorizationServer.completeAuthorizationRequest(authRequest);
+ * ```
+ *
+ * @see https://tsoauth2server.com/docs/endpoints/authorize
+ */
 export class AuthorizationRequest {
   scopes: OAuthScope[] = [];
   isAuthorizationApproved: boolean;

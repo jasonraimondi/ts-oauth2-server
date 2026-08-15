@@ -26,6 +26,11 @@ import { GrantIdentifier } from "./abstract/grant.interface.js";
 import { AuthorizationServerOptions } from "../options.js";
 import { AuthCodeEncoder, JwtAuthCodeEncoder, OpaqueAuthCodeEncoder } from "./encoders/auth_code_encoder.js";
 
+/**
+ * The payload of an authorization code. In JWT mode the server signs it into
+ * the code itself; in opaque mode it is rebuilt from the persisted
+ * {@link OAuthAuthCode}, which is why a repository must store every field.
+ */
 export interface PayloadAuthCode {
   client_id: string;
   auth_code_id: string;
@@ -41,10 +46,32 @@ export interface PayloadAuthCode {
   max_age?: number | null;
 }
 
+/** The PKCE `code_verifier` syntax: 43 to 128 unreserved characters (RFC 7636 §4.1). */
 export const REGEXP_CODE_VERIFIER = /^[A-Za-z0-9-._~]{43,128}$/;
 
+/** The bearer token syntax of RFC 6750 §2.1. */
 export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-._~+\/]+=*/;
 
+/**
+ * The `authorization_code` grant (RFC 6749 §4.1) — the flow for clients that
+ * act for an end-user.
+ *
+ * The client is sent to `/authorize`, the end-user approves, and the server
+ * redirects back with an authorization code. The client then exchanges that
+ * code at `/token` for an access token. Codes live 15 minutes.
+ *
+ * PKCE is required by default (RFC 7636). A code is revoked as it is redeemed,
+ * and a second redemption calls the optional
+ * {@link OAuthTokenRepository.revokeDescendantsOf} so every token issued from
+ * that code can be revoked too (RFC 6749 §4.1.2). When the OIDC block is
+ * configured and the `openid` scope is granted, the token response also carries
+ * an ID token.
+ *
+ * Enable it with
+ * `enableGrantType({ grant: "authorization_code", authCodeRepository, userRepository })`.
+ *
+ * @see https://tsoauth2server.com/docs/grants/authorization_code
+ */
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantIdentifier = "authorization_code";
 

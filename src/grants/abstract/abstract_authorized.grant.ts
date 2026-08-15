@@ -4,6 +4,15 @@ import { RequestInterface } from "../../requests/request.js";
 import { AbstractGrant } from "./abstract.grant.js";
 import { tryParseUrl, redirectUriMatches } from "../../utils/urls.js";
 
+/**
+ * The base class for the grants that use the `/authorize` endpoint — the
+ * authorization code grant and the implicit grant. It adds redirect URI
+ * resolution and validation, and builds the redirect URL the end-user is sent
+ * back to.
+ *
+ * A requested redirect URI must match one the client registered, exactly, after
+ * URL normalization. Only the port of an `http` loopback URI may differ.
+ */
 export abstract class AbstractAuthorizedGrant extends AbstractGrant {
   protected makeRedirectUrl(
     uri: string,

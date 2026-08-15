@@ -1,3 +1,29 @@
+/**
+ * Adapter between Express and the authorization server.
+ *
+ * The functions here convert an Express `Request` into an
+ * {@link OAuthRequest | OAuthRequest}, and send an
+ * {@link OAuthResponse | OAuthResponse} — or an {@link OAuthException} — back
+ * through an Express `Response`.
+ *
+ * @example
+ * ```ts
+ * import { handleExpressError, handleExpressResponse } from "@jmondi/oauth2-server/express";
+ *
+ * app.post("/token", async (req, res) => {
+ *   try {
+ *     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+ *     return handleExpressResponse(res, oauthResponse);
+ *   } catch (e) {
+ *     handleExpressError(e, res);
+ *   }
+ * });
+ * ```
+ *
+ * @see https://tsoauth2server.com/docs/adapters/express
+ * @module
+ */
+
 import type { Request, Response } from "express";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 

@@ -1,6 +1,14 @@
 import { createHash } from "crypto";
 import { roundToSeconds } from "../utils/time.js";
 
+/**
+ * The claims of an issued ID token. The Protocol Claims are always present, and
+ * the index signature carries whatever your {@link OidcGetIdTokenClaims} hook
+ * added.
+ *
+ * `aud` is the client — deliberately different from an access token's resource
+ * audience — and `exp` reuses the access token's expiry.
+ */
 export interface IdTokenClaims {
   iss: string;
   sub: string;
@@ -20,6 +28,7 @@ export interface IdTokenClaims {
  */
 export const PROTOCOL_CLAIM_NAMES = ["iss", "sub", "aud", "exp", "iat", "at_hash", "nonce", "auth_time"] as const;
 
+/** The values {@link buildIdTokenClaims} needs to assemble an ID token. */
 export interface IdTokenClaimsInput {
   issuer: string;
   clientId: string;

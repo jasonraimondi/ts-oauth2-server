@@ -1,6 +1,13 @@
 import type { OidcOptions } from "../options.js";
 import { OIDC_AUTO_RECOGNIZED_SCOPES } from "./claims.js";
 
+/**
+ * The `.well-known/openid-configuration` JSON, per OpenID Connect Discovery
+ * 1.0. {@link AuthorizationServer.openidConfiguration} serves it. The index
+ * signature carries any extra metadata supplied through `oidc.metadata`.
+ *
+ * @see https://tsoauth2server.com/docs/endpoints/discovery
+ */
 export interface OidcDiscoveryDocument {
   issuer: string;
   authorization_endpoint: string;

@@ -7,6 +7,17 @@ import { OAuthToken } from "../entities/token.entity.js";
 import { isClientConfidential, OAuthClient } from "../entities/client.entity.js";
 import type { OAuthTokenIntrospectionResponse } from "../authorization_server.js";
 
+/**
+ * The `client_credentials` grant (RFC 6749 §4.4) — the flow for machine-to-machine
+ * clients that act for themselves. The client presents its own credentials at
+ * `/token` and receives an access token with no user attached.
+ *
+ * This grant also hosts the shared `/token/introspect` (RFC 7662) and
+ * `/token/revoke` (RFC 7009) handlers, so both endpoints work whenever it is
+ * enabled. The {@link AuthorizationServer} constructor enables it.
+ *
+ * @see https://tsoauth2server.com/docs/grants/client_credentials
+ */
 export class ClientCredentialsGrant extends AbstractGrant {
   readonly identifier = "client_credentials";
 

@@ -7,6 +7,20 @@ import { DateInterval } from "../utils/date_interval.js";
 import { getSecondsUntil } from "../utils/time.js";
 import { AbstractAuthorizedGrant } from "./abstract/abstract_authorized.grant.js";
 
+/**
+ * The `implicit` grant (RFC 6749 §4.2). It returns the access token straight
+ * from `/authorize` in the redirect fragment, and rejects every `/token`
+ * request. Access tokens live 1 hour and no refresh token is issued.
+ *
+ * The grant is not recommended: the token is exposed to the browser and there
+ * is no client authentication. Use the authorization code grant with PKCE
+ * instead. Set `implicitRedirectMode` to `query` only for legacy clients that
+ * cannot read a fragment.
+ *
+ * Enable it with `enableGrantType("implicit")`.
+ *
+ * @see https://tsoauth2server.com/docs/grants/implicit
+ */
 export class ImplicitGrant extends AbstractAuthorizedGrant {
   readonly identifier = "implicit";
 

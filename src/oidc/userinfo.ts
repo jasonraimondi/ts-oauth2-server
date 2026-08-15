@@ -9,6 +9,15 @@ import { oidcSubjectIdentifier } from "./subject.js";
 
 const WWW_AUTHENTICATE = "www-authenticate";
 
+/**
+ * What {@link handleUserInfoRequest} needs to serve a UserInfo request.
+ * {@link AuthorizationServer.userInfo} assembles this from its own options and
+ * token repository.
+ *
+ * The two optional repository hooks decide how much revocation the endpoint can
+ * see: without `getByAccessToken` it cannot detect a deleted token, and without
+ * `isAccessTokenRevoked` it cannot detect a live row that is marked revoked.
+ */
 export interface UserInfoDependencies {
   verifier: AccessTokenVerifier;
   oidc: OidcOptions;

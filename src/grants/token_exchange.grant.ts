@@ -11,6 +11,12 @@ import { OAuthUser } from "../entities/user.entity.js";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 import { OAuthScope } from "../entities/scope.entity.js";
 
+/**
+ * What the token exchange grant passes to your
+ * {@link ProcessTokenExchangeFn}: the presented subject token and its type,
+ * the Requested Scopes, and the optional actor token that names the party
+ * acting for the subject. An actor token must come with its type.
+ */
 export type ProcessTokenExchangeArgs = {
   resource?: string;
   audience?: string;
@@ -20,8 +26,29 @@ export type ProcessTokenExchangeArgs = {
   subjectTokenType: `urn:${string}:oauth:token-type:${string}`;
 } & ({ actorToken: string; actorTokenType: string } | { actorToken?: never; actorTokenType?: never });
 
+/**
+ * Validates a token exchange request (RFC 8693). The library does not interpret
+ * the presented tokens, so this callback must verify them and return the user
+ * the new access token belongs to. Return `undefined`, or throw an
+ * {@link OAuthException}, to refuse the exchange.
+ *
+ * @see https://tsoauth2server.com/docs/grants/token_exchange
+ */
 export type ProcessTokenExchangeFn = (args: ProcessTokenExchangeArgs) => Promise<OAuthUser | undefined>;
 
+/**
+ * The `urn:ietf:params:oauth:grant-type:token-exchange` grant (RFC 8693). A
+ * client presents a subject token — and optionally an actor token — at `/token`
+ * and receives an access token in exchange. Use it for impersonation and
+ * delegation between services.
+ *
+ * The library does not interpret the presented tokens. Your
+ * {@link ProcessTokenExchangeFn} validates them and returns the user the new
+ * token belongs to. Enable the grant with
+ * `enableGrantType({ grant: "urn:ietf:params:oauth:grant-type:token-exchange", processTokenExchange })`.
+ *
+ * @see https://tsoauth2server.com/docs/grants/token_exchange
+ */
 export class TokenExchangeGrant extends AbstractGrant {
   readonly identifier = "urn:ietf:params:oauth:grant-type:token-exchange";
 

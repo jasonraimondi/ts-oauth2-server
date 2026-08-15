@@ -1,3 +1,32 @@
+/**
+ * Adapter between the Fetch API and the authorization server.
+ *
+ * The functions here convert a Fetch `Request` into an
+ * {@link OAuthRequest | OAuthRequest} and an
+ * {@link OAuthResponse | OAuthResponse} back into a Fetch `Response`. Use this
+ * adapter in any runtime with the Fetch API, such as Deno, Bun, Cloudflare
+ * Workers, or Node.
+ *
+ * @example
+ * ```ts
+ * import { handleVanillaError, requestFromVanilla, responseToVanilla } from "@jmondi/oauth2-server/vanilla";
+ *
+ * async function tokenEndpoint(req: Request): Promise<Response> {
+ *   try {
+ *     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(
+ *       await requestFromVanilla(req),
+ *     );
+ *     return responseToVanilla(oauthResponse);
+ *   } catch (e) {
+ *     return responseToVanilla(handleVanillaError(e));
+ *   }
+ * }
+ * ```
+ *
+ * @see https://tsoauth2server.com/docs/adapters/vanilla
+ * @module
+ */
+
 import { OAuthRequest } from "../requests/request.js";
 import { OAuthResponse } from "../responses/response.js";
 import { ErrorType, OAuthException } from "../exceptions/oauth.exception.js";

@@ -3,6 +3,18 @@ import { OAuthScope } from "../entities/scope.entity.js";
 import { OAuthToken } from "../entities/token.entity.js";
 import { OAuthUser } from "../entities/user.entity.js";
 
+/**
+ * Storage for access tokens and their refresh tokens. It issues the token
+ * entities, persists them, and reports which ones are revoked. Required by the
+ * {@link AuthorizationServer} constructor.
+ *
+ * The two optional methods extend the server: implement `getByAccessToken` to
+ * serve introspection and to detect a deleted access token at UserInfo, and
+ * `isAccessTokenRevoked` to detect an access token that is marked revoked while
+ * its row is still live.
+ *
+ * @see https://tsoauth2server.com/docs/getting_started/repositories
+ */
 export interface OAuthTokenRepository {
   /**
    * Asynchronously issues a new OAuthToken for the given client, scopes, and optional user.
@@ -79,7 +91,7 @@ export interface OAuthTokenRepository {
 
   /**
    * (Optional) Required if using /introspect RFC7662 "OAuth 2.0 Token Introspection"
-   * @see https://tsoauth2server.com/docs/getting_started/endpoints#the-introspect-endpoint
+   * @see https://tsoauth2server.com/docs/endpoints/introspect
    * @param accessTokenToken The access token string
    * @returns Promise resolving to an OAuthToken
    */

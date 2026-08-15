@@ -1,3 +1,7 @@
+/**
+ * The `grant_type` value that identifies a grant. A custom grant uses a
+ * `custom:` prefix, which keeps it distinct from the built-in grants.
+ */
 export type GrantIdentifier =
   | "authorization_code"
   | "client_credentials"

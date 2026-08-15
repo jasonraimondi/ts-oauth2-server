@@ -27,6 +27,7 @@ import {
 } from "../encoders/refresh_token_encoder.js";
 import { GrantIdentifier, GrantInterface } from "./grant.interface.js";
 
+/** The registered JWT claims (RFC 7519 §4.1) every token this library signs carries. */
 export interface JwtPayload {
   iss?: string;
   aud?: string | string[];
@@ -39,6 +40,12 @@ export interface JwtPayload {
   jti: string;
 }
 
+/**
+ * The decoded payload of an access token: the registered claims, plus `cid` for
+ * the client and `scope` for the Granted Scopes. The index signature carries
+ * whatever {@link JwtInterface.extraTokenFields} added. Its `jti` is the
+ * identifier of the persisted {@link OAuthToken}.
+ */
 export interface ParsedAccessToken extends JwtPayload {
   // Non-standard claims
   cid: string;
@@ -47,13 +54,30 @@ export interface ParsedAccessToken extends JwtPayload {
   // Extra JWT fields (assuming they can be of any type)
   [key: string]: unknown;
 }
+/** An alias of {@link ParsedAccessToken}, kept so existing imports keep working. */
 export interface ITokenData extends ParsedAccessToken {}
+/**
+ * The decoded payload of a refresh token. It names the client, the access token
+ * it was issued beside, and the persisted {@link OAuthToken.refreshToken}
+ * identifier the server looks the row up by.
+ */
 export interface ParsedRefreshToken extends JwtPayload {
   client_id: string;
   access_token_id: string;
   refresh_token_id: string;
 }
 
+/**
+ * The base class every grant extends. It holds the machinery the grants share:
+ * client authentication, scope validation and finalization, access and refresh
+ * token issuance, and the JWT encoding of both.
+ *
+ * Extend it to write a custom grant, then enable your instance with
+ * `enableGrantType({ grant: myGrant })`. Give it a `custom:` identifier so it
+ * cannot collide with a standard grant.
+ *
+ * @see https://tsoauth2server.com/docs/grants/custom
+ */
 export abstract class AbstractGrant implements GrantInterface {
   protected authCodeRepository?: OAuthAuthCodeRepository;
   protected userRepository?: OAuthUserRepository;
