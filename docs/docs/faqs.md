@@ -1,21 +1,21 @@
 # FAQ's
 
-## How do I validate access tokens in my API middleware?
+## How do I validate an Access Token in my API middleware?
 
-Two approaches:
+You have two options:
 
-- **Verify the JWT, then check the repository.** Recommended when your API and authorization server share a process. See [Protecting Resources](/docs/getting_started/protecting_resources) for the validation function and middleware.
-- **Call the [`/token/introspect`](/docs/endpoints/introspect) endpoint.** Use this when your resource server is a separate service, when you need [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662) compliance, or when the resource server has no access to the signing key.
+- **Verify the JWT, then read the repository.** Use this option when your API and your authorization server run in the same process. [Protecting Resources](/docs/getting_started/protecting_resources) gives the validation function and the middleware.
+- **Call the [`/token/introspect`](/docs/endpoints/introspect) endpoint.** Use this option when your resource server is a different service, when you must obey [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662), or when your resource server cannot read the signing key.
 
-## Why isn't there a built-in `verifyToken()` method?
+## Why is there no `verifyToken()` method?
 
-Validation requirements differ per application — which scopes each route needs, whether the token's audience is your API, what business rules apply, and whether a database check is worth the latency. The library provides the building blocks (`JwtService.verify()`, `TokenRepository.getByAccessToken()`) and you compose them.
+Each application validates differently. The scopes for a route, the audience of the Access Token, the business rules, and the cost of a database read are all different for each application. The library gives you the parts — `JwtService.verify()` and `TokenRepository.getByAccessToken()` — and you assemble them.
 
 ## Common Errors
 
 ### `Unsupported grant_type`
 
-Check if you're enabling the desired grant type on the AuthorizationServer. See https://tsoauth2server.com/docs/authorization_server/#enabling-grant-types for more.
+You did not enable that grant on the `AuthorizationServer`. See [Enabling Grant Types](/docs/authorization_server/#enabling-grant-types).
 
 ```typescript
 import {AuthorizationServer} from "@jmondi/oauth2-server";
@@ -26,4 +26,4 @@ authorizationServer.enableGrantType({ grant: "password" ... });
 
 ### `Client has been revoked or is invalid`
 
-Check the `OAuthClientRepository#isClientValid` method, it is returning **false**.
+Your `OAuthClientRepository#isClientValid` method returns **false**. Examine that method.

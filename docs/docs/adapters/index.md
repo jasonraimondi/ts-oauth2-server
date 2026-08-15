@@ -4,9 +4,11 @@ title: Adapters
 
 # Adapters
 
-Adapters are a set of helper functions to provide framework specific integration into `@jmondi/oauth2-server`. We provide adapters for some common tools:
+An adapter is a set of helper functions. Each adapter connects `@jmondi/oauth2-server` to one framework. The library supplies four adapters:
 
-- [Express](./express.md) - If you're using Express, you can use the `@jmondi/oauth2-server/express` adapter.
-- [Fastify](./fastify.md) - If you're using Fastify, you can use the `@jmondi/oauth2-server/fastify` adapter.
-- [VanillaJS](./vanilla.md) - Adapts the Fetch [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) so you can use Honojs, Sveltekit, Nextjs or whatever tool your using that uses the native [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) `@jmondi/oauth2-server/vanilla` adapter.
-- [h3](./h3.md) - If you're using [h3](https://h3.dev/), Nuxt, or Nitro, you can use the `@jmondi/oauth2-server/h3` adapter.
+| Adapter | Import from | Use it with |
+| --- | --- | --- |
+| [Express](./express.md) | `@jmondi/oauth2-server/express` | Express |
+| [Fastify](./fastify.md) | `@jmondi/oauth2-server/fastify` | Fastify |
+| [Vanilla](./vanilla.md) | `@jmondi/oauth2-server/vanilla` | Hono, SvelteKit, Next.js, and other tools that use the native [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects |
+| [h3](./h3.md) | `@jmondi/oauth2-server/h3` | [h3](https://h3.dev/), Nuxt, and Nitro |

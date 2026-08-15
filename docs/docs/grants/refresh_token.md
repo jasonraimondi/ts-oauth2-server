@@ -1,23 +1,23 @@
 
 # Refresh Token Grant
 
-Access tokens eventually expire. The refresh token grant enables the client to obtain a new access_token from an existing refresh_token.
+Each Access Token expires. With this grant, a Client sends a Refresh Token and gets a new Access Token.
 
 :::tip
 
-The `refresh_token` grant is enabled by default
+The constructor enables the `refresh_token` grant.
 
 :::
 
 ### Flow
 
-A complete refresh token request will include the following parameters:
+A complete refresh token request contains these parameters:
 
-- **grant_type** must be set to `refresh_token`
-- **client_id** is the client identifier you received when you first created the application
-- **client_secret** if the client is confidential (has a secret), this must be provided
-- **refresh_token** must be the signed token previously issued to the client
-- **scope** (optional) the requested scope must not include any additional scopes that were not previously issued to the original token
+- **grant_type**: Set it to `refresh_token`.
+- **client_id**: The identifier that you gave to the Client at registration.
+- **client_secret**: The secret. Send it only for a Confidential Client.
+- **refresh_token**: The signed Refresh Token that the server issued to the Client.
+- **scope** (optional): The requested scopes. They must be the scopes of the first token, or fewer. You cannot add a new scope.
 
 :::: details View sample refresh_token request
 
@@ -49,13 +49,13 @@ grant_type=refresh_token
 :::
 ::::
 
-The authorization server will respond with the following response
+The authorization server returns this response:
 
-- **token_type** will always be `Bearer`
-- **expires_in** is the time the token will live in seconds
-- **access_token** is a JWT signed token and is used to authenticate into the resource server
-- **refresh_token** is a JWT signed token and can be used in with the refresh grant (this one)
-- **scope** is a space delimited list of scopes the token has access to
+- **token_type**: Always `Bearer`.
+- **expires_in**: The life of the Access Token, in seconds.
+- **access_token**: A signed JWT. The Client sends it to the resource server.
+- **refresh_token**: A new signed Refresh Token for the next refresh.
+- **scope**: The scopes of the token, separated by spaces.
 
 ::: details View sample refresh_token response
 ```http
@@ -76,13 +76,12 @@ Pragma: no-cache
 
 ### Revocation
 
-Refresh tokens are only valid for a single use. In addition, they can be explicitly revoked on a server that supports
-[RFC7009 "OAuth 2.0 Token Revocation"](https://tools.ietf.org/html/rfc7009).
+A Client can use each Refresh Token one time only. You can also revoke a Refresh Token with the [`/token/revoke`](../endpoints/revoke.md) endpoint, from [RFC 7009 "OAuth 2.0 Token Revocation"](https://tools.ietf.org/html/rfc7009).
 
-A refresh token revocation request will include the following parameters:
+A revocation request contains these parameters:
 
-- **token** is the signed token previously issued to the client
-- **token_type_hint** MUST be set to `refresh_token`
+- **token**: The signed Refresh Token that the server issued to the Client.
+- **token_type_hint** (optional): Set it to `refresh_token`. The hint is only advisory, because the server identifies the type of the token from the token itself.
 
 ::: details View sample revoke refresh_token request
 ```http
@@ -95,7 +94,7 @@ token_type_hint=refresh_token
 ```
 :::
 
-The authorization server will respond with the following response
+The authorization server returns this response:
 
 ::: details View sample revoke refresh_token response
 ```http

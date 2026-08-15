@@ -1,6 +1,6 @@
 # The Authorization Server
 
-The `AuthorizationServer` authenticates resource owners and issues access tokens. It is the entry point for every flow in this library.
+The `AuthorizationServer` authenticates resource owners and issues Access Tokens. Every flow in this library starts here.
 
 ## Initialization
 
@@ -24,7 +24,7 @@ const authorizationServer = new AuthorizationServer(
 
 ## Enabling Grant Types
 
-The constructor enables `client_credentials` and `refresh_token`. Every other grant is opt-in, so your server supports only the flows you ask for.
+The constructor enables the `client_credentials` and `refresh_token` grants. You must enable each of the other grants yourself.
 
 ```ts
 authorizationServer.enableGrantType("implicit");
@@ -35,10 +35,10 @@ authorizationServer.enableGrantType({
 });
 ```
 
-The `authorization_code` and `password` grants take their repositories in an object; the rest enable by name. See [Grants](../grants/) for the per-grant detail.
+The `authorization_code` and `password` grants need their repositories, so you enable them with an object. You enable the other grants with their name. The [Grants](../grants/) pages give the details for each grant.
 
-Enable only the grants your clients actually use — each one is an additional way to obtain a token.
+Enable only the grants that your clients use. Each grant that you enable is one more way to get a token.
 
-:::tip PKCE is already on
-`requiresPKCE` and `requiresS256` both default to `true`, so the authorization code grant enforces S256 PKCE without configuration. Disable them only for a legacy client that cannot support it.
+:::tip The library enforces PKCE
+The `requiresPKCE` and `requiresS256` options default to `true`. Thus the authorization code grant enforces S256 PKCE, and you do not configure it. Disable these options only for an old client that cannot use PKCE.
 :::

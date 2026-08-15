@@ -1,7 +1,7 @@
 
 # Password Grant
 
-The Password Grant is for first party clients that are able to hold secrets (ie not Browser or Native Mobile Apps)
+Use the password grant only with your own Clients that can keep a secret. Do not use it in a browser application or in a native mobile application.
 
 :::info Enable this grant
 
@@ -16,14 +16,14 @@ authorizationServer.enableGrantType({
 
 ### Flow
 
-A complete refresh token request will include the following parameters:
+A complete password grant request contains these parameters:
 
-- **grant_type** must be set to `password`
-- **client_id** is the client identifier you received when you first created the application
-- **client_secret** if the client is confidential (has a secret), this must be provided
-- **username**
-- **password**
-- **scope** (optional)
+- **grant_type**: Set it to `password`.
+- **client_id**: The identifier that you gave to the Client at registration.
+- **client_secret**: The secret. Send it only for a Confidential Client.
+- **username**: The name of the user.
+- **password**: The password of the user.
+- **scope** (optional): The requested scopes, separated by spaces.
 
 :::: details View sample password grant request
 
@@ -56,13 +56,13 @@ grant_type=password
 :::
 ::::
 
-The authorization server will respond with the following response
+The authorization server returns this response:
 
-- **token_type** will always be `Bearer`
-- **expires_in** is the time the token will live in seconds
-- **access_token** is a JWT signed token and is used to authenticate into the resource server
-- **refresh_token** is a JWT signed token and can be used in with the [refresh grant](./refresh_token.md)
-- **scope** is a space delimited list of scopes the token has access to
+- **token_type**: Always `Bearer`.
+- **expires_in**: The life of the Access Token, in seconds.
+- **access_token**: A signed JWT. The Client sends it to the resource server.
+- **refresh_token**: A signed JWT for the [refresh token grant](./refresh_token.md).
+- **scope**: The scopes of the token, separated by spaces.
 
 ::: details View sample password grant response
 ```http

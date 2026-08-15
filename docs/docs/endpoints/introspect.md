@@ -4,11 +4,11 @@ title: /token/introspect
 
 # The Introspect Endpoint
 
-The `/token/introspect` endpoint is a back channel endpoint that returns the active state and metadata of a given token (per [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). It does not revoke tokens — for revocation use the [`/token/revoke`](./revoke.md) endpoint. The introspect endpoint requires the `TokenRepository#getByAccessToken` method to introspect access tokens.
+The `/token/introspect` endpoint is a back channel endpoint. It returns the Active state and the metadata of a token ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). This endpoint does not revoke a token. To revoke a token, use the [`/token/revoke`](./revoke.md) endpoint.
 
 :::info
-- Implementing this endpoint is optional
-- This endpoint requires `TokenRepository#getByAccessToken` to be defined to introspect access tokens
+- This endpoint is optional.
+- You must define `TokenRepository#getByAccessToken` to introspect an Access Token.
 :::
 
 ```ts
@@ -25,7 +25,7 @@ app.post("/token/introspect", async (req: Express.Request, res: Express.Response
 
 ### Configure
 
-Client credentials authentication is enabled by default. To disable, set `authenticateIntrospect` to `false`.
+The endpoint authenticates the client credentials by default. To stop this, set `authenticateIntrospect` to `false`.
 
 ```ts
 const authoriztionServer = new AuthorizationServer(
@@ -36,7 +36,9 @@ const authoriztionServer = new AuthorizationServer(
 );
 ```
 
-By default, only **confidential clients** (those registered with a `client_secret`) may introspect, per [RFC 7662 §4](https://datatracker.ietf.org/doc/html/rfc7662#section-4) (protected resources should be "specifically authorized"). A public client is rejected with `401 invalid_client`. To allow public clients to introspect, set `introspectionRequiresConfidentialClient` to `false`. This option has no effect when `authenticateIntrospect` is `false`.
+By default, only a **Confidential Client** can introspect a token. [RFC 7662 §4](https://datatracker.ietf.org/doc/html/rfc7662#section-4) recommends that a protected resource is "specifically authorized", and a `client_secret` gives this authorization. The server rejects a Public Client with `401 invalid_client`.
+
+To let a Public Client introspect a token, set `introspectionRequiresConfidentialClient` to `false`. This option does nothing when `authenticateIntrospect` is `false`.
 
 ```ts
 const authorizationServer = new AuthorizationServer(
@@ -49,16 +51,18 @@ const authorizationServer = new AuthorizationServer(
 
 ### Request
 
-A complete token introspection request will include the following parameters:
+A complete introspection request contains these parameters:
 
-- **token** (required): The string value of the token to be introspected
-- **token_type_hint** (optional): A hint about the type of the token submitted for introspection. Valid values are: `access_token` and `refresh_token`. The hint is purely advisory — the server identifies the token's type from the token itself, so refresh tokens are found even when the hint is absent or wrong. An unrecognized hint is rejected with `unsupported_token_type`.
+- **token** (required): The token to introspect.
+- **token_type_hint** (optional): The Token Type Hint. The permitted values are `access_token` and `refresh_token`. The hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server finds a Refresh Token even when the hint is absent or incorrect. The server rejects an unknown hint with `unsupported_token_type`.
 
-By default the request must be authenticated with a registered **confidential** client's credentials (`client_id` + `client_secret`); public clients are rejected (see [Configure](#configure)). The authenticated client may introspect **any** token — introspection is a back-channel call (typically from a resource server) and is not scoped to tokens issued to the requesting client. The client does **not** need to be authorized for the `client_credentials` grant.
+By default, the Client authenticates with the credentials of a Confidential Client: the `client_id` and the `client_secret`. The server rejects a Public Client. See [Configure](#configure).
+
+An authenticated Client can introspect **any** token. Introspection is a back channel call, and a resource server usually makes it. Thus the endpoint does not limit a Client to the tokens that the server issued to that Client. The Client does **not** need permission for the `client_credentials` grant.
 
 :::: details View sample introspect request
 
-You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+Send the `client_id` and the `client_secret` in the query string, or use basic authentication.
 
 ::: code-group
 
@@ -103,36 +107,38 @@ token=xxxxxxxxxx
 ```
 ::::
 
-### Token verification and `active`
+### Token Verification and the Active State
 
-A presented JWT's claims are trusted only after its signature verifies against the server's configured `JwtService` — a token with an invalid or unverifiable signature is treated as unknown and reported `{"active": false}`, never as an error. The same applies to a well-formed token whose record no longer exists in storage.
+The server trusts the claims of a JWT only after the signature verifies against the configured `JwtService`. If the signature is incorrect, the server treats the token as unknown and reports `{"active": false}`. The server does not report an error. The server does the same for a correctly formed token when its record is no longer in storage.
 
-`active: true` means the server's **stored** state says so: the token's persisted record exists, its stored expiry is in the future, and it has not been revoked. Revocation is detected through `TokenRepository#isRefreshTokenRevoked` for refresh tokens and the optional `TokenRepository#isAccessTokenRevoked` for access tokens — implement the latter if your `revoke()` marks records revoked rather than deleting them or zeroing their expiry.
+The server reports `active: true` only from its own stored state. The record of the token must exist, the stored expiry must be in the future, and the token must not be revoked.
 
-With `useOpaqueRefreshTokens` enabled, opaque refresh token strings are resolved through `TokenRepository#getByRefreshToken` and introspect like any other token.
+The server finds a revocation with two repository methods. It calls `TokenRepository#isRefreshTokenRevoked` for a Refresh Token, and the optional `TokenRepository#isAccessTokenRevoked` for an Access Token. Write the optional method if your `revoke()` marks a record as revoked. You do not need it if your `revoke()` deletes the record or sets the expiry to zero.
+
+If you set `useOpaqueRefreshTokens`, the server reads each opaque Refresh Token with `TokenRepository#getByRefreshToken`, and then introspects it in the usual way.
 
 ### Response
 
-The authorization server will respond with a JSON object containing the following fields:
+The authorization server returns a JSON object with these fields:
 
-- **active** (required): A boolean value indicating whether the token is currently active
-- **scope** (optional): A space-separated list of scopes associated with the token
-- **client_id** (optional): The client identifier for the OAuth 2.0 client that requested this token
-- **username** (optional): A human-readable identifier for the resource owner who authorized this token
-- **token_type** (optional): The type of the token (e.g., `Bearer`)
-- **exp** (optional): The timestamp indicating when the token will expire
-- **iat** (optional): The timestamp indicating when the token was issued
-- **nbf** (optional): The timestamp indicating when the token is not to be used before
-- **sub** (optional): The subject of the token
-- **aud** (optional): The intended audience of the token
-- **iss** (optional): The issuer of the token
-- **jti** (optional): The unique identifier for the token
+- **active** (required): A boolean. It shows if the token is Active.
+- **scope** (optional): The scopes of the token, separated by spaces.
+- **client_id** (optional): The Client that requested the token.
+- **username** (optional): A readable name for the resource owner who authorized the token.
+- **token_type** (optional): The type of the token, for example `Bearer`.
+- **exp** (optional): The time when the token expires.
+- **iat** (optional): The time when the server issued the token.
+- **nbf** (optional): The time before which no server accepts the token.
+- **sub** (optional): The subject of the token.
+- **aud** (optional): The audience of the token.
+- **iss** (optional): The Issuer of the token.
+- **jti** (optional): The unique identifier of the token.
 
-Additional fields may be included in the response.
+The response can contain more fields.
 
-`active`, `scope`, `client_id`, and `token_type` always reflect the server's stored state for the token; the remaining fields echo the verified token's claims.
+The `active`, `scope`, `client_id`, and `token_type` fields always come from the stored state of the server. The other fields come from the claims of the verified token.
 
-### Calling the endpoint
+### Call the Endpoint
 
 ```ts
 import { base64encode } from "@jmondi/oauth2-server";
@@ -148,7 +154,7 @@ const response = await fetch("/token/introspect", {
 const { active, scope, client_id, sub } = await response.json();
 ```
 
-Passing `client_id` and `client_secret` in the form body works too, in place of the `Authorization` header.
+You can also send the `client_id` and the `client_secret` in the form body, in place of the `Authorization` header.
 
 :::info Supports the following RFCs
 [RFC7662 (OAuth 2.0 Token Introspection)](https://datatracker.ietf.org/doc/html/rfc7662)

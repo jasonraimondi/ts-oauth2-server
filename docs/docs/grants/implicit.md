@@ -1,20 +1,20 @@
 # Implicit Grant ⚠️ ⚠️
 
-:::warning Not Recommended
+:::warning Do not use this grant
 
-This server supports the Implicit Grant, but its use is strongly discouraged due to security concerns. The OAuth 2.0 Security Best Current Practice (RFC 8252) recommends against using the Implicit Grant flow.
+This library supports the implicit grant, but the grant has security problems. The OAuth 2.0 Security Best Current Practice (RFC 8252) tells you not to use it.
 
-For native and single-page applications, the recommended approach is to use the Authorization Code Grant with PKCE (Proof Key for Code Exchange) extension. This method provides better security without requiring a client secret.
+For a native application or a single-page application, use the [authorization code grant with PKCE](./authorization_code.md). It gives better security, and the Client does not need a secret.
 
-If you're developing a web application with a backend, consider using the standard Authorization Code Grant with a client secret stored securely on your server.
+For a web application with a server, use the authorization code grant. Keep the client secret on your server.
 
 :::
 
 ## Redirect Mode
 
-By default, the implicit grant appends tokens to the redirect URI using URI fragments, as recommended by [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2).
+By default, the implicit grant adds each token to the redirect URI in a URI fragment. [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2) recommends this mode.
 
-To use the previous query parameter behavior for legacy clients:
+For an old Client that needs the previous query parameter mode, set `implicitRedirectMode`:
 
 ```ts
 const authorizationServer = new AuthorizationServer(
@@ -34,8 +34,6 @@ const authorizationServer = new AuthorizationServer(
 | `"query"` | `https://example.com/callback?access_token=...&token_type=Bearer` |
 
 ## Resources
-
-Please look at these great resources:
 
 - [OAuth 2.0 Implicit Grant](https://oauth.net/2/grant-types/implicit/)
 - VIDEO: [What's Going On with the Implicit Flow?](https://www.youtube.com/watch?v=CHzERullHe8) by Aaron Parecki

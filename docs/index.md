@@ -10,18 +10,18 @@
 
 ## Introduction
 
-A standards compliant implementation of an OAuth 2.0 authorization server for Nodejs that utilizes JWT and Proof Key for Code Exchange (PKCE), written in TypeScript.
+This library is a standards-compliant OAuth 2.0 authorization server for Node.js, written in TypeScript. It uses JWT and Proof Key for Code Exchange (PKCE).
 
-Requires `node >= 22`.
+The library needs Node.js 22 or later.
 
 ## Quick Start
 
 1. Install the package
-1. Implement [Entities](/docs/getting_started/entities)
-1. Set up your [Database Schema](/docs/getting_started/database_schema)
-1. Implement [Repositories](/docs/getting_started/repositories)
-1. Set up the [AuthorizationServer](#setup-the-authorization-server) with the grants you need
-1. Wire up the [Endpoints](/docs/endpoints/)
+1. Write your [entities](/docs/getting_started/entities)
+1. Create your [database schema](/docs/getting_started/database_schema)
+1. Write your [repositories](/docs/getting_started/repositories)
+1. Create the [AuthorizationServer](#create-the-authorization-server) with the grants you need
+1. Add the [endpoints](/docs/endpoints/)
 
 ### Installation
 
@@ -53,13 +53,13 @@ bunx jsr add @jmondi/oauth2-server
 
 :::
 
-### Implement Entities and Repositories
+### Write the Entities and Repositories
 
-The library persists nothing itself. You implement the [entities](/docs/getting_started/entities) that hold the data and the [repositories](/docs/getting_started/repositories) that read and write them.
+The library does not store data. You write the [entities](/docs/getting_started/entities) that hold the data, and the [repositories](/docs/getting_started/repositories) that read and write it.
 
-### Setup the Authorization Server
+### Create the Authorization Server
 
-The `AuthorizationServer` takes your client, token, and scope repositories plus a signing secret. The constructor enables `client_credentials` and `refresh_token`; other grants are opt-in.
+The `AuthorizationServer` takes your client, token, and scope repositories, and a signing secret. The constructor enables the `client_credentials` and `refresh_token` grants. You must enable each of the other grants.
 
 ```ts
 const authorizationServer = new AuthorizationServer(
@@ -75,11 +75,11 @@ authorizationServer.enableGrantType({
 });
 ```
 
-See [Configuration](/docs/authorization_server/configuration) for the options, and [Grants](/docs/grants/) for choosing between flows.
+[Configuration](/docs/authorization_server/configuration) lists the options. [Grants](/docs/grants/) helps you select a flow.
 
-### Wire up the Endpoints
+### Add the Endpoints
 
-You own the routing; each endpoint is one method call on the server.
+You control the routes. Each endpoint calls one method on the server.
 
 | Route | Method | Required for |
 | --- | --- | --- |
@@ -89,8 +89,10 @@ You own the routing; each endpoint is one method call on the server.
 | [`/token/introspect`](/docs/endpoints/introspect) | `introspect` | Optional ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) |
 | [`/userinfo`](/docs/endpoints/userinfo) · [`/jwks`](/docs/oidc/getting_started) · [discovery](/docs/endpoints/discovery) | `userInfo`, `jwks`, `openidConfiguration` | [OIDC](/docs/oidc/getting_started) |
 
-Use an [adapter](/docs/adapters/) to translate your framework's request and response objects.
+Use an [adapter](/docs/adapters/) to convert your framework's request and response objects.
 
 ## Security
 
-Serve every endpoint over HTTPS, and [hash client secrets](/docs/getting_started/database_schema#hash-client-secrets) before storing them. PKCE is enforced by default. Once you are issuing tokens, see [Protecting Resources](/docs/getting_started/protecting_resources) for validating them in your API.
+Serve every endpoint over HTTPS. [Hash each client secret](/docs/getting_started/database_schema#hash-client-secrets) before you store it. The library enforces PKCE by default.
+
+When your server issues tokens, read [Protecting Resources](/docs/getting_started/protecting_resources). It shows you how to validate the tokens in your API.

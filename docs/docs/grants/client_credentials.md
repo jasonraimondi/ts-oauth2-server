@@ -1,28 +1,28 @@
 
 # Client Credentials Grant
 
-When applications request an access token to access their own resources, not on behalf of a user.
+A Client uses this grant to get an Access Token for its own resources. The Client does not act for a user.
 
 :::tip
-The `refresh_token` grant is enabled by default
+The constructor enables the `client_credentials` grant.
 :::
 
 :::warning
-The client_credentials grant should only be used by clients that can hold a secret. No Browser or Native Mobile Apps should be using this grant.
+Use this grant only with a Confidential Client, because the Client must keep a secret. Do not use it in a browser application or in a native mobile application.
 :::
 
 ### Flow
 
-The client sends a **POST** to the `/token` endpoint with the following body:
+The Client sends a **POST** request to the `/token` endpoint with this body:
 
-- **grant_type** must be set to `client_credentials`
-- **client_id** is the client identifier you received when you first created the application
-- **client_secret** is the client secret
-- **scope** is a string with a space delimited list of requested scopes. The requested scopes must be valid for the client.
+- **grant_type**: Set it to `client_credentials`.
+- **client_id**: The identifier that you gave to the Client at registration.
+- **client_secret**: The secret of the Client.
+- **scope**: The requested scopes, separated by spaces. The Client must have permission for each scope.
 
 :::: details View sample client_credentials request
 
-_Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+Send the `client_id` and the `client_secret` in the query string, or use basic authentication.
 
 ::: code-group
 
@@ -49,12 +49,12 @@ grant_type=client_credentials
 :::
 ::::
 
-The authorization server will respond with the following response.
+The authorization server returns this response:
 
-- **token_type** will always be `Bearer`
-- **expires_in** is the time the token will live in seconds
-- **access_token** is a JWT signed token and can be used to authenticate into the resource server
-- **scope** is a space delimited list of scopes the token has access to
+- **token_type**: Always `Bearer`.
+- **expires_in**: The life of the Access Token, in seconds.
+- **access_token**: A signed JWT. The Client sends it to the resource server.
+- **scope**: The scopes of the token, separated by spaces.
 
 ::: details View sample client_credentials response
 ```http

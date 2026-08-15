@@ -1,6 +1,6 @@
 # OAuth 2.0 Endpoints
 
-This server implements the following OAuth 2.0 endpoints, each supporting specific functionalities as defined in various RFC specifications:
+This library supplies these OAuth 2.0 endpoints. Each endpoint obeys one or more RFC specifications.
 
 ## Core Endpoints
 
@@ -19,5 +19,5 @@ This server implements the following OAuth 2.0 endpoints, each supporting specif
 - [OIDC conformance smoke test](./oidc_conformance.md)
 
 :::info
-All endpoints should be accessed over HTTPS to ensure secure communication.
+Serve every endpoint over HTTPS.
 :::

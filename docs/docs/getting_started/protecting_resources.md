@@ -1,19 +1,19 @@
 ---
-title: Protecting Resources
+title: Protect Resources
 ---
 
 
-# Protecting Resources with Access Tokens
+# Protect Resources with an Access Token
 
-This guide shows how to validate access tokens in your API middleware. It assumes you have a working authorization server issuing tokens.
+This guide shows you how to validate an Access Token in your API middleware. The guide assumes that your authorization server already issues tokens.
 
-A validated token has passed six checks: signature, expiry, issuer, audience, revocation, and scope.
+Your middleware must make six checks: the signature, the expiry, the Issuer, the audience, the revocation state, and the scopes.
 
-If your resource server runs as a separate service, use the [introspection endpoint](/docs/endpoints/introspect) instead — see [Alternative: Token Introspection](#alternative-token-introspection).
+If your resource server is a different service, call the [introspection endpoint](/docs/endpoints/introspect) in place of these steps. See [Alternative: Token Introspection](#alternative-token-introspection).
 
 ## Token Payload Structure
 
-Access tokens issued by this library are JWTs with the following claims:
+Each Access Token is a JWT with these claims:
 
 ```typescript
 interface AccessTokenPayload {
@@ -40,7 +40,7 @@ interface AccessTokenPayload {
 ```
 
 :::info Important
-The `jti` claim contains the token identifier used to look up the token in your `OAuthTokenRepository`. This is **not** the raw JWT string - it's the internal token ID.
+Use the `jti` claim to find the token in your `OAuthTokenRepository`. The `jti` claim holds the internal token identifier. It is **not** the JWT string that the client sent.
 :::
 
 ## Implementation
@@ -71,7 +71,7 @@ class TokenRepository implements OAuthTokenRepository {
 
 ### Step 2: Create the Validation Function
 
-Reusing the `AccessTokenPayload` shown above:
+This function uses the `AccessTokenPayload` interface from the previous section.
 
 ```typescript
 import { JwtInterface, OAuthToken, OAuthTokenRepository } from "@jmondi/oauth2-server";
@@ -292,11 +292,11 @@ app.delete(
 
 ## Security Considerations
 
-**Always set `expectedIssuer` and `expectedAudience`** when your server issues `iss` and `aud` claims. Skipping them accepts tokens minted by a different issuer, or tokens meant for a different API.
+**Always set `expectedIssuer` and `expectedAudience`** when your server writes the `iss` and `aud` claims. If you do not set them, your API accepts a token from a different Issuer, or a token that is intended for a different API.
 
-**Always check the repository, not just the JWT.** A token can be revoked before it expires — on logout, or on a password change. Only the stored record knows.
+**Always read the repository. Do not trust the JWT alone.** Your server can revoke a token before the token expires, for example at logout or after a password change. Only the stored record shows this.
 
-**Keep access tokens short-lived** and lean on refresh tokens:
+**Keep the life of each Access Token short.** Let the client use a Refresh Token to get a new one.
 
 ```typescript
 authorizationServer.enableGrantTypes(
@@ -307,10 +307,10 @@ authorizationServer.enableGrantTypes(
 
 ## Alternative: Token Introspection
 
-If your resource server is a separate service, or you need RFC 7662 compliance, call the [introspection endpoint](/docs/endpoints/introspect) over HTTP instead of verifying locally:
+Call the [introspection endpoint](/docs/endpoints/introspect) when your resource server is a different service, or when you must obey RFC 7662. The resource server sends the token to the authorization server, and does not verify the token itself.
 
 ```typescript
-// Resource server calls authorization server
+// The resource server calls the authorization server
 const response = await fetch("https://auth.example.com/token/introspect", {
   method: "POST",
   headers: {
@@ -325,8 +325,17 @@ const { active, scope, client_id, sub } = await response.json();
 
 ## Complete Example
 
-The [example project](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) has a working implementation — `src/middleware/auth.ts`, `src/main.ts`, and `src/repositories/token_repository.ts`.
+The [example project](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) contains a full implementation in `src/middleware/auth.ts`, `src/main.ts`, and `src/repositories/token_repository.ts`.
 
-## Test checklist
+## Test Checklist
 
-Your middleware should reject: a missing or malformed `Authorization` header, an expired token, an invalid signature, a revoked token, a wrong `iss`, a wrong `aud`, and insufficient scopes. It should accept a valid token carrying the required scopes.
+Your middleware must refuse each of these requests:
+
+- A request with no `Authorization` header, or with a malformed one
+- A request with an expired token
+- A request with an incorrect signature
+- A request with a revoked token
+- A request with an incorrect `iss` or `aud` claim
+- A request with too few scopes
+
+Your middleware must accept a valid token that carries the required scopes.

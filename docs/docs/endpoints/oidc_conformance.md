@@ -4,9 +4,9 @@ title: OIDC conformance smoke test
 
 # OIDC conformance smoke test
 
-A copy-pasteable [`openid-client`](https://github.com/panva/node-openid-client) recipe that exercises the full OIDC surface — discovery, JWKS, the authorization-code + PKCE flow, ID token validation, and UserInfo — against a running server. Use it as a release gate: a green run proves a real relying party can complete the flow end-to-end.
+This [`openid-client`](https://github.com/panva/node-openid-client) script tests the full OIDC surface against a running server. It tests discovery, JWKS, the authorization code flow with PKCE, the validation of the ID Token, and UserInfo. Run it before each release. A correct run shows you that a real Client can complete the full flow.
 
-The library does not own routing, so this assumes you have wired the four OIDC endpoints (see the [example app](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example)):
+The library does not control your routes. Thus this script assumes that you added the OIDC endpoints. The [example application](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) shows you how.
 
 | Route | Handler |
 | --- | --- |
@@ -16,9 +16,9 @@ The library does not own routing, so this assumes you have wired the four OIDC e
 | `GET /.well-known/openid-configuration` | `authorizationServer.openidConfiguration` |
 | `GET /jwks` | `authorizationServer.jwks` |
 
-## The recipe
+## The Script
 
-Uses `openid-client@^5`. Point `ISSUER` at your running server.
+This script uses `openid-client@^5`. Set `ISSUER` to the address of your running server.
 
 ```ts
 import { generators, Issuer } from "openid-client";
@@ -87,12 +87,12 @@ userinfo sub: 248289761001
 PASS: OIDC conformance smoke test succeeded
 ```
 
-A non-zero exit with `FAIL` (or an `openid-client` validation error such as `id_token issued in the future`, `unexpected JWT alg received`, or `nonce mismatch`) signals a regression in the signing, discovery, or claims plumbing — treat it as a release blocker.
+The script can also stop with a `FAIL` message, or with an `openid-client` error such as `id_token issued in the future`, `unexpected JWT alg received`, or `nonce mismatch`. Each of these shows a fault in the signing, in the discovery, or in the claims. Do not release the server until you correct the fault.
 
-:::note RFC 9068 deviations
-The validators above check the ID token strictly, but the **access token** intentionally departs from RFC 9068 in two places: it identifies the client with `cid` rather than `client_id`, and it includes `aud` only when an `audience` parameter is supplied on the token request. See [Access token format](../oidc/getting_started.md#access-token-format).
+:::note Two differences from RFC 9068
+The validators above check the ID Token strictly. But the **Access Token** is different from RFC 9068 in two places. It identifies the Client with `cid`, and not with `client_id`. It also carries `aud` only when the token request supplies an `audience` parameter. See [Access Token Format](../oidc/getting_started.md#access-token-format).
 :::
 
-:::info Covered by the test suite
-The same end-to-end path (authorize → token → JWKS → UserInfo, verified with an independent `jose` validator) is asserted in `test/e2e/oidc_keystone.spec.ts`, and the cross-cutting failure modes (algorithm confusion, `alg:none`, wrong `typ`/`iss`, expired/revoked tokens, missing `openid` scope, opaque-code nonce loss) in `test/e2e/oidc_resilience.spec.ts`.
+:::info The test suite covers this path
+`test/e2e/oidc_keystone.spec.ts` tests the same path, from `/authorize` to `/token` to the JWKS to UserInfo, with an independent `jose` validator. `test/e2e/oidc_resilience.spec.ts` tests the failures: algorithm confusion, `alg:none`, an incorrect `typ` or `iss`, an expired or revoked token, an absent `openid` scope, and the loss of a nonce from an opaque code.
 :::

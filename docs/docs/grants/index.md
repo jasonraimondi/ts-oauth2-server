@@ -5,24 +5,21 @@ title: OAuth 2.0 Grants
 
 # Grants
 
+A grant is one procedure that a [Client](../Extras/glossary.md#client) uses to get an Access Token. The Access Token then authorizes the Client to use the [resource server](../Extras/glossary.md#resource-server). Select the grant that agrees with the type of your Client.
+
 ### Client Credentials Grant
 
-If the access token owner is a machine, such as a server or an application acting on its own behalf, rather than an individual user, the client can use the Client Credentials Grant. This grant is designed for scenarios where the client needs to access resources autonomously without the context of a specific user.
+Use this grant when a machine owns the Access Token, for example a server or an application that operates for itself. There is no user, and the Client gets the token with its own credentials.
 
 ### Auth Code Grant with PKCE
 
-If the access token owner is a user, the recommended grant is the Authorization Code Grant with Proof Key for Code Exchange (PKCE). This grant involves a series of steps where the client redirects the user to the authorization server, the user grants access, and the server provides an authorization code that the client exchanges for an access token. PKCE adds an extra layer of security to protect against authorization code interception attacks.
+Use this grant when a user owns the Access Token. The Client redirects the user to the authorization server, the user gives access, and the server returns an authorization code. The Client then exchanges this code for an Access Token. PKCE gives more protection against an attack that intercepts the authorization code.
 
 ### Refresh Token Grant
 
-If the client already has a refresh token, it can use the Refresh Token Grant to obtain a new access token without requiring the user's interaction. This grant is useful for long-lived sessions and background processes.
+Use this grant when the Client has a Refresh Token. The Client gets a new Access Token, and the user does nothing. This grant is useful for a long session and for a background procedure.
 
 ## Which Grant?
-
-Grants are different ways a [client](../Extras/glossary.md#client) can obtain an `access_token` that will authorize
-it to use the [resource server](../Extras/glossary.md#resource-server).
-
-Deciding which grant to use depends on the type of client the end user will be using.
 
 ```
 +-------+

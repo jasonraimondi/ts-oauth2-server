@@ -2,26 +2,27 @@
 
 :::info
 
-The default configuration is great for most users. You might not need to tweak anything here.
+The default configuration is correct for most projects. You do not usually change these options.
 
 :::
 
-The authorization server has a few optional settings with the following default values;
+The authorization server has these optional settings:
 
-| Option                   | Type                | Default   | Details                                                                                                                                                                                                                                                                                  |
-| ------------------------ | ------------------- | --------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `requiresPKCE`           | boolean             | true      | PKCE is enabled by default and recommended for all users. To support a legacy client without PKCE, disable this option. [[Learn more]][requires-pkce]                                                                                                                                    |
-| `requiresS256`           | boolean             | true      | S256 PKCE is required by default. To allow clients to use the `plain` PKCE challenge method, disable this option. [[Learn more]][requires-s256]                                                                                                                                          |
-| `notBeforeLeeway`        | number              | 0         | Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. Its value MUST be a number containing a NumericDate value.                                                                                                                |
-| `tokenCID`               | "id" or "name"      | "id"      | Sets the JWT `accessToken.cid` to either the `client.id` or `client.name`. [[Learn more]][token-cid]                                                                                                                                                                                     |
-| `issuer`                 | string \| undefined | undefined | Sets the JWT `accessToken.iss` to this value.                                                                                                                                                                                                                                            |
-| `scopeDelimiter`         | string              | " "       | Sets the delimiter used to join and split OAuth scope strings.                                                                                                                                                                                                                           |
-| `authenticateIntrospect` | boolean             | true      | Authorize the [/introspect](../endpoints/introspect.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header)                                                                                                |
-| `authenticateRevoke`     | boolean             | true      | Authorize the [/revoke](../endpoints/revoke.md) endpoint using `client_credentials`, this requires users to pass in a valid client_id and client_secret (or Authorization header).                                                                                                       |
-| `logger`                 | LoggerService \| undefined | undefined | Optional logger service to capture debugging information, particularly useful for tracking token operations like revocations.                                                                                                                                                            |
-| `useOpaqueAuthorizationCodes` | boolean        | false     | When enabled, authorization codes are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque codes are stored server-side and validated through repository lookups.      |
-| `useOpaqueRefreshTokens` | boolean        | false     | When enabled, refresh tokens are returned as simple random strings rather than signed JWTs. This provides flexibility for different security models while maintaining full OAuth 2.0 compliance. Opaque refresh tokens are stored server-side and validated through repository lookups; the [/token/revoke](../endpoints/revoke.md) and [/token/introspect](../endpoints/introspect.md) endpoints resolve them via `TokenRepository#getByRefreshToken`.  |
-| `implicitRedirectMode`   | "query" \| "fragment" | "fragment" | Controls how the [implicit grant](../grants/implicit.md) appends tokens to the redirect URI. OAuth 2.0 ([RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2)) recommends `"fragment"`. Set `"query"` only for legacy clients that depend on the previous behavior. |
+| Option | Type | Default | Details |
+| --- | --- | --- | --- |
+| `requiresPKCE` | boolean | `true` | The server enforces PKCE. Disable it only for an old Client that cannot use PKCE. [[Learn more]][requires-pkce] |
+| `requiresS256` | boolean | `true` | The server accepts only the `S256` challenge method. Disable it to also accept the `plain` method. [[Learn more]][requires-s256] |
+| `notBeforeLeeway` | number | `0` | The permitted clock difference, as a NumericDate value. Keep it small, usually a few minutes at most. |
+| `tokenCID` | `"id"` \| `"name"` | `"id"` | The source of the `cid` claim in an Access Token: the `client.id` or the `client.name`. [[Learn more]][token-cid] |
+| `issuer` | string | `undefined` | The value of the `iss` claim. It becomes mandatory when you set the `oidc` block. |
+| `scopeDelimiter` | string | `" "` | The character that separates the scopes in a scope string. |
+| `authenticateIntrospect` | boolean | `true` | The [/token/introspect](../endpoints/introspect.md) endpoint authenticates the Client. The Client sends a valid `client_id` and `client_secret`, in the body or in the `Authorization` header. |
+| `authenticateRevoke` | boolean | `true` | The [/token/revoke](../endpoints/revoke.md) endpoint authenticates the Client, in the same way. |
+| `introspectionRequiresConfidentialClient` | boolean | `true` | Only a Confidential Client can introspect a token ([RFC 7662 §4](https://datatracker.ietf.org/doc/html/rfc7662#section-4)). Set it to `false` to also let a Public Client introspect. It does nothing when `authenticateIntrospect` is `false`. |
+| `implicitRedirectMode` | `"query"` \| `"fragment"` | `"fragment"` | How the [implicit grant](../grants/implicit.md) adds a token to the redirect URI. [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2) recommends `"fragment"`. Use `"query"` only for an old Client. |
+| `logger` | LoggerService | `undefined` | A logger for the debug data, which is useful for the token operations such as a revocation. |
+| `useOpaqueAuthorizationCodes` | boolean | `false` | The server returns each authorization code as a random string, and not as a signed JWT. It stores each code, and validates it with a repository. |
+| `useOpaqueRefreshTokens` | boolean | `false` | The server returns each Refresh Token as a random string, and not as a signed JWT. The [/token/revoke](../endpoints/revoke.md) and [/token/introspect](../endpoints/introspect.md) endpoints read these tokens with `TokenRepository#getByRefreshToken`. |
 
 ```ts
 type AuthorizationServerOptions = {
@@ -33,6 +34,7 @@ type AuthorizationServerOptions = {
   scopeDelimiter: string;
   authenticateIntrospect: boolean;
   authenticateRevoke: boolean;
+  introspectionRequiresConfidentialClient: boolean;
   implicitRedirectMode: "query" | "fragment";
   logger?: LoggerService;
   useOpaqueAuthorizationCodes?: boolean;
@@ -40,7 +42,7 @@ type AuthorizationServerOptions = {
 };
 ```
 
-To configure these options, pass the value in as the last argument:
+To set an option, pass it as the last argument:
 
 ```ts
 const authorizationServer = new AuthorizationServer(
@@ -54,19 +56,23 @@ const authorizationServer = new AuthorizationServer(
 );
 ```
 
-## OIDC options
+## OIDC Options
 
-OIDC is enabled by setting the top-level `issuer` **and** a nested `oidc` block. The split is deliberate: `issuer` predates OIDC and is reused as the OIDC issuer (the `iss` of every access token and ID token, and the discovery `issuer`), so it stays top-level; everything OIDC-specific lives in the nested `oidc` block. When `oidc` is present, `issuer` becomes mandatory and the `JwtService` must use an RS256 key.
+To enable OIDC, set the top-level `issuer` **and** the nested `oidc` block.
 
-| Option                 | Type                                   | Default   | Details                                                                                                                                                              |
-| ---------------------- | -------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `authorizationEndpoint`| string                                 | —         | Absolute URL of your `/authorize` route. Advertised verbatim in discovery; the library does not own routing.                                                        |
-| `tokenEndpoint`        | string                                 | —         | Absolute URL of your `/token` route.                                                                                                                                |
-| `userinfoEndpoint`     | string                                 | —         | Absolute URL of your [`/userinfo`](../endpoints/userinfo.md) route.                                                                                                 |
-| `jwksUri`              | string                                 | —         | Absolute URL of your JWKS route. A protected discovery field — a `metadata` override may not change it.                                                              |
-| `getUserClaims`        | `(subject: string) => OidcUserClaims \| Promise<OidcUserClaims>` | — | Required. Resolves the end-user's claims for UserInfo, keyed by subject. See [Hooks](../oidc/hooks.md).                                                              |
-| `getIdTokenClaims`     | `(ctx: OidcIdTokenClaimsContext) => Record<string, unknown> \| Promise<…>` | undefined | Optional. Adds custom claims to the ID token. Reserved protocol claims cannot be overwritten. See [Hooks](../oidc/hooks.md).                                          |
-| `metadata`             | `Record<string, unknown>`              | undefined | Optional discovery overrides (e.g. `scopes_supported`, `claims_supported`). `issuer`, `jwks_uri`, and `id_token_signing_alg_values_supported` are protected and cannot be weakened. |
+The two parts are separate for a reason. The `issuer` option is older than the OIDC layer, and the OIDC layer uses it again as the Issuer. It is the `iss` claim of each Access Token and each ID Token, and also the `issuer` field of the Discovery Document. Thus it stays at the top level. Each option that is only for OIDC stays in the `oidc` block.
+
+When you set the `oidc` block, the `issuer` option becomes mandatory, and your `JwtService` must use an RS256 key.
+
+| Option | Type | Default | Details |
+| --- | --- | --- | --- |
+| `authorizationEndpoint` | string | — | The absolute URL of your `/authorize` route. The Discovery Document shows this value, because the library does not control your routes. |
+| `tokenEndpoint` | string | — | The absolute URL of your `/token` route. |
+| `userinfoEndpoint` | string | — | The absolute URL of your [`/userinfo`](../endpoints/userinfo.md) route. |
+| `jwksUri` | string | — | The absolute URL of your JWKS route. The `metadata` option cannot change this field. |
+| `getUserClaims` | `(subject: string) => OidcUserClaims \| Promise<OidcUserClaims>` | — | Required. It returns the claims of the end-user for UserInfo, for one subject. See [Hooks](../oidc/hooks.md). |
+| `getIdTokenClaims` | `(ctx: OidcIdTokenClaimsContext) => Record<string, unknown> \| Promise<…>` | `undefined` | Optional. It adds your own claims to the ID Token. It cannot change a Protocol Claim. See [Hooks](../oidc/hooks.md). |
+| `metadata` | `Record<string, unknown>` | `undefined` | Optional. It adds fields to the Discovery Document, for example `scopes_supported` or `claims_supported`. It cannot change `issuer`, `jwks_uri`, or `id_token_signing_alg_values_supported`. |
 
 ```ts
 type OidcOptions = {
@@ -86,13 +92,13 @@ type AuthorizationServerOptions = {
 };
 ```
 
-See [Getting Started with OIDC](../oidc/getting_started.md) for a full wiring example.
+[Getting Started with OIDC](../oidc/getting_started.md) gives a full example.
 
 ## Logger Configuration
 
-The authorization server supports optional logging for debugging purposes, particularly useful for tracking token operations. You can provide either a custom logger implementation or use the built-in console logger.
+The authorization server can write debug data, which helps you when you examine the token operations. Use the console logger of the library, or write your own logger.
 
-### Using the Built-in Console Logger
+### Use the Console Logger
 
 ```ts
 import { ConsoleLoggerService } from "@jmondi/oauth2-server";
@@ -108,9 +114,9 @@ const authorizationServer = new AuthorizationServer(
 );
 ```
 
-### Custom Logger Implementation
+### Write Your Own Logger
 
-Implement the `LoggerService` interface to integrate with your preferred logging library:
+Write the `LoggerService` interface to connect the server to your own logging library:
 
 ```ts
 import { LoggerService } from "@jmondi/oauth2-server";
@@ -133,15 +139,16 @@ const authorizationServer = new AuthorizationServer(
 );
 ```
 
-### What Gets Logged
+### The Logged Data
 
-The logger captures debugging information including:
-- Token validation errors
-- Client authentication failures
-- Token revocation attempts
-- General grant processing errors
+The logger records:
 
-This is particularly useful for debugging token-related operations and understanding OAuth flow issues in development and production environments.
+- An error in the validation of a token
+- A failed client authentication
+- An attempt to revoke a token
+- An error in a grant
+
+Use this data to find a problem with a token, or with a flow, in development and in production.
 
 [requires-pkce]: https://datatracker.ietf.org/doc/html/rfc7636
 [requires-s256]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2

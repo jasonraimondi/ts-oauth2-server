@@ -7,7 +7,7 @@ Available in >2.0.0
 :::
 
 
-This adapter provides utility functions to convert between Fastify [Request](https://fastify.dev/docs/latest/Reference/Request/) and [Reply](https://fastify.dev/docs/latest/Reference/Reply/) objects and the `OAuthRequest`/`OAuthResponse` objects used by this package.
+This adapter converts between the Fastify [Request](https://fastify.dev/docs/latest/Reference/Request/) and [Reply](https://fastify.dev/docs/latest/Reference/Reply/) objects and the `OAuthRequest` and `OAuthResponse` objects of this package.
 
 ## Functions
 

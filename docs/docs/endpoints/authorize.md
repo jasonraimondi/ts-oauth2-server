@@ -4,17 +4,17 @@ title: /authorize
 
 # The Authorize Endpoint
 
-The `/authorize` endpoint is a front channel endpoint that initiates the authorization process and issues an authorization code. This code can then be exchanged at the `/token` endpoint for a usable access token.
+The `/authorize` endpoint is a front channel endpoint. It starts the authorization procedure and issues an authorization code. The Client then sends this code to the `/token` endpoint and receives an Access Token.
 
 :::info
-- This endpoint is only necessary if you are implementing the Authorization Code Grant.
+- You need this endpoint only for the authorization code grant.
 
-- The authorization endpoint should only support the GET method for the initial request. The user agent should be redirected to the authorization page.
+- Accept the GET method for the initial request. Redirect the user agent to your authorization page.
 
-- The URL `/authorize` can be customized, some other common urls are: `/oauth/authorize`, `/v1/authorize`, etc.
+- You can change the URL. `/oauth/authorize` and `/v1/authorize` are two other common names.
 :::
 
-The endpoint authenticates the end-user, collects their consent, and redirects back to the client with an authorization code. You own the login and consent screens, so any extra checks — 2FA, MFA, CAPTCHA — go in the same handler.
+The endpoint authenticates the end-user, gets their consent, and redirects to the Client with an authorization code. You write the login screen and the consent screen. Thus you can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
 
 ## Implementation
 
@@ -65,9 +65,9 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 });
 ```
 
-## Additional Endpoints
+## More Endpoints
 
-The handler above redirects to two routes you implement yourself.
+The handler above redirects to two routes. You must write these two routes.
 
 ### Login Endpoint
 
@@ -104,11 +104,11 @@ app.post("/scopes", (req, res) => {
 
 | Parameter | Required | Description |
 | --- | --- | --- |
-| `response_type` | Yes | `code` for the authorization code grant |
-| `client_id` | Yes | The client requesting authorization |
-| `redirect_uri` | Conditional | Where to send the user afterwards. Must [match a registered URI exactly](../getting_started/entities.md#client-entity); may be omitted only when the client has exactly one registered URI |
-| `scope` | No | The requested scope |
-| `state` | Recommended | Opaque value echoed back on the redirect; also your CSRF token |
+| `response_type` | Yes | Set to `code` for the authorization code grant |
+| `client_id` | Yes | The Client that requests the authorization |
+| `redirect_uri` | Conditional | The destination of the redirect. It must [match a Registered Redirect URI exactly](../getting_started/entities.md#client-entity). You can omit it only when the Client has one Registered Redirect URI |
+| `scope` | No | The scopes that the Client requests |
+| `state` | Recommended | An opaque value. The server returns it on the redirect. Use it as your CSRF token |
 
 ```
 GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
@@ -116,8 +116,8 @@ GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
 Host: server.example.com
 ```
 
-:::warning Your login and consent forms need CSRF protection
-The library validates the OAuth parameters, but the routes you add around it are ordinary web forms. Protect them, and keep the session holding the `AuthorizationRequest` short-lived.
+:::warning Protect your login form and your consent form against CSRF
+The library validates the OAuth parameters. But your login route and your consent route are usual web forms, and the library does not protect them. Add CSRF protection to both routes. Also, keep the life of the session that holds the `AuthorizationRequest` short.
 :::
 
 :::info Supports the following RFCs

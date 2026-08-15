@@ -1,10 +1,10 @@
 # Database Schema Reference
 
-This page provides SQL schema examples for implementing the required entities. The library is database-agnostic, but most implementations use a relational database.
+This page gives SQL examples for the entities. The library works with any database, but most projects use a relational database.
 
 :::danger Security Critical
 
-**Before implementing, read the [Security Considerations](#security-considerations) section.** Failing to hash secrets and tokens can lead to catastrophic security breaches.
+Read the [Security Considerations](#security-considerations) before you make your schema. If you do not hash your secrets and your tokens, an attacker who reads your database gets full access.
 
 :::
 
@@ -12,14 +12,14 @@ This page provides SQL schema examples for implementing the required entities. T
 
 ### Hash Client Secrets
 
-**Never store client secrets in plaintext.** Per RFC6749 Section 2.3.1, client credentials must be protected.
+**Never store a client secret as plain text.** RFC 6749 §2.3.1 tells you to protect the client credentials.
 
 ```sql
 -- The 'secret' column should contain a bcrypt/argon2 hash, NOT the raw secret
 -- Example hash: $2b$10$X7o4c5/QyOxCz...
 ```
 
-Your `OAuthClientRepository.isClientValid()` must use secure hash comparison:
+Your `OAuthClientRepository.isClientValid()` must compare the hashes with a safe function:
 
 ```typescript
 import { compare } from "bcrypt";
@@ -37,25 +37,25 @@ async isClientValid(grantType: GrantIdentifier, client: OAuthClient, clientSecre
 }
 ```
 
-### Consider Hashing Refresh Tokens
+### Hash the Refresh Tokens
 
-Refresh tokens are long-lived credentials. If your database is compromised, plaintext refresh tokens allow attackers to generate new access tokens indefinitely.
+A Refresh Token has a long life. If an attacker reads your database and finds a plain text Refresh Token, that attacker can make a new Access Token at any time.
 
-Consider storing a hash of the refresh token and using constant-time comparison during validation.
+Store a hash of each Refresh Token. Compare the hashes with a constant-time function when you validate the token.
 
-### Use TLS for Database Connections
+### Use TLS for the Database Connection
 
-Always use encrypted connections (TLS/SSL) between your application and database in production.
+In production, always encrypt the connection between your application and your database with TLS.
 
 ---
 
 ## Recommended Schema (Normalized)
 
-This schema uses pivot tables for many-to-many relationships (scopes). This approach provides:
+This schema uses a pivot table for each many-to-many relation, for example the scopes. The schema then gives you:
 
 - Referential integrity
-- Easier auditing ("which clients have admin scope?")
-- Standard SQL queries for access control
+- A simple audit, for example "which Clients have the admin scope?"
+- Usual SQL queries for access control
 
 ### Users Table
 
@@ -188,13 +188,13 @@ CREATE INDEX idx_oauth_token_scopes_token ON oauth_token_scopes(access_token);
 
 ## Alternative: Simplified Schema (Array-Based)
 
-For simpler deployments, you can store scopes as arrays directly on entities. This reduces table count but sacrifices referential integrity.
+In a simple deployment, you can store the scopes as an array on each entity. This gives you fewer tables, but you lose the referential integrity.
 
-:::warning Tradeoffs
+:::warning Consequences
 
-- No foreign key validation on scope names (typos fail silently)
-- Harder to query "all clients with scope X"
-- No cascade delete when removing scopes
+- No foreign key validates a scope name. An incorrect name causes no error.
+- It is more difficult to find all the Clients with one scope.
+- The database does not delete a scope from an entity when you delete that scope.
 
 :::
 
@@ -255,7 +255,7 @@ CREATE TABLE oauth_tokens (
 
 ## Token Revocation Support (RFC7009)
 
-To support the `/revoke` endpoint, add a `revoked_at` timestamp column:
+Add a `revoked_at` timestamp column for the [`/token/revoke`](../endpoints/revoke.md) endpoint:
 
 ```sql
 -- Check if token is revoked in your repository
@@ -278,20 +278,20 @@ WHERE originating_auth_code_id = $1;
 
 ## Existing Examples
 
-For ORM-based implementations, see these existing examples:
+These two projects use an ORM:
 
-- **Prisma Schema**: [example/prisma/schema.prisma](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/example/prisma/schema.prisma)
-- **Full Example App**: [ts-oauth2-server-example](https://github.com/jasonraimondi/ts-oauth2-server-example) with Prisma schema and migrations
+- **Prisma schema**: [example/prisma/schema.prisma](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/example/prisma/schema.prisma)
+- **Full example application**: [ts-oauth2-server-example](https://github.com/jasonraimondi/ts-oauth2-server-example), with a Prisma schema and the migrations
 
 ---
 
-## Verify Your Implementation
+## Check Your Schema
 
-After implementing your schema, verify these security requirements:
+Make these four checks after you create your schema:
 
-| Check | How to Verify |
+| Check | Procedure |
 |-------|---------------|
-| Secrets are hashed | `SELECT secret FROM oauth_clients` shows bcrypt hashes (starting with `$2b$`) |
-| Referential integrity | Deleting a client cascades to tokens and auth codes |
-| Token expiry indexed | `EXPLAIN` shows index usage on expiry queries |
-| Revocation works | Revoked tokens return `is_revoked = true` from repository |
+| The secrets are hashed | `SELECT secret FROM oauth_clients` shows a bcrypt hash. Each hash starts with `$2b$` |
+| The referential integrity is correct | Delete a Client. The database also deletes its tokens and its authorization codes |
+| The expiry column has an index | `EXPLAIN` shows that a query on the expiry uses the index |
+| The revocation operates | Your repository reports a revoked token as revoked |

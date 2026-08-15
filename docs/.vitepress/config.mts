@@ -158,7 +158,7 @@ export default defineConfig({
         { text: "Upgrade Guide", link: "/docs/upgrade_guide" },
 
             {
-              text: "Protecting Resources",
+              text: "Protect Resources",
               link: "/docs/getting_started/protecting_resources",
             },
       ],
