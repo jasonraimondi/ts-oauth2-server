@@ -1,58 +1,70 @@
 # Upgrade guide
 
-This page lists the breaking changes of each major version, with the most recent version first. Each section tells you what changed, and how to keep the previous behaviour. The [changelog](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/CHANGELOG.md) gives the full detail of every release.
+Breaking changes for each major version, newest first. The [changelog](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/CHANGELOG.md) records every release in full.
 
 ## Upgrading to v5 {#to-v5}
 
-This section is for a move from v4. There are some breaking changes. There is also an optional OpenID Connect layer, and it does not change the other flows.
+From v4. Node.js 22 is now the minimum, and that reaches every project. Each of the other changes applies to one configuration, so find your rows here:
 
-### Breaking changes
+| This applies to you if | Go to |
+| --- | --- |
+| You enable the implicit grant | [Tokens move to the fragment](#v5-implicit) |
+| You serve `/token/revoke` or `/token/introspect` | [Both endpoints changed](#v5-revoke-introspect) |
+| Your `redirect_uri` changes per request, or holds a `#` | [Redirect URIs match exactly](#v5-redirect-uri) |
+| You wrote a custom `JwtInterface`, or you call `JwtService.verify()` | [Verification is stricter](#v5-verify) |
 
-**Node.js 22 is now the minimum.** `engines.node` is `">=22"`. Update your runtime and your CI, and then install the packages again.
+If no row applies, install Node.js 22 and the upgrade is complete. OpenID Connect is new in v5, but it is optional and changes nothing until you set the `oidc` block.
 
-**The implicit grant redirects with a fragment.** The server now adds each token to the redirect URI after `#`, and not after `?`, which obeys [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2). To keep the query string:
+### Node.js 22 {#v5-node}
+
+`engines.node` is now `">=22"`. Update your runtime and your CI, then install the packages again.
+
+### Tokens move to the fragment {#v5-implicit}
+
+The implicit grant now adds each token to the redirect URI after `#`, and not after `?` ([RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2)). To keep the query string:
 
 ```ts
 new AuthorizationServer(..., { implicitRedirectMode: "query" });
 ```
 
-**Revoke and introspect authenticate the Client.** Both endpoints now authenticate the Client with its `client_id`, and also its `client_secret` for a Confidential Client. Before, they used membership of the `client_credentials` grant. Thus a Public Client with PKCE can now revoke its own tokens, and a `client_credentials` Client does not change.
+### Revoke and introspect changed {#v5-revoke-introspect}
 
-Two responses are also stricter. Introspection now rejects a Public Client. A failed client authentication at `/token/revoke` now returns `401 invalid_client`, and not the silent `200` from before. An invalid token, or a token of a different Client, still returns `200`.
+**Both endpoints authenticate the Client by identity.** They read the `client_id`, and the `client_secret` for a Confidential Client. Before, they required membership of the `client_credentials` grant. Thus a Public Client with PKCE can now revoke its own tokens.
 
-To let a Public Client introspect:
+**Introspection rejects a Public Client.** To keep the previous behaviour:
 
 ```ts
 new AuthorizationServer(..., { introspectionRequiresConfidentialClient: false });
 ```
 
-**`JwtService.verify()` is stricter.** It pins the configured algorithm of the service, and it ignores the `algorithms` option that you pass. It also rejects a payload that is not an object. This changes your code only if you call the method yourself.
+**A failed client authentication at `/token/revoke` returns `401 invalid_client`.** Before, it returned a silent `200`. An invalid token still returns `200`.
 
-**Revoke and introspect verify the signature of the token.** Before, both endpoints decoded the JWT and did not check the signature. Thus introspection returned the claims that the caller supplied. Now the server finds the token, and returns its claims, only after the token verifies against the `JwtService`. A token that does not verify introspects as `{ "active": false }`, and revokes with a silent `200`.
+**Both endpoints verify the signature of the token.** Before, they decoded the JWT without a check, so introspection returned whatever claims the caller sent. Now a token that does not verify introspects as `{ "active": false }`, and revokes with a silent `200`. Two consequences:
 
-Three consequences follow:
+- You cannot revoke a token that a retired key signed. Revoke or expire those tokens on the server when you change a key.
+- The `active`, `scope`, `client_id`, and `token_type` fields now come from your stored state, and not from the token.
 
-- **Key rotation:** A Client cannot introspect or revoke a token from a retired key. Revoke or expire these tokens on the server when you change the key.
-- **A custom `JwtInterface`:** Your `verify(token, options)` must obey `ignoreExpiration`. If it does not, a request to revoke an expired token does nothing.
-- **Response fields:** The `active`, `scope`, `client_id`, and `token_type` fields now always come from the stored state, and not from the claims of the token.
+[ADR 0008](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0008-introspection-revocation-verified-persisted-state.md) records the reasoning.
 
-Some behaviour that was incorrect before is now correct, and you do nothing. The server finds a Refresh Token with no `token_type_hint`. It can introspect and revoke an opaque Refresh Token. It returns `{ "active": false }` for an unknown token, and not a `500`. It also reports `active: false` for each token that your repository marks as revoked, through `isRefreshTokenRevoked` or the optional `isAccessTokenRevoked`.
+::: details Four bugs are also fixed here — no action needed
+The server now finds a Refresh Token with no `token_type_hint`. It introspects and revokes an opaque Refresh Token. It returns `{ "active": false }` for an unknown token in place of a `500`. It also reports `active: false` for a token that your repository marks as revoked, through `isRefreshTokenRevoked` or the optional `isAccessTokenRevoked`.
+:::
 
-**The validation of `redirect_uri` is stricter.** The library now reads the parameter with the native WHATWG URL parser, which replaces the `uri-js` package. A value that the parser cannot read, such as `https://` with no host, now fails immediately with `400 invalid_request`. Before, it failed later with `401 invalid_client`. The server also rejects any `#` character, which includes a single `#` at the end ([RFC 6749 §3.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2)). There is no option to keep the old behaviour. Remove the fragment from your redirect URI.
+### Redirect URIs match exactly {#v5-redirect-uri}
 
-**Redirect URIs use Exact Matching.** Before, the authorization endpoint ignored a difference in the port or in the query string. It now makes the two URIs agree exactly ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). Only a Loopback Redirect URI can use a different port. This is an `http` URI with the host `localhost`, `127.0.0.1`, or `[::1]` ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)).
+Two changes, and neither has an opt-out. The old comparison could send an authorization code to a different origin on a shared host.
 
-The server also rejects a request with no `redirect_uri` when the Client has more than one Registered Redirect URI. There is no option to keep the old behaviour, because the old comparison could send an authorization code to a different origin on a shared host.
+**A `#` anywhere in a `redirect_uri` is rejected**, which includes a single `#` at the end ([RFC 6749 §3.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2)). A URI that the parser cannot read, such as `https://` with no host, now fails immediately with `400 invalid_request`, and not later with `401 invalid_client`. Remove the fragment.
 
-If the query string of a redirect URI never changes, register the full URI. For example, `https://app.example.com/callback?tenant=acme` matches itself exactly. If your Client added a query parameter to each request, put that data in the `state` parameter instead ([RFC 6749 §3.1.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.2)):
+**The port and the query string must now agree** ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). Only a Loopback Redirect URI may vary its port: an `http` URI on `localhost`, `127.0.0.1`, or `[::1]` ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). The server also rejects a request that omits `redirect_uri` when the Client registered more than one.
+
+A fixed query string needs no change. Register `https://app.example.com/callback?tenant=acme` and it matches itself exactly. If your Client built a different URI for each request, move that data into `state`:
 
 ```ts
-// Before: the redirect_uri varied per request —
-// now rejected unless that exact variant is registered
+// Before: the redirect_uri changed per request, and is now rejected
 const redirectUri = "https://app.example.com/callback?returnTo=/settings";
 
-// After: the redirect_uri is byte-identical to the registered one;
-// per-request data rides in `state` (which doubles as your CSRF token)
+// After: the redirect_uri is the registered one, and `state` carries the data
 const state = crypto.randomUUID();
 session.oauth = { state, returnTo: "/settings" };
 const authorizeUrl =
@@ -60,16 +72,22 @@ const authorizeUrl =
   `&redirect_uri=${encodeURIComponent("https://app.example.com/callback")}` +
   `&state=${state}`;
 
-// In the callback handler: verify state, then recover the data
+// In the callback handler, check `state` and then read the data back
 if (req.query.state !== session.oauth.state) throw new Error("state mismatch");
 res.redirect(session.oauth.returnTo);
 ```
 
+[ADR 0007](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0007-redirect-uri-exact-matching.md) records the reasoning.
+
+### Verification is stricter {#v5-verify}
+
+`JwtService.verify()` pins the configured algorithm of the service, and ignores the `algorithms` option that you pass. It also rejects a payload that is not an object.
+
+If you supply a custom `JwtInterface`, your `verify(token, options)` must obey `ignoreExpiration`. Without it, a request to revoke an expired token does nothing.
+
 ## Upgrading to v4 {#to-v4}
 
-This section is for a move from v3. It applies to you only if you supply the revoke endpoint or the introspect endpoint.
-
-### Breaking changes
+From v3. This applies to you only if you serve the revoke endpoint or the introspect endpoint.
 
 **Introspect and revoke authenticate the Client.** The `authenticateIntrospect` and `authenticateRevoke` options now default to `true`. To keep the previous behaviour:
 
@@ -86,9 +104,7 @@ new AuthorizationServer(..., {
 
 ## Upgrading to v3 {#to-v3}
 
-This section is for a move from v2. It is the largest change, because both the constructor and the grant setup are different.
-
-### Breaking changes
+From v2. This one needs code edits, because both the constructor and the grant setup change.
 
 **The `AuthorizationServer` constructor is smaller.** The auth code repository and the user repository move out of the constructor, and you now pass them when you enable the grant. The other arguments change their sequence, and `clientRepository` comes first. The signing argument accepts a `JwtService` or a secret string.
 
@@ -116,6 +132,7 @@ server.enableGrantType({ grant: "password", userRepository });
 new AuthorizationServer(..., { requiresS256: false, tokenCID: "name" });
 ```
 
+::: details Five smaller v3 changes
 **`respondToAccessTokenRequest` has no second argument.** Call it with the request only: `respondToAccessTokenRequest(request)`.
 
 **The `setOptions()` method is removed.** Pass each option to the constructor. You cannot change an option after that.
@@ -125,3 +142,4 @@ new AuthorizationServer(..., { requiresS256: false, tokenCID: "name" });
 **`requestFromVanilla` is asynchronous.** From v3.6 it returns a `Promise`. Write `await requestFromVanilla(req)`.
 
 **The package format changed.** Version 3.0.0 supplied ESM only, but version 3.0.1 supplies CommonJS again. Install `^3.0.1` or a later version, and `require()` continues to operate. Import each adapter from its own path, for example `@jmondi/oauth2-server/express`.
+:::
