@@ -5,18 +5,11 @@ title: Protecting Resources
 
 # Protecting Resources with Access Tokens
 
-After issuing access tokens via the OAuth2 endpoints, you need to validate those tokens in your API middleware to protect resources. This guide covers how to implement secure token validation.
+This guide shows how to validate access tokens in your API middleware. It assumes you have a working authorization server issuing tokens.
 
-## Overview
+A validated token has passed six checks: signature, expiry, issuer, audience, revocation, and scope.
 
-Access token validation involves several security checks:
-
-1. **JWT Signature Verification** - Ensures the token hasn't been tampered with
-2. **Expiration Check** - Rejects expired tokens
-3. **Issuer Validation** - Confirms the token came from your authorization server
-4. **Audience Validation** - Ensures the token is meant for your API
-5. **Revocation Check** - Verifies the token hasn't been revoked
-6. **Scope Validation** - Confirms the token has required permissions
+If your resource server runs as a separate service, use the [introspection endpoint](/docs/endpoints/introspect) instead — see [Alternative: Token Introspection](#alternative-token-introspection).
 
 ## Token Payload Structure
 
@@ -78,20 +71,10 @@ class TokenRepository implements OAuthTokenRepository {
 
 ### Step 2: Create the Validation Function
 
+Reusing the `AccessTokenPayload` shown above:
+
 ```typescript
 import { JwtInterface, OAuthToken, OAuthTokenRepository } from "@jmondi/oauth2-server";
-
-interface AccessTokenPayload {
-  jti: string;
-  sub?: string;
-  cid: string;
-  exp: number;
-  iat: number;
-  iss?: string;
-  aud?: string | string[];
-  scope?: string;
-  [key: string]: unknown;
-}
 
 interface ValidatedToken {
   payload: AccessTokenPayload;
@@ -309,74 +292,22 @@ app.delete(
 
 ## Security Considerations
 
-### Always Validate Issuer and Audience
+**Always set `expectedIssuer` and `expectedAudience`** when your server issues `iss` and `aud` claims. Skipping them accepts tokens minted by a different issuer, or tokens meant for a different API.
 
-If your authorization server sets `iss` and `aud` claims, always validate them:
+**Always check the repository, not just the JWT.** A token can be revoked before it expires — on logout, or on a password change. Only the stored record knows.
 
-```typescript
-const authorizationServer = new AuthorizationServer(
-  // ...
-  {
-    issuer: "https://auth.example.com", // Sets iss claim
-  }
-);
-
-// In your middleware config
-const authConfig: TokenValidationConfig = {
-  jwtService,
-  tokenRepository,
-  expectedIssuer: "https://auth.example.com",
-  expectedAudience: "https://api.example.com",
-};
-```
-
-This prevents:
-- **Token substitution attacks** - Using a token from a different issuer
-- **Token confusion** - Using a token meant for a different API
-
-### Check Revocation Status
-
-Even though JWTs contain expiration info, you should check the database for revocation:
-
-```typescript
-// Token may be revoked before expiration (user logout, password change, etc.)
-const storedToken = await tokenRepository.getByAccessToken(payload.jti);
-```
-
-### Use Short Token Lifetimes
-
-Configure short access token TTLs and use refresh tokens:
+**Keep access tokens short-lived** and lean on refresh tokens:
 
 ```typescript
 authorizationServer.enableGrantTypes(
-  ["client_credentials", new DateInterval("15m")],  // 15 minute access tokens
-  ["refresh_token", new DateInterval("7d")],        // 7 day refresh tokens
+  ["client_credentials", new DateInterval("15m")],
+  ["refresh_token", new DateInterval("7d")],
 );
-```
-
-### Implement Rate Limiting
-
-Protect your token validation endpoint from brute force:
-
-```typescript
-import rateLimit from "express-rate-limit";
-
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-
-app.use("/api", apiLimiter);
 ```
 
 ## Alternative: Token Introspection
 
-If your resource server is separate from your authorization server, or you need RFC 7662 compliance, use the [introspection endpoint](/docs/endpoints/introspect) instead.
-
-The introspection endpoint:
-- Handles all validation logic server-side
-- Returns a standardized response format
-- Can be called over HTTP from separate services
+If your resource server is a separate service, or you need RFC 7662 compliance, call the [introspection endpoint](/docs/endpoints/introspect) over HTTP instead of verifying locally:
 
 ```typescript
 // Resource server calls authorization server
@@ -394,26 +325,8 @@ const { active, scope, client_id, sub } = await response.json();
 
 ## Complete Example
 
-See the [example project](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) for a complete working implementation including:
+The [example project](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) has a working implementation — `src/middleware/auth.ts`, `src/main.ts`, and `src/repositories/token_repository.ts`.
 
-- `example/src/middleware/auth.ts` - Full middleware implementation
-- `example/src/main.ts` - Protected route examples
-- `example/src/repositories/token_repository.ts` - Repository with `getByAccessToken`
+## Test checklist
 
-## Security Test Cases
-
-When implementing token validation, ensure you test these scenarios:
-
-```typescript
-describe("Token Validation", () => {
-  it("rejects requests without Authorization header");
-  it("rejects malformed Authorization header");
-  it("rejects expired tokens");
-  it("rejects tokens with invalid signature");
-  it("rejects revoked tokens");
-  it("rejects tokens with wrong issuer");
-  it("rejects tokens with wrong audience");
-  it("rejects tokens with insufficient scopes");
-  it("accepts valid tokens with correct scopes");
-});
-```
+Your middleware should reject: a missing or malformed `Authorization` header, an expired token, an invalid signature, a revoked token, a wrong `iss`, a wrong `aud`, and insufficient scopes. It should accept a valid token carrying the required scopes.

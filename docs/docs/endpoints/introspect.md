@@ -132,39 +132,23 @@ Additional fields may be included in the response.
 
 `active`, `scope`, `client_id`, and `token_type` always reflect the server's stored state for the token; the remaining fields echo the verified token's claims.
 
-The client authenticates with its credentials (`client_id`, plus `client_secret` for confidential clients).
+### Calling the endpoint
 
-::: code-group
-
-```ts [Auth Using Headers]
+```ts
 import { base64encode } from "@jmondi/oauth2-server";
 
-const basicAuth = "Basic " + base64encode(`${clientId}:${clientSecret}`);
 const response = await fetch("/token/introspect", {
   method: "POST",
   headers: {
-    Authorization: basicAuth,
+    Authorization: "Basic " + base64encode(`${clientId}:${clientSecret}`),
+    "Content-Type": "application/x-www-form-urlencoded",
   },
-  body: JSON.stringify({
-    token: token,
-  }),
+  body: new URLSearchParams({ token }),
 });
-await response.json()
+const { active, scope, client_id, sub } = await response.json();
 ```
 
-```ts [Auth Using Body]
-const response = await fetch("/token/introspect", {
-  method: "POST",
-  body: JSON.stringify({
-    token: token,
-    client_id: clientId,
-    client_secret: clientSecret,
-  }),
-});
-await response.json()
-```
-
-:::
+Passing `client_id` and `client_secret` in the form body works too, in place of the `Authorization` header.
 
 :::info Supports the following RFCs
 [RFC7662 (OAuth 2.0 Token Introspection)](https://datatracker.ietf.org/doc/html/rfc7662)

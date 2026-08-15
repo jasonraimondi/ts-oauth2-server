@@ -14,21 +14,7 @@ The `/authorize` endpoint is a front channel endpoint that initiates the authori
 - The URL `/authorize` can be customized, some other common urls are: `/oauth/authorize`, `/v1/authorize`, etc.
 :::
 
-## Purpose
-
-The primary purposes of the `/authorize` endpoint are:
-
-1. To authenticate the resource owner (end-user)
-2. To obtain authorization from the resource owner for the client application
-3. To issue an authorization code if the authentication and authorization are successful
-
-## Flow
-
-1. The client application redirects the user to the `/authorize` endpoint
-2. The authorization server authenticates the user (if not already authenticated)
-3. The server presents the user with a consent screen to approve or deny the client's request
-4. If approved, the server redirects the user back to the client's redirect URI with an authorization code
-5. Additional checks like 2FA, MFA, or CAPTCHA can be implemented as needed
+The endpoint authenticates the end-user, collects their consent, and redirects back to the client with an authorization code. You own the login and consent screens, so any extra checks — 2FA, MFA, CAPTCHA — go in the same handler.
 
 ## Implementation
 
@@ -79,15 +65,9 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 });
 ```
 
-## Key Components
-
-1. **User Authentication**: If the user is not authenticated, redirect to a login page.
-2. **Consent Screen**: If the user hasn't approved the authorization, redirect to a consent page.
-3. **Authorization Completion**: If authenticated and approved, complete the authorization process.
-
 ## Additional Endpoints
 
-To support the full flow, you'll need to implement additional endpoints:
+The handler above redirects to two routes you implement yourself.
 
 ### Login Endpoint
 
@@ -122,15 +102,13 @@ app.post("/scopes", (req, res) => {
 
 ## Request Parameters
 
-The `/authorize` endpoint typically accepts the following parameters:
-
-- `response_type`: Must be set to "code" for the authorization code grant
-- `client_id`: The identifier of the client requesting authorization
-- `redirect_uri`: The URI to redirect the user after authorization. Must exactly match one of the client's registered redirect URIs ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)) — host, path, port, and query string all included. The only exception: `http`-scheme loopback URIs (`http://localhost`, `http://127.0.0.1`, `http://[::1]`) may use a different port than registered ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). May be omitted only when the client has exactly one registered redirect URI; otherwise the request is rejected with `invalid_request`
-- `scope`: (Optional) The scope of the access request
-- `state`: (Recommended) An opaque value used to maintain state between the request and callback
-
-## Example Request
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `response_type` | Yes | `code` for the authorization code grant |
+| `client_id` | Yes | The client requesting authorization |
+| `redirect_uri` | Conditional | Where to send the user afterwards. Must [match a registered URI exactly](../getting_started/entities.md#client-entity); may be omitted only when the client has exactly one registered URI |
+| `scope` | No | The requested scope |
+| `state` | Recommended | Opaque value echoed back on the redirect; also your CSRF token |
 
 ```
 GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
@@ -138,13 +116,9 @@ GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
 Host: server.example.com
 ```
 
-## Security Considerations
-
-1. Always use HTTPS for the authorization endpoint
-2. Validate all input parameters
-3. Implement CSRF protection for the login and consent forms
-4. Use short-lived sessions and secure session management
-5. Implement rate limiting to prevent brute-force attacks
+:::warning Your login and consent forms need CSRF protection
+The library validates the OAuth parameters, but the routes you add around it are ordinary web forms. Protect them, and keep the session holding the `AuthorizationRequest` short-lived.
+:::
 
 :::info Supports the following RFCs
 [RFC6749 (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc6749), [RFC7636 (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636)
