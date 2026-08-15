@@ -8,7 +8,9 @@ import {
   DateInterval,
   ExtraAccessTokenFieldArgs,
   JwtService,
+  GrantIdentifier,
   OAuthClient,
+  OAuthClientRepository,
   OAuthRequest,
   OAuthScope,
   OAuthToken,
@@ -1016,6 +1018,103 @@ describe("client_credentials grant", () => {
 
       expect(response.status).toBe(200);
       expect(isRevoked()).toBe(false);
+    });
+  });
+
+  // RFC 6749 §4.4: "The client credentials grant type MUST only be used by
+  // confidential clients." These probe whether the library enforces that, or
+  // delegates it entirely to the consumer's isClientValid.
+  describe("public client (no client_secret)", () => {
+    let publicClient: OAuthClient;
+
+    beforeEach(() => {
+      publicClient = {
+        id: "public-cc-client",
+        name: "public client",
+        // no `secret` — this is a Public Client
+        redirectUris: ["http://localhost"],
+        allowedGrants: ["client_credentials"],
+        scopes: [],
+      };
+      inMemoryDatabase.clients[publicClient.id] = publicClient;
+    });
+
+    it("issues a token to a public client presenting only a client_id", async () => {
+      request = new OAuthRequest({
+        body: {
+          grant_type: "client_credentials",
+          client_id: publicClient.id,
+        },
+      });
+
+      const tokenResponse = await grant.respondToAccessTokenRequest(request, new DateInterval("1h"));
+
+      const decodedToken = expectTokenResponse(tokenResponse);
+      expect(decodedToken.cid).toBe(publicClient.id);
+      // No user is involved in this grant, so the token carries no subject.
+      expect(decodedToken.sub).toBeUndefined();
+    });
+
+    it("issues a token under the isClientValid documented in database_schema.md", async () => {
+      // The canonical implementation the docs give consumers: check the grant,
+      // compare hashes when both sides have a secret, otherwise accept the
+      // client as public.
+      const documentedClientRepository: OAuthClientRepository = {
+        async getByIdentifier(clientId: string): Promise<OAuthClient> {
+          const found = inMemoryDatabase.clients[clientId];
+          if (!found) throw new Error("client not found");
+          return found;
+        },
+        async isClientValid(
+          grantType: GrantIdentifier,
+          client: OAuthClient,
+          clientSecret?: string,
+        ): Promise<boolean> {
+          if (!client.allowedGrants.includes(grantType)) {
+            return false;
+          }
+          if (client.secret && clientSecret) {
+            return client.secret === clientSecret;
+          }
+          return !client.secret;
+        },
+      };
+
+      const grantWithDocumentedRepo = new ClientCredentialsGrant(
+        documentedClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        new ClientCredentialsJwtService("secret-key"),
+        { ...DEFAULT_AUTHORIZATION_SERVER_OPTIONS, issuer: "TestIssuer" },
+      );
+
+      request = new OAuthRequest({
+        body: {
+          grant_type: "client_credentials",
+          client_id: publicClient.id,
+        },
+      });
+
+      const tokenResponse = await grantWithDocumentedRepo.respondToAccessTokenRequest(
+        request,
+        new DateInterval("1h"),
+      );
+
+      expect(expectTokenResponse(tokenResponse).cid).toBe(publicClient.id);
+    });
+
+    it("still rejects a confidential client that presents no secret", async () => {
+      // The existing guard: isClientConfidential(client) && !clientSecret.
+      request = new OAuthRequest({
+        body: {
+          grant_type: "client_credentials",
+          client_id: client.id,
+        },
+      });
+
+      await expect(grant.respondToAccessTokenRequest(request, new DateInterval("1h"))).rejects.toThrow(
+        "Client authentication failed",
+      );
     });
   });
 });
