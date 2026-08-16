@@ -50,3 +50,24 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile --production false
       - run: pnpm dlx jsr publish
+      # JSR records the Sigstore log index asynchronously, after `jsr publish` has
+      # already reported success. When that write is dropped the version ships with
+      # no provenance on jsr.io, and versions are immutable, so the only remedy is
+      # to notice here and cut a new one. 4.3.6, 4.3.7 and 5.0.0-rc.5 shipped that
+      # way unnoticed.
+      - name: Verify JSR recorded provenance
+        run: |
+          pkg=$(jq -r '.name' jsr.json)
+          version=$(jq -r '.version' jsr.json)
+          scope=${pkg%/*}
+          url="https://api.jsr.io/scopes/${scope#@}/packages/${pkg#*/}/versions/$version"
+          for _ in $(seq 1 10); do
+            rekor=$(curl -fsS "$url" | jq -r '.rekorLogId // empty' || true)
+            if [ -n "$rekor" ]; then
+              echo "provenance recorded: https://search.sigstore.dev/?logIndex=$rekor"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::JSR did not record provenance for $pkg@$version"
+          exit 1
