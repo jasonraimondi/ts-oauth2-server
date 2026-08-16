@@ -50,11 +50,8 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile --production false
       - run: pnpm dlx jsr publish
-      # JSR records the Sigstore log index asynchronously, after `jsr publish` has
-      # already reported success. When that write is dropped the version ships with
-      # no provenance on jsr.io, and versions are immutable, so the only remedy is
-      # to notice here and cut a new one. 4.3.6, 4.3.7 and 5.0.0-rc.5 shipped that
-      # way unnoticed.
+      # JSR records the Sigstore log index asynchronously, after `jsr publish` reports
+      # success, and versions are immutable — a dropped record can only be caught here.
       - name: Verify JSR recorded provenance
         run: |
           pkg=$(jq -r '.name' jsr.json)
