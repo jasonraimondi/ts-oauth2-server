@@ -11,7 +11,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4 # version comes from the "packageManager" field in package.json
       - uses: actions/setup-node@v4
         with:
@@ -41,7 +41,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4 # version comes from the "packageManager" field in package.json
       - uses: actions/setup-node@v4
         with:
@@ -52,19 +52,22 @@ jobs:
       - run: pnpm dlx jsr publish
       # JSR records the Sigstore log index asynchronously, after `jsr publish` reports
       # success, and versions are immutable — a dropped record can only be caught here.
+      # Only the management API exposes rekorLogId, and it asks callers to identify
+      # themselves and to read version metadata sparingly.
       - name: Verify JSR recorded provenance
         run: |
           pkg=$(jq -r '.name' jsr.json)
           version=$(jq -r '.version' jsr.json)
           scope=${pkg%/*}
           url="https://api.jsr.io/scopes/${scope#@}/packages/${pkg#*/}/versions/$version"
-          for _ in $(seq 1 10); do
-            rekor=$(curl -fsS "$url" | jq -r '.rekorLogId // empty' || true)
+          agent="ts-oauth2-server-ci/1; https://github.com/jasonraimondi/ts-oauth2-server"
+          for _ in $(seq 1 5); do
+            rekor=$(curl -fsS -A "$agent" "$url" | jq -r '.rekorLogId // empty' || true)
             if [ -n "$rekor" ]; then
               echo "provenance recorded: https://search.sigstore.dev/?logIndex=$rekor"
               exit 0
             fi
-            sleep 15
+            sleep 20
           done
           echo "::error::JSR did not record provenance for $pkg@$version"
           exit 1
