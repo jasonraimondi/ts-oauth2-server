@@ -12,6 +12,18 @@ import { JwtInterface } from "../utils/jwt.js";
 import { AbstractGrant } from "./abstract/abstract.grant.js";
 import { AuthorizationServerOptions } from "../options.js";
 
+/**
+ * The `password` grant (RFC 6749 §4.3). The client sends the end-user's
+ * username and password to `/token` and receives an access token and a refresh
+ * token. Your {@link OAuthUserRepository.getUserByCredentials} verifies the
+ * password.
+ *
+ * The grant is not recommended: it gives the client the end-user's password.
+ * Use the authorization code grant instead. Enable it with
+ * `enableGrantType({ grant: "password", userRepository })`.
+ *
+ * @see https://tsoauth2server.com/docs/grants/password
+ */
 export class PasswordGrant extends AbstractGrant {
   readonly identifier = "password";
 

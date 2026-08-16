@@ -5,6 +5,18 @@ import { ResponseInterface } from "../responses/response.js";
 import { DateInterval } from "../utils/date_interval.js";
 import { AbstractGrant } from "./abstract/abstract.grant.js";
 
+/**
+ * The `refresh_token` grant (RFC 6749 §6). The client presents a refresh token
+ * at `/token` and receives a new access token and refresh token. The old token
+ * is revoked first.
+ *
+ * The new token may narrow the scopes, never widen them: a requested scope the
+ * old token did not carry is rejected as `invalid_scope`. The grant is
+ * OIDC-unaware — it never returns an ID token. The {@link AuthorizationServer}
+ * constructor enables it.
+ *
+ * @see https://tsoauth2server.com/docs/grants/refresh_token
+ */
 export class RefreshTokenGrant extends AbstractGrant {
   readonly identifier = "refresh_token";
 

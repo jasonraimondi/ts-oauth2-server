@@ -1,3 +1,32 @@
+/**
+ * Adapter between H3 and the authorization server.
+ *
+ * The functions here convert an `H3Event` into an
+ * {@link OAuthRequest | OAuthRequest}, and send an
+ * {@link OAuthResponse | OAuthResponse} — or an {@link OAuthException} — back
+ * through the same event. H3 is an optional peer dependency, so install it to
+ * use this adapter.
+ *
+ * @example
+ * ```ts
+ * import { handleH3Error, handleH3Response, requestFromH3 } from "@jmondi/oauth2-server/h3";
+ *
+ * export default defineEventHandler(async event => {
+ *   try {
+ *     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(
+ *       await requestFromH3(event),
+ *     );
+ *     return handleH3Response(event, oauthResponse);
+ *   } catch (e) {
+ *     return handleH3Error(e, event);
+ *   }
+ * });
+ * ```
+ *
+ * @see https://tsoauth2server.com/docs/adapters/h3
+ * @module
+ */
+
 import { getQuery, getHeaders, readBody, sendRedirect, setResponseStatus, setHeaders, send } from "h3";
 import type { H3Event } from "h3";
 import { OAuthException } from "../exceptions/oauth.exception.js";

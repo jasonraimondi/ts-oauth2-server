@@ -1,3 +1,4 @@
+/** The HTTP status codes an {@link OAuthException} can carry. */
 export const HttpStatus = {
   NOT_ACCEPTABLE: 406,
   BAD_REQUEST: 400,
@@ -7,6 +8,11 @@ export const HttpStatus = {
   OK: 200,
 };
 
+/**
+ * The `error` value of an OAuth error response, as defined by RFC 6749 §5.2 and
+ * RFC 6750 §3.1. It is the {@link OAuthException.errorType} of every exception
+ * this library throws.
+ */
 export enum ErrorType {
   InvalidRequest = "invalid_request",
   InvalidClient = "invalid_client",
@@ -22,9 +28,36 @@ export enum ErrorType {
   InternalServerError = "server_error",
 }
 
+/**
+ * The error every endpoint throws when a request fails. It carries the OAuth
+ * `error` type, an optional description, and the HTTP status the response must
+ * use.
+ *
+ * Catch it around each endpoint call and pass it to your adapter's error
+ * handler, which converts it into the RFC 6749 §5.2 JSON body. Use
+ * {@link isOAuthError} to recognize one, and the static factory methods to
+ * throw one from your own grant or repository.
+ *
+ * @example
+ * ```ts
+ * try {
+ *   const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+ *   return handleExpressResponse(res, oauthResponse);
+ * } catch (e) {
+ *   handleExpressError(e, res);
+ * }
+ * ```
+ */
 export class OAuthException extends Error {
   private readonly oauth = true;
 
+  /**
+   * @param error - The error message, used as the response `message`
+   * @param errorType - The OAuth `error` value
+   * @param errorDescription - Human-readable detail, sent as `error_description`
+   * @param errorUri - A URI with more information about the error
+   * @param status - The HTTP status of the response, 400 by default
+   */
   constructor(
     public readonly error: string,
     public readonly errorType: ErrorType,

@@ -1,6 +1,13 @@
 import { OAuthClient } from "../entities/client.entity.js";
 import { GrantIdentifier } from "../grants/abstract/grant_identifier.js";
 
+/**
+ * Storage for registered clients. Every grant uses it: first to look the client
+ * up by its identifier, then to authenticate it. Required by the
+ * {@link AuthorizationServer} constructor.
+ *
+ * @see https://tsoauth2server.com/docs/getting_started/repositories
+ */
 export interface OAuthClientRepository {
   /**
    * Fetches a client entity from storage by client ID.

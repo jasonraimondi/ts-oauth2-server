@@ -4,6 +4,7 @@ import { OAuthToken } from "../../entities/token.entity.js";
 import { OAuthException } from "../../exceptions/oauth.exception.js";
 import { OAuthTokenRepository } from "../../repositories/access_token.repository.js";
 
+/** The claims a {@link RefreshTokenEncoder} resolves a refresh token to. */
 interface RefreshTokenResolutionPayload {
   client_id?: string;
   refresh_token_id?: string;
@@ -11,22 +12,38 @@ interface RefreshTokenResolutionPayload {
   [key: string]: unknown;
 }
 
+/**
+ * What a {@link RefreshTokenEncoder} returns from `resolve`. `token` is the
+ * persisted entity when the encoder had to read storage to resolve the token,
+ * and `null` when the claims came out of a signed token instead.
+ */
 interface RefreshTokenResolution {
   payload: RefreshTokenResolutionPayload;
   token: OAuthToken | null;
 }
 
+/**
+ * Converts a refresh token between its wire form and its claims. It is the seam
+ * that isolates the grants from the choice of token format:
+ * {@link JwtRefreshTokenEncoder} signs the claims into the token, and
+ * {@link OpaqueRefreshTokenEncoder} returns an identifier and reads the claims
+ * back from storage.
+ *
+ * The `useOpaqueRefreshTokens` option decides which one a grant builds.
+ */
 export interface RefreshTokenEncoder {
   issue(client: OAuthClient, accessToken: OAuthToken, scopes: OAuthScope[]): Promise<string>;
   resolve(rawToken: string): Promise<RefreshTokenResolution>;
 }
 
+/** Signs a refresh token. {@link JwtRefreshTokenEncoder} takes the grant's `encryptRefreshToken` as one. */
 export type RefreshTokenSignFn = (
   client: OAuthClient,
   accessToken: OAuthToken,
   scopes: OAuthScope[],
 ) => Promise<string>;
 
+/** Verifies a refresh token. {@link JwtRefreshTokenEncoder} takes the grant's `decrypt` as one. */
 export type RefreshTokenVerifyFn = (rawToken: string) => Promise<Record<string, unknown>>;
 
 /**
@@ -57,6 +74,12 @@ export class JwtRefreshTokenEncoder implements RefreshTokenEncoder {
   }
 }
 
+/**
+ * Opaque-mode refresh token encoder. The wire form is the
+ * {@link OAuthToken.refreshToken} identifier itself, and resolution reads the
+ * persisted row back through {@link OAuthTokenRepository.getByRefreshToken},
+ * which makes that row the sole record.
+ */
 export class OpaqueRefreshTokenEncoder implements RefreshTokenEncoder {
   constructor(private readonly tokenRepository: OAuthTokenRepository) {}
 

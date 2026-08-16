@@ -1,3 +1,10 @@
+/**
+ * Parses a URL, returning `undefined` instead of throwing when the string is
+ * not one.
+ *
+ * @param url - The string to parse
+ * @returns The parsed URL, or `undefined` when it cannot be parsed
+ */
 export function tryParseUrl(url: string): URL | undefined {
   try {
     return new URL(url);

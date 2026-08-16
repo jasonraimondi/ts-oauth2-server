@@ -7,6 +7,13 @@ import { GrantIdentifier } from "./grant_identifier.js";
 
 export type { GrantIdentifier } from "./grant_identifier.js";
 
+/**
+ * The contract every grant implements. The {@link AuthorizationServer} keeps
+ * the enabled grants in a map and, for each endpoint, dispatches to the first
+ * grant whose matching `canRespondTo...` predicate accepts the request.
+ *
+ * Implement it through {@link AbstractGrant} rather than directly.
+ */
 export interface GrantInterface {
   readonly options: AuthorizationServerOptions;
 

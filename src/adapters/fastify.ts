@@ -1,3 +1,29 @@
+/**
+ * Adapter between Fastify and the authorization server.
+ *
+ * The functions here convert a `FastifyRequest` into an
+ * {@link OAuthRequest | OAuthRequest}, and send an
+ * {@link OAuthResponse | OAuthResponse} — or an {@link OAuthException} — back
+ * through a `FastifyReply`.
+ *
+ * @example
+ * ```ts
+ * import { handleFastifyError, handleFastifyReply } from "@jmondi/oauth2-server/fastify";
+ *
+ * fastify.post("/token", async (req, reply) => {
+ *   try {
+ *     const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+ *     return handleFastifyReply(reply, oauthResponse);
+ *   } catch (e) {
+ *     handleFastifyError(e, reply);
+ *   }
+ * });
+ * ```
+ *
+ * @see https://tsoauth2server.com/docs/adapters/fastify
+ * @module
+ */
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { OAuthException } from "../exceptions/oauth.exception.js";
 

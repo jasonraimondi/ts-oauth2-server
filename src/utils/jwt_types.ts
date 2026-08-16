@@ -12,7 +12,13 @@ import type { KeyObject } from "crypto";
  * `jsonwebtoken` runtime functions and stay non-breaking for consumers.
  */
 
-// https://github.com/auth0/node-jsonwebtoken#algorithms-supported
+/**
+ * A JWS signing algorithm. This library signs with `HS256` when you give it a
+ * secret string, and `RS256` when you give it an asymmetric key. OIDC requires
+ * `RS256`, because a shared secret cannot be published in a JWKS.
+ *
+ * @see https://github.com/auth0/node-jsonwebtoken#algorithms-supported
+ */
 export type Algorithm =
   | "HS256"
   | "HS384"
@@ -64,11 +70,26 @@ type Unit =
 
 type UnitAnyCase = Unit | Uppercase<Unit> | Lowercase<Unit>;
 
+/**
+ * A duration in the `ms` package format, such as `"1h"` or `"15m"`. A bare
+ * number is read as milliseconds.
+ */
 export type StringValue = `${number}` | `${number}${UnitAnyCase}` | `${number} ${UnitAnyCase}`;
 
+/**
+ * A signing or verification key: a shared secret for `HS256`, or an asymmetric
+ * key — with its passphrase when the key is encrypted — for `RS256`.
+ */
 export type Secret = string | Buffer | KeyObject | { key: string | Buffer; passphrase: string };
 
-// standard names https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1
+/**
+ * The JOSE header of a signed token. `alg` names the signing algorithm and
+ * `kid` names the key, which is how a relying party picks the right key out of
+ * the JWKS. This library sets `typ` to `at+jwt` on an OIDC access token, per
+ * RFC 9068.
+ *
+ * @see https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1
+ */
 export interface JwtHeader {
   alg: string | Algorithm;
   typ?: string | undefined;
@@ -82,6 +103,12 @@ export interface JwtHeader {
   x5c?: string | string[] | undefined;
 }
 
+/**
+ * Options for signing a token, passed to {@link JwtInterface.sign}.
+ * {@link JwtService} always overrides `algorithm` with the one its key uses,
+ * and fills in `keyid` from the key only when neither `keyid` nor
+ * `header.kid` is already set.
+ */
 export interface SignOptions {
   algorithm?: Algorithm | undefined;
   keyid?: string | undefined;
@@ -99,6 +126,11 @@ export interface SignOptions {
   allowInvalidAsymmetricKeyTypes?: boolean | undefined;
 }
 
+/**
+ * Options for verifying a token, passed to {@link JwtInterface.verify}. This
+ * library pins `algorithms` to the one its signing key uses, so a token signed
+ * with any other algorithm is rejected however this field is set.
+ */
 export interface VerifyOptions {
   algorithms?: Algorithm[] | undefined;
   audience?: string | RegExp | [string | RegExp, ...(string | RegExp)[]] | undefined;

@@ -24,6 +24,14 @@ import { AbstractGrant } from "./grants/abstract/abstract.grant.js";
 
 export type { AuthorizationServerOptions } from "./options.js";
 
+/**
+ * A grant that {@link AuthorizationServer.enableGrantType} accepts. The grants
+ * that need no extra collaborator are named by their identifier; the others are
+ * an object carrying the repository or callback they depend on. Pass
+ * `{ grant: myGrant }` to enable your own {@link AbstractGrant} subclass.
+ *
+ * @see https://tsoauth2server.com/docs/grants/
+ */
 export type EnableableGrants =
   | "client_credentials"
   | "refresh_token"
@@ -44,8 +52,23 @@ export type EnableableGrants =
   | {
       grant: AbstractGrant;
     };
+/**
+ * An {@link EnableableGrants} value, on its own or paired with the access token
+ * TTL to use for it. Without a TTL the tokens live 1 hour.
+ */
 export type EnableGrant = EnableableGrants | [EnableableGrants, DateInterval];
 
+/**
+ * The body of an introspection response (RFC 7662 §2.2). Only `active` is
+ * always present; a token that is not active is reported as `{ active: false }`
+ * alone, so nothing leaks about it.
+ *
+ * `active` is derived from the server's own records — the row exists, its
+ * stored expiry is in the future, and it is not revoked — never from the
+ * presented token's claims.
+ *
+ * @see https://tsoauth2server.com/docs/endpoints/introspect
+ */
 export type OAuthTokenIntrospectionResponse = {
   active: boolean;
   scope?: string;
@@ -124,7 +147,7 @@ function getOidcKeySet(jwt: JwtInterface): JsonWebKeySet {
  * The Authorization Server is the core component of the OAuth 2.0 framework.
  * It is responsible for authenticating resource owners and issuing access tokens to clients.
  *
- * @see https://tsoauth2server.com/authorization_server/
+ * @see https://tsoauth2server.com/docs/authorization_server/
  */
 export class AuthorizationServer {
   public readonly enabledGrantTypes: Record<string, GrantInterface> = {};
@@ -217,8 +240,8 @@ export class AuthorizationServer {
 
   /**
    * Enables a specific grant type on the authorization server.
-   * By default, no grant types are enabled when creating an AuthorizationServer.
-   * Each grant type must be explicitly enabled using this method.
+   * The constructor enables `client_credentials` and `refresh_token`.
+   * Every other grant type must be enabled with this method.
    *
    * @param toEnable - The grant type to enable
    * @param accessTokenTTL - Time-to-live for access tokens (defaults to 1 hour)
@@ -364,6 +387,15 @@ export class AuthorizationServer {
     return await grant.completeAuthorizationRequest(authorizationRequest);
   }
 
+  /**
+   * Serves the JWKS document for the `jwks_uri` endpoint, publishing the public
+   * half of the signing key so relying parties can verify your tokens.
+   *
+   * @returns A response holding the key set
+   * @throws {OAuthException} When the JWT service has no asymmetric key
+   *
+   * @see https://tsoauth2server.com/docs/oidc/keypair_lifecycle
+   */
   jwks(): ResponseInterface {
     return new OAuthResponse({
       headers: {

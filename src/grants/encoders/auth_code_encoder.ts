@@ -4,11 +4,21 @@ import { OAuthAuthCodeRepository } from "../../repositories/auth_code.repository
 import { AuthorizationRequest } from "../../requests/authorization.request.js";
 import type { PayloadAuthCode } from "../auth_code.grant.js";
 
+/** What an {@link AuthCodeEncoder} returns from `resolve`. */
 interface AuthCodeEncoderResolved {
   payload: PayloadAuthCode;
   authCode: OAuthAuthCode | null;
 }
 
+/**
+ * Converts an authorization code between its wire form and its payload. It is
+ * the seam that isolates the rest of the grant from the choice of code format:
+ * {@link JwtAuthCodeEncoder} signs the payload into the code itself, and
+ * {@link OpaqueAuthCodeEncoder} returns a random identifier and rebuilds the
+ * payload from storage.
+ *
+ * The `useOpaqueAuthorizationCodes` option decides which one the grant builds.
+ */
 export interface AuthCodeEncoder {
   /**
    * Convert an issued OAuthAuthCode into the wire-form string returned to the
@@ -125,6 +135,15 @@ export class JwtAuthCodeEncoder implements AuthCodeEncoder {
   }
 }
 
+/**
+ * Opaque-mode auth code encoder. The wire form is the code identifier itself,
+ * and every resolution reads the persisted {@link OAuthAuthCode} back, which
+ * makes the stored row the sole record. A repository that drops `nonce`,
+ * `authTime`, `maxAge`, or the code challenge loses it across the round trip.
+ *
+ * The payload it rebuilds carries no `audience`: only a signed code can hold a
+ * value that was never persisted.
+ */
 export class OpaqueAuthCodeEncoder implements AuthCodeEncoder {
   constructor(private readonly authCodeRepository: OAuthAuthCodeRepository) {}
 

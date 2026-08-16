@@ -3,6 +3,17 @@ import { OAuthScope } from "../entities/scope.entity.js";
 import { OAuthUserIdentifier } from "../entities/user.entity.js";
 import { GrantIdentifier } from "../grants/abstract/grant_identifier.js";
 
+/**
+ * Storage for scopes, and the place where Requested Scopes become Granted
+ * Scopes. Required by the {@link AuthorizationServer} constructor.
+ *
+ * {@link OAuthScopeRepository.finalize | finalize} is the authorization hook:
+ * every later decision — the `scope` field of the token response, the claims
+ * UserInfo returns, and whether an ID token is issued — reads the set it
+ * returns, not the set the client asked for.
+ *
+ * @see https://tsoauth2server.com/docs/getting_started/repositories
+ */
 export interface OAuthScopeRepository {
   /**
    * Fetches all scope entities from storage by their names.

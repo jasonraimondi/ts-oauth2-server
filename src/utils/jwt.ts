@@ -9,13 +9,20 @@ import { OAuthUser } from "../entities/user.entity.js";
 // Node. Import the default and destructure the callables we use.
 const { decode: jwtDecode, sign: jwtSign, verify: jwtVerify } = jwt;
 
+/**
+ * Extra claims to add to an issued access token, returned by
+ * {@link JwtInterface.extraTokenFields}. Values must be JSON scalars or arrays
+ * of them.
+ */
 export type ExtraAccessTokenFields = Record<string, string | number | boolean | (string | number | boolean)[]>;
+/** What the server passes to {@link JwtInterface.extraTokenFields} when it mints an access token. */
 export type ExtraAccessTokenFieldArgs = {
   user?: OAuthUser | null;
   client: OAuthClient;
   originatingAuthCodeId?: string;
 };
 
+/** One RS256 public key, in the JWK form the JWKS endpoint publishes. */
 export interface PublicJsonWebKey {
   kty: "RSA";
   n: string;
@@ -25,16 +32,43 @@ export interface PublicJsonWebKey {
   kid: string;
 }
 
+/**
+ * The key set {@link AuthorizationServer.jwks} publishes, so relying parties can
+ * verify the signatures on your tokens.
+ *
+ * @see https://tsoauth2server.com/docs/oidc/keypair_lifecycle
+ */
 export interface JsonWebKeySet {
   keys: PublicJsonWebKey[];
 }
 
+/**
+ * RS256 signing configuration for {@link JwtService}. OIDC requires it, because
+ * a shared secret cannot be published in a JWKS.
+ *
+ * @example
+ * ```ts
+ * const jwtService = new JwtService({ key: privateKeyPem });
+ * ```
+ */
 export interface JwtAsymmetricKeyOptions {
   key: string | Buffer | KeyObject;
   kid?: string;
   algorithm?: "RS256";
 }
 
+/**
+ * The signing seam of the authorization server. Pass an implementation to the
+ * {@link AuthorizationServer} constructor in place of a secret string to
+ * control how tokens are signed and verified — with a KMS, for example, or a
+ * different JWT library. {@link JwtService} is the built-in implementation.
+ *
+ * `getKeySet` is required for OIDC, which publishes the public key at the JWKS
+ * endpoint. `extraTokenFields` adds your own claims to every access token.
+ *
+ * A custom implementation cannot weaken OIDC access-token verification:
+ * {@link AccessTokenVerifier} owns the algorithm pin and the lifetime checks.
+ */
 export interface JwtInterface {
   verify(token: string, options?: VerifyOptions): Promise<Record<string, unknown>>;
   decode(encryptedData: string): null | Record<string, any> | string;
@@ -84,6 +118,14 @@ function parsePrivateKey(key: string | Buffer | KeyObject): KeyObject {
   }
 }
 
+/**
+ * Derives the RFC 7638 thumbprint of an RSA public key. {@link JwtService} uses
+ * it as the default `kid` when you do not supply one, which keeps the key
+ * identifier stable for the life of the key.
+ *
+ * @param jwk - The RSA public key, as `kty`, `n`, and `e`
+ * @returns The base64url-encoded SHA-256 thumbprint
+ */
 export function calculateRsaJwkThumbprint(jwk: Pick<PublicJsonWebKey, "kty" | "n" | "e">): string {
   const canonical = JSON.stringify({ e: jwk.e, kty: jwk.kty, n: jwk.n });
   return createHash("sha256").update(canonical).digest("base64url");
@@ -203,6 +245,12 @@ export class JwtService implements JwtInterface {
     });
   }
 
+  /**
+   * Returns the public key set for the JWKS endpoint.
+   *
+   * @returns The key set holding this service's public key
+   * @throws {Error} When the service was constructed with a shared secret
+   */
   getKeySet(): JsonWebKeySet {
     if (!this.keySet) {
       throw new Error("JWKS export requires an asymmetric signing key");
