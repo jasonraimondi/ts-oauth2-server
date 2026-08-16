@@ -4,24 +4,24 @@ title: OIDC Hooks
 
 # OIDC Hooks
 
-OIDC exposes two consumer callbacks. They look similar but answer different questions, and choosing the wrong one is a common source of confusion.
+The OIDC layer has two callbacks for you. They look the same, but they do different work. Many users select the incorrect one.
 
-## Which hook do I use?
+## Which Hook Do I Use?
 
 | | `getUserClaims` | `getIdTokenClaims` |
 | --- | --- | --- |
-| **Required?** | Yes (part of the `oidc` block) | No (optional) |
-| **Feeds** | The [UserInfo](../endpoints/userinfo.md) response | The issued **ID token** payload |
-| **Use for** | Scope-derived profile claims (`name`, `email`, `address`, …) | Custom protocol-adjacent claims (`roles`, `tenant`, `acr`, …) |
-| **Filtering** | Output is filtered to what the **granted scopes** permit (OIDC Core §5.4) | Output is merged as-is, minus reserved protocol claims |
-| **Called** | On each UserInfo request | Once, when an ID token is minted at `/token` |
-| **`sub` handling** | `sub` is always overwritten with the canonical subject | `sub` (and the other protocol claims) cannot be overwritten |
+| **Required?** | Yes. It is part of the `oidc` block | No. It is optional |
+| **Supplies** | The [UserInfo](../endpoints/userinfo.md) response | The payload of the ID Token |
+| **Use it for** | A Scope-Derived Claim, such as `name`, `email`, or `address` | Your own claim, such as `roles`, `tenant`, or `acr` |
+| **Filter** | The library removes each claim that the granted scopes do not permit (OIDC Core §5.4) | The library adds your claims, but removes each Protocol Claim |
+| **The server calls it** | At each UserInfo request | One time, when the server makes an ID Token at `/token` |
+| **The `sub` claim** | The library always replaces `sub` with the canonical subject | You cannot change `sub` or the other Protocol Claims |
 
-**Rule of thumb:** if a claim describes the user's profile and should be fetched on demand, put it behind `getUserClaims`. If a claim must travel inside the ID token (so the relying party sees it without a UserInfo round trip), use `getIdTokenClaims`.
+**Rule:** If a claim gives the profile of the user, and a Client can read it when necessary, use `getUserClaims`. If a claim must go in the ID Token, so that a Client reads it with no second request, use `getIdTokenClaims`.
 
 ## `getUserClaims`
 
-Required. Resolves the end-user's attributes for UserInfo, keyed by the OIDC subject. Return whatever you hold; the library filters to the granted scopes and forces the canonical `sub`.
+This callback is required. It returns the attributes of the end-user for UserInfo, for one subject. Return each attribute that you hold. The library then removes the claims that the granted scopes do not permit, and writes the canonical `sub`.
 
 ```ts
 oidc: {
@@ -38,11 +38,11 @@ oidc: {
 }
 ```
 
-If the `email` scope was not granted, `email`/`email_verified` are stripped from the response automatically.
+If the server does not grant the `email` scope, it removes `email` and `email_verified` from the response.
 
 ## `getIdTokenClaims`
 
-Optional. Adds custom claims to the ID token. The default ID token stays lean (protocol claims only); this hook removes the hard wall without letting a consumer corrupt the token.
+This callback is optional. It adds your own claims to the ID Token. The default ID Token holds Protocol Claims only. This callback lets you add more claims, but it does not let you damage the token.
 
 ```ts
 oidc: {
@@ -54,8 +54,12 @@ oidc: {
 }
 ```
 
-The context is `{ subject, clientId, scopes }` (plus a forward-compatible index signature).
+The context is `{ subject, clientId, scopes }`. It also has an index signature for the future fields.
 
-:::warning Protocol claims always win
-The eight reserved protocol claims — `iss`, `sub`, `aud`, `exp`, `iat`, `at_hash`, `nonce`, `auth_time` (exported as `PROTOCOL_CLAIM_NAMES`) — are stripped from the hook's return value before merging, so a hook returning `{ nonce, roles }` cannot overwrite the protocol `nonce`. Hook output reaches the JWT **payload** only — never the JOSE header, so it cannot influence the signing algorithm or `kid`. A hook that **throws** surfaces as `invalid_grant` rather than being swallowed, so consumer mistakes are visible.
+:::warning A Protocol Claim always wins
+The library removes the eight Protocol Claims from the value that your callback returns, and then adds the remainder. These claims are `iss`, `sub`, `aud`, `exp`, `iat`, `at_hash`, `nonce`, and `auth_time`. The library exports the list as `PROTOCOL_CLAIM_NAMES`. Thus a callback that returns `{ nonce, roles }` cannot change the protocol `nonce`.
+
+Your claims go in the JWT **payload** only. They never go in the JOSE header, and thus they cannot change the signing algorithm or the `kid`.
+
+If your callback throws, the server reports `invalid_grant`. It does not hide the error, and thus you see each mistake.
 :::

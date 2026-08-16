@@ -1,10 +1,10 @@
 # Custom Grant ⚠️
 
-To implement a custom grant, you may extend the `AbstractGrant` class.
+To write a custom grant, extend the `AbstractGrant` class.
 
 :::warning
 
-This is advanced usage. Make sure you understand the OAuth2.0 specification before implementing a custom grant.
+This is an advanced procedure. Read and understand the OAuth 2.0 specification before you write a custom grant.
 
 :::
 
@@ -20,9 +20,9 @@ authorizationServer.enableGrantTypes(
 
 :::
 
-## Extending the CustomGrant class
+## Extend the CustomGrant Class
 
-Once you've implemented your custom grant you need to enable it in your `AuthorizationServer`.
+Write your grant, and then enable it in your `AuthorizationServer`.
 
 ```ts
 export class MyCustomGrant extends CustomGrant {

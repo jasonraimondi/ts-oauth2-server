@@ -1,10 +1,10 @@
 # Token Exchange Grant
 
-The [RFC 8693 - OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693) facilitates the secure exchange of tokens for accessing different resources or services. This documentation guides you through enabling this grant type on your authorization server, detailing request and response handling to ensure robust and secure token management.
+With [RFC 8693 - OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693), a Client exchanges one security token for a different one. The new token gives access to a different resource or service. This page shows you how to enable the grant, and how the server handles the request and the response.
 
 :::info Enable this grant
 
-To enable the token exchange grant, you'll need to provide your own implementation of `processTokenExchange`. This function should orchestrate the exchange with the required third-party services based on your specific needs.
+You must write your own `processTokenExchange` function. This function does the exchange with the third-party services that you use.
 
 ```ts
 authorizationServer.enableGrantType({
@@ -39,21 +39,21 @@ authorizationServer.enableGrantType({
 
 ### Flow
 
-The client sends a **POST** to the `/token` endpoint with the following body:
+The Client sends a **POST** request to the `/token` endpoint with this body:
 
-- **grant_type** must be set to `urn:ietf:params:oauth:grant-type:token-exchange`
-- **client_id** is the client identifier you received when you first created the application
-- **subject_token** a security token that represents the identity of the party on behalf of whom the request is being made
-- **subject_token_type** an identifier, as described in Section 3, that indicates the type of the security token in the subject_token parameter [See more info](https://datatracker.ietf.org/doc/html/rfc8693#TokenTypeIdentifiers)
-- **actor_token** (_optional_) a security token that represents the identity of the acting party
-- **actor_token_type** (_optional but required when actor_token is present_) an identifier that indicates the type of the security token in the actor_token parameter [See more info](https://datatracker.ietf.org/doc/html/rfc8693#TokenTypeIdentifiers)
-- **resource** (_optional_) a URI that indicates the target service or resource where the client intends to use the requested security token.
-- **audience** (_optional_) is the logical name of the target service where the client intends to use the requested security token.
-- **requested_token_type** (_optional_) is an identifier for the type of the requested security token [See more info](https://datatracker.ietf.org/doc/html/rfc8693#TokenTypeIdentifiers)
-- **scope** (_optional_) is a string with a space delimited list of requested scopes. The requested scopes must be valid for the client.
+- **grant_type**: Set it to `urn:ietf:params:oauth:grant-type:token-exchange`.
+- **client_id**: The identifier that you gave to the Client at registration.
+- **subject_token**: A security token. It identifies the party that the Client acts for.
+- **subject_token_type**: The type of the `subject_token`. [RFC 8693 §3](https://datatracker.ietf.org/doc/html/rfc8693#TokenTypeIdentifiers) lists the permitted values.
+- **actor_token** (_optional_): A security token. It identifies the party that does the action.
+- **actor_token_type** (_required with `actor_token`_): The type of the `actor_token`. [RFC 8693 §3](https://datatracker.ietf.org/doc/html/rfc8693#TokenTypeIdentifiers) lists the permitted values.
+- **resource** (_optional_): The URI of the service or the resource where the Client uses the new token.
+- **audience** (_optional_): The name of the service where the Client uses the new token.
+- **requested_token_type** (_optional_): The type of token that the Client requests. [RFC 8693 §3](https://datatracker.ietf.org/doc/html/rfc8693#TokenTypeIdentifiers) lists the permitted values.
+- **scope** (_optional_): The requested scopes, separated by spaces. The Client must have permission for each scope.
 
 ::: details View sample request
-_Did you know?_ You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+Send the `client_id` and the `client_secret` in the query string, or use basic authentication.
 
 ```http
 POST /token HTTP/1.1
@@ -69,12 +69,12 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 ```
 :::
 
-The authorization server will respond with the following response.
+The authorization server returns this response:
 
-- **token_type** will always be `Bearer`
-- **expires_in** is the time the token will live in seconds
-- **access_token** is a JWT signed token and can be used to authenticate into the resource server
-- **scope** is a space delimited list of scopes the token has access to
+- **token_type**: Always `Bearer`.
+- **expires_in**: The life of the Access Token, in seconds.
+- **access_token**: A signed JWT. The Client sends it to the resource server.
+- **scope**: The scopes of the token, separated by spaces.
 
 ::: details View sample response
 ```http

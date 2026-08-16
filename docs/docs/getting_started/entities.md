@@ -2,15 +2,16 @@
 
 ## Client Entity
 
-The Client Entity represents an application that requests access to protected resources on behalf of the resource owner (user).
+The Client entity is an application that requests access to protected resources for the resource owner, who is the user.
 
-:::info redirect_uris:
+:::info redirect_uris
 
-- URIs must be absolute.
-- URIs may include query parameters in application/x-www-form-urlencoded format
-- URIs must not include fragment components.
-- At authorization time, the requested `redirect_uri` must exactly match a registered URI — host, path, port, and query string all included ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). Only `http`-scheme loopback URIs (`http://localhost`, `http://127.0.0.1`, `http://[::1]`) may vary the port ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)), so register every variant you redirect to.
-- The `redirect_uri` request parameter may be omitted only when the client has exactly one registered URI.
+- Each URI must be absolute.
+- A URI can contain query parameters in `application/x-www-form-urlencoded` format.
+- A URI must not contain a fragment.
+- The server compares the requested `redirect_uri` against each Registered Redirect URI, and the two must be the same URI ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). The host, the path, the port, and the query string must all agree.
+- One exception applies. A Loopback Redirect URI can use a different port. This is an `http` URI with the host `localhost`, `127.0.0.1`, or `[::1]` ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). Thus you must register each URI that your Client uses.
+- You can omit the `redirect_uri` parameter only when the Client has one Registered Redirect URI.
 
 :::
 
@@ -27,7 +28,7 @@ interface OAuthClient {
 
 ## Auth Code Entity
 
-The Auth Code Entity represents a short-lived authorization code used in the Authorization Code grant type. It's an intermediary step between user authorization and token issuance.
+The Auth Code entity is an authorization code with a short life. The authorization code grant uses it as the step between the authorization by the user and the issue of the token.
 
 ```ts
 interface OAuthAuthCode {
@@ -46,7 +47,7 @@ type CodeChallengeMethod = "S256" | "plain";
 
 ## Token Entity
 
-The Token Entity represents access and refresh tokens issued to clients.
+The Token entity holds an Access Token, and the Refresh Token that goes with it.
 
 ```ts
 interface OAuthToken {
@@ -63,7 +64,7 @@ interface OAuthToken {
 
 ## User Entity
 
-The User Entity represents the resource owner - typically the end-user who authorizes an application to access their account.
+The User entity is the resource owner. This is usually the end-user who lets an application use their account.
 
 ```ts
 interface OAuthUser {
@@ -74,9 +75,9 @@ interface OAuthUser {
 
 ## Scope Entity
 
-Scopes are used to define and limit the extent of access granted to a client application. They provide granular control over the permissions given to third-party applications.
+A scope limits the access that the server grants to a Client. Use scopes to control the permissions of each third-party application.
 
-For more information on OAuth 2.0 scopes, visit: https://www.oauth.com/oauth2-servers/scope/
+For more data about OAuth 2.0 scopes, read [oauth.com](https://www.oauth.com/oauth2-servers/scope/).
 
 ```ts
 interface OAuthScope {

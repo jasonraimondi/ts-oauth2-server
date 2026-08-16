@@ -6,7 +6,7 @@ Available in >3.4.0
 
 :::
 
-This adapter provides utility functions to convert between vanilla JavaScript [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects and the `OAuthRequest`/`OAuthResponse` objects used by the this package.
+This adapter converts between the native JavaScript [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects and the `OAuthRequest` and `OAuthResponse` objects of this package.
 
 ## Functions
 

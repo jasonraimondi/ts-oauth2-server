@@ -6,7 +6,7 @@ Available in >2.0.0
 
 :::
 
-This adapter provides utility functions to convert between Express [Request](https://expressjs.com/en/api.html#req) and [Response](https://expressjs.com/en/api.html#res) objects and the `OAuthRequest`/`OAuthResponse` objects used by this package.
+This adapter converts between the Express [Request](https://expressjs.com/en/api.html#req) and [Response](https://expressjs.com/en/api.html#res) objects and the `OAuthRequest` and `OAuthResponse` objects of this package.
 
 ## Functions
 

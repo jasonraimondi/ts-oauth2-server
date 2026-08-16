@@ -4,31 +4,27 @@ title: /authorize
 
 # The Authorize Endpoint
 
-The `/authorize` endpoint is a front channel endpoint that initiates the authorization process and issues an authorization code. This code can then be exchanged at the `/token` endpoint for a usable access token.
+The `/authorize` endpoint starts the authorization procedure and issues an authorization code.
+
+This endpoint operates through the browser of the user. The Client redirects the user here, and your server redirects the user back to the Client. Thus each parameter is visible in the URL, the browser history keeps it, and the user can change it. Never send the client secret to this endpoint.
 
 :::info
-- This endpoint is only necessary if you are implementing the Authorization Code Grant.
+- You need this endpoint only for the authorization code grant.
 
-- The authorization endpoint should only support the GET method for the initial request. The user agent should be redirected to the authorization page.
+- Accept the GET method for the initial request. Redirect the user agent to your authorization page.
 
-- The URL `/authorize` can be customized, some other common urls are: `/oauth/authorize`, `/v1/authorize`, etc.
+- You can change the URL. `/oauth/authorize` and `/v1/authorize` are two other common names.
 :::
-
-## Purpose
-
-The primary purposes of the `/authorize` endpoint are:
-
-1. To authenticate the resource owner (end-user)
-2. To obtain authorization from the resource owner for the client application
-3. To issue an authorization code if the authentication and authorization are successful
 
 ## Flow
 
-1. The client application redirects the user to the `/authorize` endpoint
-2. The authorization server authenticates the user (if not already authenticated)
-3. The server presents the user with a consent screen to approve or deny the client's request
-4. If approved, the server redirects the user back to the client's redirect URI with an authorization code
-5. Additional checks like 2FA, MFA, or CAPTCHA can be implemented as needed
+1. The Client redirects the user to `/authorize`.
+2. Your server authenticates the user, if the user is not authenticated already.
+3. Your server shows a consent screen. The user approves or denies the request of the Client.
+4. If the user approves, your server redirects the user to the Registered Redirect URI with an authorization code.
+5. The Client sends the authorization code to the `/token` endpoint and receives an Access Token.
+
+You write the login screen and the consent screen. Thus you can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
 
 ## Implementation
 
@@ -79,15 +75,9 @@ app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
 });
 ```
 
-## Key Components
+## More Endpoints
 
-1. **User Authentication**: If the user is not authenticated, redirect to a login page.
-2. **Consent Screen**: If the user hasn't approved the authorization, redirect to a consent page.
-3. **Authorization Completion**: If authenticated and approved, complete the authorization process.
-
-## Additional Endpoints
-
-To support the full flow, you'll need to implement additional endpoints:
+The handler above redirects to two routes. You must write these two routes.
 
 ### Login Endpoint
 
@@ -122,15 +112,13 @@ app.post("/scopes", (req, res) => {
 
 ## Request Parameters
 
-The `/authorize` endpoint typically accepts the following parameters:
-
-- `response_type`: Must be set to "code" for the authorization code grant
-- `client_id`: The identifier of the client requesting authorization
-- `redirect_uri`: The URI to redirect the user after authorization. Must exactly match one of the client's registered redirect URIs ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)) — host, path, port, and query string all included. The only exception: `http`-scheme loopback URIs (`http://localhost`, `http://127.0.0.1`, `http://[::1]`) may use a different port than registered ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). May be omitted only when the client has exactly one registered redirect URI; otherwise the request is rejected with `invalid_request`
-- `scope`: (Optional) The scope of the access request
-- `state`: (Recommended) An opaque value used to maintain state between the request and callback
-
-## Example Request
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `response_type` | Yes | Set to `code` for the authorization code grant |
+| `client_id` | Yes | The Client that requests the authorization |
+| `redirect_uri` | Conditional | The destination of the redirect. It must [match a Registered Redirect URI exactly](../getting_started/entities.md#client-entity). You can omit it only when the Client has one Registered Redirect URI |
+| `scope` | No | The scopes that the Client requests |
+| `state` | Recommended | An opaque value. The server returns it on the redirect. Use it as your CSRF token |
 
 ```
 GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
@@ -138,13 +126,9 @@ GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
 Host: server.example.com
 ```
 
-## Security Considerations
-
-1. Always use HTTPS for the authorization endpoint
-2. Validate all input parameters
-3. Implement CSRF protection for the login and consent forms
-4. Use short-lived sessions and secure session management
-5. Implement rate limiting to prevent brute-force attacks
+:::warning Protect your login form and your consent form against CSRF
+The library validates the OAuth parameters. But your login route and your consent route are usual web forms, and the library does not protect them. Add CSRF protection to both routes. Also, keep the life of the session that holds the `AuthorizationRequest` short.
+:::
 
 :::info Supports the following RFCs
 [RFC6749 (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc6749), [RFC7636 (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636)

@@ -1,26 +1,19 @@
 ---
-title: Protecting Resources
+title: Protect Resources
 ---
 
 
-# Protecting Resources with Access Tokens
+# Protect Resources with an Access Token
 
-After issuing access tokens via the OAuth2 endpoints, you need to validate those tokens in your API middleware to protect resources. This guide covers how to implement secure token validation.
+This guide shows you how to validate an Access Token in your API middleware. The guide assumes that your authorization server already issues tokens.
 
-## Overview
+Your middleware must make six checks: the signature, the expiry, the Issuer, the audience, the revocation state, and the scopes.
 
-Access token validation involves several security checks:
-
-1. **JWT Signature Verification** - Ensures the token hasn't been tampered with
-2. **Expiration Check** - Rejects expired tokens
-3. **Issuer Validation** - Confirms the token came from your authorization server
-4. **Audience Validation** - Ensures the token is meant for your API
-5. **Revocation Check** - Verifies the token hasn't been revoked
-6. **Scope Validation** - Confirms the token has required permissions
+If your resource server is a different service, call the [introspection endpoint](/docs/endpoints/introspect) in place of these steps. See [Alternative: Token Introspection](#alternative-token-introspection).
 
 ## Token Payload Structure
 
-Access tokens issued by this library are JWTs with the following claims:
+Each Access Token is a JWT with these claims:
 
 ```typescript
 interface AccessTokenPayload {
@@ -47,7 +40,7 @@ interface AccessTokenPayload {
 ```
 
 :::info Important
-The `jti` claim contains the token identifier used to look up the token in your `OAuthTokenRepository`. This is **not** the raw JWT string - it's the internal token ID.
+Use the `jti` claim to find the token in your `OAuthTokenRepository`. The `jti` claim holds the internal token identifier. It is **not** the JWT string that the client sent.
 :::
 
 ## Implementation
@@ -78,20 +71,10 @@ class TokenRepository implements OAuthTokenRepository {
 
 ### Step 2: Create the Validation Function
 
+This function uses the `AccessTokenPayload` interface from the previous section.
+
 ```typescript
 import { JwtInterface, OAuthToken, OAuthTokenRepository } from "@jmondi/oauth2-server";
-
-interface AccessTokenPayload {
-  jti: string;
-  sub?: string;
-  cid: string;
-  exp: number;
-  iat: number;
-  iss?: string;
-  aud?: string | string[];
-  scope?: string;
-  [key: string]: unknown;
-}
 
 interface ValidatedToken {
   payload: AccessTokenPayload;
@@ -309,77 +292,25 @@ app.delete(
 
 ## Security Considerations
 
-### Always Validate Issuer and Audience
+**Always set `expectedIssuer` and `expectedAudience`** when your server writes the `iss` and `aud` claims. If you do not set them, your API accepts a token from a different Issuer, or a token that is intended for a different API.
 
-If your authorization server sets `iss` and `aud` claims, always validate them:
+**Always read the repository. Do not trust the JWT alone.** Your server can revoke a token before the token expires, for example at logout or after a password change. Only the stored record shows this.
 
-```typescript
-const authorizationServer = new AuthorizationServer(
-  // ...
-  {
-    issuer: "https://auth.example.com", // Sets iss claim
-  }
-);
-
-// In your middleware config
-const authConfig: TokenValidationConfig = {
-  jwtService,
-  tokenRepository,
-  expectedIssuer: "https://auth.example.com",
-  expectedAudience: "https://api.example.com",
-};
-```
-
-This prevents:
-- **Token substitution attacks** - Using a token from a different issuer
-- **Token confusion** - Using a token meant for a different API
-
-### Check Revocation Status
-
-Even though JWTs contain expiration info, you should check the database for revocation:
-
-```typescript
-// Token may be revoked before expiration (user logout, password change, etc.)
-const storedToken = await tokenRepository.getByAccessToken(payload.jti);
-```
-
-### Use Short Token Lifetimes
-
-Configure short access token TTLs and use refresh tokens:
+**Keep the life of each Access Token short.** Let the client use a Refresh Token to get a new one.
 
 ```typescript
 authorizationServer.enableGrantTypes(
-  ["client_credentials", new DateInterval("15m")],  // 15 minute access tokens
-  ["refresh_token", new DateInterval("7d")],        // 7 day refresh tokens
+  ["client_credentials", new DateInterval("15m")],
+  ["refresh_token", new DateInterval("7d")],
 );
-```
-
-### Implement Rate Limiting
-
-Protect your token validation endpoint from brute force:
-
-```typescript
-import rateLimit from "express-rate-limit";
-
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-
-app.use("/api", apiLimiter);
 ```
 
 ## Alternative: Token Introspection
 
-If your resource server is separate from your authorization server, or you need RFC 7662 compliance, use the [introspection endpoint](/docs/endpoints/introspect) instead.
-
-The introspection endpoint:
-- Handles all validation logic server-side
-- Returns a standardized response format
-- Can be called over HTTP from separate services
+Call the [introspection endpoint](/docs/endpoints/introspect) when your resource server is a different service, or when you must obey RFC 7662. The resource server sends the token to the authorization server, and does not verify the token itself.
 
 ```typescript
-// Resource server calls authorization server
+// The resource server calls the authorization server
 const response = await fetch("https://auth.example.com/token/introspect", {
   method: "POST",
   headers: {
@@ -394,26 +325,17 @@ const { active, scope, client_id, sub } = await response.json();
 
 ## Complete Example
 
-See the [example project](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) for a complete working implementation including:
+The [example project](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) contains a full implementation in `src/middleware/auth.ts`, `src/main.ts`, and `src/repositories/token_repository.ts`.
 
-- `example/src/middleware/auth.ts` - Full middleware implementation
-- `example/src/main.ts` - Protected route examples
-- `example/src/repositories/token_repository.ts` - Repository with `getByAccessToken`
+## Test Checklist
 
-## Security Test Cases
+Your middleware must refuse each of these requests:
 
-When implementing token validation, ensure you test these scenarios:
+- A request with no `Authorization` header, or with a malformed one
+- A request with an expired token
+- A request with an incorrect signature
+- A request with a revoked token
+- A request with an incorrect `iss` or `aud` claim
+- A request with too few scopes
 
-```typescript
-describe("Token Validation", () => {
-  it("rejects requests without Authorization header");
-  it("rejects malformed Authorization header");
-  it("rejects expired tokens");
-  it("rejects tokens with invalid signature");
-  it("rejects revoked tokens");
-  it("rejects tokens with wrong issuer");
-  it("rejects tokens with wrong audience");
-  it("rejects tokens with insufficient scopes");
-  it("accepts valid tokens with correct scopes");
-});
-```
+Your middleware must accept a valid token that carries the required scopes.

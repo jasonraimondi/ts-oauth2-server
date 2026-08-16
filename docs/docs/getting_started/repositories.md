@@ -3,13 +3,13 @@
 
 :::tip Database Schema Examples
 
-For SQL schema examples to back these repositories, see the [Database Schema Reference](./database_schema.md).
+The [Database Schema Reference](./database_schema.md) gives SQL examples for these repositories.
 
 :::
 
 ## Auth Code Repository
 
-OAuthAuthCodeRepository interface is utilized for managing OAuth authorization codes. It contains methods for retrieving an authorization code entity by its identifier, issuing a new authorization code, persisting an authorization code in the storage, checking if an authorization code has been revoked, and revoking an authorization code.
+The `OAuthAuthCodeRepository` interface manages the authorization codes. Its methods find a code, issue a new code, store a code, revoke a code, and report if a code is revoked.
 
 > **Used in Grants:** [Authorization Code](/docs/grants/authorization_code)
 
@@ -40,15 +40,17 @@ interface OAuthAuthCodeRepository {
 }
 ```
 
-:::danger PKCE depends on `getByIdentifier` round-tripping the challenge
+:::danger `getByIdentifier` must return the code challenge
 
-`getByIdentifier` **MUST** return the `codeChallenge` and `codeChallengeMethod` that were persisted with the code. With [opaque authorization codes](/docs/authorization_server/configuration) the stored row is the only record of the challenge, so a projection that omits those columns leaves the server unable to enforce PKCE. Redemption then fails with `invalid_grant` while `requiresPKCE` is on (the default) rather than issuing tokens without a verifier — see [ADR 0009](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0009-pkce-enforcement-authority.md).
+`getByIdentifier` **must** return the `codeChallenge` and the `codeChallengeMethod` that you stored with the code.
+
+With an [opaque authorization code](/docs/authorization_server/configuration), the stored row is the only record of the challenge. If your query does not read these two columns, the server cannot enforce PKCE. The server then rejects the code with `invalid_grant` while `requiresPKCE` is `true`, which is the default. The server does not issue a token without a verifier. [ADR 0009](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0009-pkce-enforcement-authority.md) gives the full decision.
 
 :::
 
 ## Client Repository
 
-OAuthClientRepository interface is used for managing OAuth clients. It includes methods for fetching a client entity from storage by the client ID and for validating the client using the grant type and client secret.
+The `OAuthClientRepository` interface manages the Clients. Its methods find a Client by its `client_id`, and validate the Client against the grant type and the client secret.
 
 > **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Client Credentials](/docs/grants/client_credentials) · [Refresh Token](/docs/grants/refresh_token) · [Password](/docs/grants/password) · [Implicit](/docs/grants/implicit) · [Custom](/docs/grants/custom)
 
@@ -66,11 +68,11 @@ interface OAuthClientRepository {
 }
 ```
 
-`getByIdentifier` **MUST** throw for an unknown `client_id`. A repository that resolves `undefined` instead is treated as a failed client authentication (`invalid_client`), not a server error.
+`getByIdentifier` **must** throw for an unknown `client_id`. If your repository returns `undefined`, the server reports a failed client authentication (`invalid_client`). It does not report a server error.
 
 ## Scope Repository
 
-The OAuthScopeRepository interface handles scope management. It defines methods for finding all scopes by their names and for finalizing the scopes. In the finalization, additional scopes can be added or removed after they've been validated against the client scopes.
+The `OAuthScopeRepository` interface manages the scopes. Its methods find scopes by their names, and make the final set of scopes. In the last step you can add a scope, or remove one, after the server validates the request against the scopes of the Client.
 
 > **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Client Credentials](/docs/grants/client_credentials) · [Refresh Token](/docs/grants/refresh_token) · [Password](/docs/grants/password) · [Implicit](/docs/grants/implicit) · [Custom](/docs/grants/custom)
 
@@ -93,7 +95,7 @@ interface OAuthScopeRepository {
 
 ## Token Repository
 
-OAuthTokenRepository interface manages OAuth tokens. It contains methods for issuing a new token, persisting a token in the storage, issuing a refresh token, revoking tokens, and fetching a refresh token entity by the refresh token.
+The `OAuthTokenRepository` interface manages the tokens. Its methods issue a token, store a token, issue a Refresh Token, revoke a token, and find a token by its Refresh Token.
 
 > **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Client Credentials](/docs/grants/client_credentials) · [Refresh Token](/docs/grants/refresh_token) · [Password](/docs/grants/password) · [Implicit](/docs/grants/implicit) · [Custom](/docs/grants/custom)
 
@@ -150,7 +152,7 @@ interface OAuthTokenRepository {
 
 ## User Repository
 
-The OAuthUserRepository interface handles user management. It defines methods for fetching a user entity from storage by their credentials and optional grant type and client. This may involve validating the user's credentials.
+The `OAuthUserRepository` interface manages the users. Its method finds a user by their credentials, and it validates those credentials. The server also supplies the grant type and the Client, and you can make more checks with them.
 
 > **Used in Grants:** [Authorization Code](/docs/grants/authorization_code) · [Password](/docs/grants/password)
 

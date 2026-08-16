@@ -4,18 +4,20 @@ title: Getting Started with OIDC
 
 # Getting Started with OIDC
 
-OpenID Connect (OIDC) is an identity layer on top of the authorization-code flow. When enabled, the server issues a signed **ID token** alongside the access token, exposes a **UserInfo** endpoint, publishes its public keys at a **JWKS** endpoint, and advertises its capabilities through **discovery**.
+OpenID Connect (OIDC) is an identity layer on the authorization code flow. When you enable OIDC, the server does four more things. It issues a signed **ID Token** with the Access Token, it supplies a **UserInfo** endpoint, it publishes its public keys at a **JWKS** endpoint, and it declares its capabilities in the **Discovery Document**.
 
-OIDC is opt-in. The non-OIDC token flows are unchanged when the `oidc` block is absent.
+OIDC is optional. If you do not set the `oidc` block, the other token flows do not change.
 
-## Prerequisites
+## Before You Start
 
-1. **An RSA signing key.** OIDC mandates RS256, so the `JwtService` must be constructed with an asymmetric key, not a shared secret. See [Keypair Lifecycle](./keypair_lifecycle.md).
-2. **An `issuer`.** The top-level `issuer` option is reused as the OIDC issuer and becomes mandatory under OIDC — it is the `iss` of every access token and ID token, and the `issuer` in the discovery document.
+You need two things:
+
+1. **An RSA signing key.** OIDC makes RS256 mandatory. Thus you must give your `JwtService` an asymmetric key, and not a shared secret. See [Keypair Lifecycle](./keypair_lifecycle.md).
+2. **An `issuer`.** The OIDC layer uses the top-level `issuer` option as the Issuer, and the option becomes mandatory. It is the `iss` claim of each Access Token and each ID Token, and also the `issuer` field of the Discovery Document.
 
 ## Configuration
 
-OIDC is configured with the top-level `issuer` plus a nested `oidc` block on `AuthorizationServerOptions`:
+Set the top-level `issuer` and the nested `oidc` block on `AuthorizationServerOptions`:
 
 ```ts
 import { AuthorizationServer, JwtService } from "@jmondi/oauth2-server";
@@ -47,14 +49,14 @@ authorizationServer.enableGrantType({
 });
 ```
 
-The library does not own routing, so the endpoint URLs are supplied explicitly — they appear verbatim in the discovery document. See the full [options table](../authorization_server/configuration.md#oidc-options).
+The library does not control your routes. Thus you give each endpoint URL here, and the Discovery Document shows these values. The [options table](../authorization_server/configuration.md#oidc-options) gives the full list.
 
-## Wire the endpoints
+## Add the Endpoints
 
-The three new OIDC endpoints each return a plain `ResponseInterface`, so every adapter handles them unchanged:
+Each of the three OIDC endpoints returns a `ResponseInterface`. Thus every adapter handles them in the usual way.
 
 ```ts
-// JWKS — the relying party fetches the public verification keys here.
+// JWKS — each Client reads the public verification keys here.
 app.get("/jwks", (req, res) => handleExpressResponse(res, authorizationServer.jwks()));
 
 // Discovery — .well-known/openid-configuration
@@ -62,7 +64,7 @@ app.get("/.well-known/openid-configuration", (req, res) =>
   handleExpressResponse(res, authorizationServer.openidConfiguration()),
 );
 
-// UserInfo — returns scope-derived claims for a presented access token.
+// UserInfo — returns the Scope-Derived Claims for an Access Token.
 app.get("/userinfo", async (req, res) => {
   try {
     handleExpressResponse(res, await authorizationServer.userInfo(req));
@@ -72,36 +74,40 @@ app.get("/userinfo", async (req, res) => {
 });
 ```
 
-The `/authorize` and `/token` endpoints are unchanged — when the `openid` scope is granted, `/token` adds an `id_token` to the response body automatically.
+The `/authorize` and `/token` endpoints do not change. When the server grants the `openid` scope, `/token` adds an ID Token to the response body.
 
-## Call the flow
+## Call the Flow
 
-Request the `openid` scope (plus any of `profile`, `email`, `address`, `phone`) at `/authorize`. The standard OIDC scopes are auto-recognized for the authorization code flow when OIDC is enabled (other grants are unaffected). After exchanging the code at `/token`, the response carries both an `access_token` and an `id_token`; the access token also drives [UserInfo](../endpoints/userinfo.md).
+Request the `openid` scope at `/authorize`. You can also request `profile`, `email`, `address`, and `phone`. When you enable OIDC, the authorization code flow accepts these scopes automatically. The other grants do not change.
 
-To confirm the whole surface works against a real relying party, run the [OIDC conformance smoke test](../endpoints/oidc_conformance.md).
+Next, exchange the code at `/token`. The response contains an Access Token and an ID Token. The Access Token also gives access to [UserInfo](../endpoints/userinfo.md).
 
-::: warning Opaque codes must persist `nonce` / `auth_time`
-If you enable opaque authorization codes (`useOpaqueAuthorizationCodes: true`), your `OAuthAuthCodeRepository` must persist and hydrate `nonce` (and `authTime` when `max_age` is requested), or the code exchange fails loud with `invalid_grant`. The library rebuilds the opaque code's payload from the stored row, so a dropped field is lost across the authorize → token round trip. JWT authorization codes carry these fields inside the signed code and are recommended for OIDC.
+To make sure that a real Client can complete the flow, run the [OIDC conformance smoke test](../endpoints/oidc_conformance.md).
+
+::: warning An opaque code must store `nonce` and `auth_time`
+If you set `useOpaqueAuthorizationCodes: true`, your `OAuthAuthCodeRepository` must store and return the `nonce`. It must also store and return `authTime` when a Client requests `max_age`. If it does not, the code exchange fails with `invalid_grant`.
+
+The library rebuilds the payload of an opaque code from the stored row. Thus the row is the only record, and a lost field breaks the flow between `/authorize` and `/token`. A JWT authorization code holds these fields in the signed code, and we recommend it for OIDC.
 :::
 
-## Access token format
+## Access Token Format
 
-The access token is a JWT tagged `typ: at+jwt` ([RFC 9068](https://www.rfc-editor.org/rfc/rfc9068)), but two claims intentionally deviate from the strict profile for backward compatibility:
+Each Access Token is a JWT with the JOSE header `typ: at+jwt` ([RFC 9068](https://www.rfc-editor.org/rfc/rfc9068)). Two claims are different from the strict profile, which keeps the token compatible with the older versions:
 
-- **`cid`, not `client_id`.** The library has always identified the client with the non-standard `cid` claim; RFC 9068 §2.2 specifies `client_id`. Resource servers reading the access token should look for `cid`.
-- **`aud` is conditional.** RFC 9068 §2.2 lists `aud` as required, but the access token carries `aud` only when an `audience` (or `aud`) parameter is supplied on the request. With no audience requested, no `aud` claim is emitted.
+- **`cid`, not `client_id`.** This library has always identified the Client with the `cid` claim, but RFC 9068 §2.2 specifies `client_id`. Your resource server must read `cid`.
+- **`aud` is conditional.** RFC 9068 §2.2 makes `aud` mandatory. But the Access Token carries `aud` only when the request supplies an `audience` or `aud` parameter. If the request has no audience, the token has no `aud` claim.
 
-The ID token is unaffected and follows OpenID Connect Core 1.0.
+The ID Token is different. It obeys OpenID Connect Core 1.0.
 
-## Known limitations (v1)
+## Known Limitations (v1)
 
-- **No ID token on refresh.** ID tokens are issued only in the authorization-code exchange.
-- **No `offline_access` auto-recognition.** Refresh-token issuance remains consumer-owned.
-- **RS256 only.** ES256 is deferred — a single-key model cannot satisfy OIDC Discovery §3 with an ES256 key. See [Keypair Lifecycle](./keypair_lifecycle.md#multi-key-rotation).
-- **Plain JSON UserInfo only.** Signed/encrypted UserInfo responses are not yet supported.
+- **No ID Token on a refresh.** The server issues an ID Token only in the authorization code exchange.
+- **No automatic `offline_access` scope.** You control the issue of each Refresh Token.
+- **RS256 only.** ES256 comes later, because one key cannot obey OIDC Discovery §3 with an ES256 key. See [Keypair Lifecycle](./keypair_lifecycle.md#multi-key-rotation).
+- **Plain JSON UserInfo only.** The server cannot sign or encrypt a UserInfo response.
 
-## Next steps
+## Next Steps
 
-- [Keypair Lifecycle](./keypair_lifecycle.md) — generating, storing, and rotating the RSA key.
-- [Hooks reference](./hooks.md) — `getUserClaims` vs `getIdTokenClaims`.
-- [UserInfo](../endpoints/userinfo.md) · [Discovery](../endpoints/discovery.md) — per-endpoint detail.
+- [Keypair Lifecycle](./keypair_lifecycle.md) — how to make, store, and change the RSA key.
+- [Hooks reference](./hooks.md) — `getUserClaims` and `getIdTokenClaims`.
+- [UserInfo](../endpoints/userinfo.md) and [Discovery](../endpoints/discovery.md) — the detail for each endpoint.
