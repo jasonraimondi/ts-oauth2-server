@@ -98,7 +98,7 @@ new AuthorizationServer(..., {
 });
 ```
 
-**The constructor enables `client_credentials` and `refresh_token`.** There is no option to stop this. If you removed these grants on purpose, control the access of each Client in your `ClientRepository`.
+**The `client_credentials` and `refresh_token` grants are now enabled by default.** There is no method to disable them. If you removed these grants on purpose, control the access of each Client in your `ClientRepository`.
 
 **An unauthorized Client, and a scope error, now return `401`.** From version 4.0.3 these return `401`, and not `400`. An invalid token at the revoke endpoint or the introspect endpoint now returns `200` with `{ active: false }`, and does not throw. Correct each test that asserts a status code.
 

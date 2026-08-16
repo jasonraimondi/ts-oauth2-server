@@ -4,7 +4,7 @@ title: /authorize
 
 # The Authorize Endpoint
 
-The `/authorize` endpoint starts the authorization procedure and issues an authorization code. The Client then sends this code to the `/token` endpoint and receives an Access Token.
+The `/authorize` endpoint starts the authorization procedure and issues an authorization code.
 
 This endpoint operates through the browser of the user. The Client redirects the user here, and your server redirects the user back to the Client. Thus each parameter is visible in the URL, the browser history keeps it, and the user can change it. Never send the client secret to this endpoint.
 
@@ -16,7 +16,15 @@ This endpoint operates through the browser of the user. The Client redirects the
 - You can change the URL. `/oauth/authorize` and `/v1/authorize` are two other common names.
 :::
 
-The endpoint authenticates the end-user, gets their consent, and redirects to the Client with an authorization code. You write the login screen and the consent screen. Thus you can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
+## Flow
+
+1. The Client redirects the user to `/authorize`.
+2. Your server authenticates the user, if the user is not authenticated already.
+3. Your server shows a consent screen. The user approves or denies the request of the Client.
+4. If the user approves, your server redirects the user to the Registered Redirect URI with an authorization code.
+5. The Client sends the authorization code to the `/token` endpoint and receives an Access Token.
+
+You write the login screen and the consent screen. Thus you can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
 
 ## Implementation
 

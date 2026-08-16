@@ -4,7 +4,7 @@
 A Client uses this grant to get an Access Token for its own resources. The Client does not act for a user.
 
 :::tip
-The constructor enables the `client_credentials` grant.
+This grant is enabled by default.
 :::
 
 :::warning

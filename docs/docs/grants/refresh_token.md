@@ -5,7 +5,7 @@ Each Access Token expires. With this grant, a Client sends a Refresh Token and g
 
 :::tip
 
-The constructor enables the `refresh_token` grant.
+This grant is enabled by default.
 
 :::
 

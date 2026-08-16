@@ -6,7 +6,7 @@ title: OIDC conformance smoke test
 
 This [`openid-client`](https://github.com/panva/node-openid-client) script tests the full OIDC surface against a running server. It tests discovery, JWKS, the authorization code flow with PKCE, the validation of the ID Token, and UserInfo. Run it before each release. A correct run shows you that a real Client can complete the full flow.
 
-The library does not control your routes. Thus this script assumes that you added the OIDC endpoints. The [example application](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) shows you how.
+The library does not control your routes. Thus this script assumes that you added the OIDC endpoints. The [example application](https://github.com/jasonraimondi/ts-oauth2-server/tree/main/example) shows you how, and the [ts-oauth2-server-example](https://github.com/jasonraimondi/ts-oauth2-server-example) repository gives a more complete application.
 
 | Route | Handler |
 | --- | --- |
