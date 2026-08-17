@@ -108,15 +108,6 @@ export default defineConfig({
               text: "/token/introspect",
               link: "/docs/endpoints/introspect",
             },
-            { text: "/userinfo", link: "/docs/endpoints/userinfo" },
-            {
-              text: "/.well-known/openid-configuration",
-              link: "/docs/endpoints/discovery",
-            },
-            {
-              text: "OIDC conformance smoke test",
-              link: "/docs/endpoints/oidc_conformance",
-            },
           ],
         },
         {
