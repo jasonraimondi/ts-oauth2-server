@@ -42,9 +42,7 @@ interface OAuthAuthCodeRepository {
 
 :::danger `getByIdentifier` must return the code challenge
 
-`getByIdentifier` **must** return the `codeChallenge` and the `codeChallengeMethod` that you stored with the code.
-
-With an [opaque authorization code](/docs/authorization_server/configuration), the stored row is the only record of the challenge. If your query does not read these two columns, the server cannot enforce PKCE. The server then rejects the code with `invalid_grant` while `requiresPKCE` is `true`, which is the default. The server does not issue a token without a verifier. [ADR 0009](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0009-pkce-enforcement-authority.md) gives the full decision.
+With an [opaque authorization code](/docs/authorization_server/configuration), the stored row is the only record of the challenge. If your query does not read the `codeChallenge` and `codeChallengeMethod` columns, the server cannot enforce PKCE. The server then rejects the code with `invalid_grant` while `requiresPKCE` is `true`, which is the default. The server does not issue a token without a verifier. [ADR 0009](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0009-pkce-enforcement-authority.md) gives the full decision.
 
 :::
 

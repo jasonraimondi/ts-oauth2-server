@@ -2,7 +2,7 @@
 title: /token/introspect
 ---
 
-# The Introspect Endpoint
+# The Introspect Endpoint (optional)
 
 The `/token/introspect` endpoint returns the Active state and the metadata of a token ([RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)). This endpoint does not revoke a token. To revoke a token, use the [`/token/revoke`](./revoke.md) endpoint.
 

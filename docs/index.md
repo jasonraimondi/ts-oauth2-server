@@ -21,7 +21,7 @@ The library needs Node.js 22 or later.
 1. Create your [database schema](/docs/getting_started/database_schema)
 1. Write your [repositories](/docs/getting_started/repositories)
 1. Create the [AuthorizationServer](#create-the-authorization-server) with the grants you need
-1. Add the [endpoints](/docs/endpoints/)
+1. Add the [endpoints](#add-the-endpoints)
 
 ### Installation
 

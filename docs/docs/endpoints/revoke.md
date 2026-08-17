@@ -2,7 +2,7 @@
 title: /token/revoke
 ---
 
-# The Revoke Endpoint
+# The Revoke Endpoint (optional)
 
 The `/token/revoke` endpoint revokes a token that the server issued.
 

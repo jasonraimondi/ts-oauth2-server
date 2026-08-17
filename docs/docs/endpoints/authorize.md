@@ -119,6 +119,7 @@ app.post("/scopes", (req, res) => {
 | `redirect_uri` | Conditional | The destination of the redirect. It must [match a Registered Redirect URI exactly](../getting_started/entities.md#client-entity). You can omit it only when the Client has one Registered Redirect URI |
 | `scope` | No | The scopes that the Client requests |
 | `state` | Recommended | An opaque value. The server returns it on the redirect. Use it as your CSRF token |
+| `aud` \| `audience` | No | The value of the `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the issued Access Token |
 
 ```
 GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz

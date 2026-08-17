@@ -40,6 +40,29 @@ The `grant_type` parameter selects the flow. Each grant page gives the parameter
 
 When you enable OIDC and the server grants the `openid` scope, the authorization code response also contains an [ID Token](/docs/grants/authorization_code#openid-connect-id-tokens).
 
+## Audience
+
+To set the `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the Access Token, send an `aud` or `audience` parameter in the query or the body of the request. The [`/authorize`](./authorize.md) endpoint accepts the same parameter in the query.
+
+## Extra Token Fields
+
+To add more fields to an Access Token, write the `extraTokenFields` method in your `JwtService` class.
+
+```ts
+import { JwtService } from "@jmondi/oauth2-server";
+
+export class MyCustomJwtService extends JwtService {
+  extraTokenFields(params: ExtraAccessTokenFieldArgs) {
+    const { user = undefined, client, originatingAuthCodeId } = params;
+    return {
+      email: user?.email,
+      originatingAuthCodeId,
+      myCustomProps: "this will be in the decoded token!",
+    };
+  }
+}
+```
+
 :::info Supports the following RFCs
 [RFC6749 (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc6749), [RFC6750 (Bearer Token Usage)](https://datatracker.ietf.org/doc/html/rfc6750), [RFC8693 (Token Exchange)](https://datatracker.ietf.org/doc/html/rfc8693)
 :::
