@@ -6,7 +6,7 @@ title: /userinfo
 
 The `/userinfo` endpoint returns the Scope-Derived Claims of the end-user for an Access Token ([OpenID Connect Core §5.3](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo)). The Client sends the Access Token that it received from the [`/token`](./token.md) endpoint, and gets the claims that the granted scopes permit.
 
-`authorizationServer.userInfo(req)` returns a `ResponseInterface`. This is a `200` with the claims, or an [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750) bearer error. Thus every adapter handles it in the usual way.
+`authorizationServer.userInfo(req)` returns a promise of a `ResponseInterface`. This is a `200` with the claims, or an [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750) bearer error. Thus every adapter handles it in the usual way.
 
 :::info
 - You must enable OIDC. Set the `issuer` option, and the `oidc` block with `getUserClaims`.
@@ -71,8 +71,8 @@ The server rejects a revoked Access Token with `invalid_token`, but only when yo
 
 If your `revoke()` marks a row as revoked, and keeps the row with a future expiry, also write the optional [`isAccessTokenRevoked`](../getting_started/repositories.md#token-repository) method. UserInfo calls it before it returns the claims.
 
-:::info The audience policy in v1
-Version 1 accepts each Access Token that this server issued, and it identifies these tokens by the `iss` claim. It makes no audience check. An audience check for one resource server comes later, when the `audience` parameter has a place in the Discovery Document.
+:::info The audience policy in the first OIDC release
+The first OIDC release accepts each Access Token that this server issued, and it identifies these tokens by the `iss` claim. It makes no audience check. An audience check for one resource server comes later, when the `audience` parameter has a place in the Discovery Document.
 :::
 
 :::info Supports the following specifications

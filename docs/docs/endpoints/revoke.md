@@ -35,7 +35,7 @@ app.post("/token/revoke", async (req: Express.Request, res: Express.Response) =>
 The endpoint authenticates the client credentials by default. To stop this, set `authenticateRevoke` to `false`.
 
 ```ts
-const authoriztionServer = new AuthorizationServer(
+const authorizationServer = new AuthorizationServer(
   ...,
   {
     authenticateRevoke: false,

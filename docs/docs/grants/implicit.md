@@ -2,7 +2,7 @@
 
 :::warning Do not use this grant
 
-This library supports the implicit grant, but the grant has security problems. The OAuth 2.0 Security Best Current Practice (RFC 8252) tells you not to use it.
+This library supports the implicit grant, but the grant has security problems. The OAuth 2.0 Security Best Current Practice ([RFC 9700 §2.1.2](https://datatracker.ietf.org/doc/html/rfc9700#section-2.1.2)) tells you not to use it.
 
 For a native application or a single-page application, use the [authorization code grant with PKCE](./authorization_code.md). It gives better security, and the Client does not need a secret.
 

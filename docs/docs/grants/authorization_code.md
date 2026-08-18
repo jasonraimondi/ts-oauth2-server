@@ -46,7 +46,7 @@ response_type=code
 ```
 :::
 
-The user will be asked to login to the authorization server and approve the client and requested scopes.
+The user will be asked to log in to the authorization server and approve the Client and the requested scopes.
 
 If the user approves the Client, the authorization server redirects the user to the `redirect_uri`. The query string contains these fields:
 

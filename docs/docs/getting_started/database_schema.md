@@ -12,7 +12,7 @@ Read the [Security Considerations](#security-considerations) before you make you
 
 ### Hash Client Secrets
 
-**Never store a client secret as plain text.** RFC 6749 §2.3.1 tells you to protect the client credentials.
+**Never store a client secret as plain text.** RFC 6819 §5.1.4.1.3 tells you to store a hash in place of each credential.
 
 ```sql
 -- The 'secret' column should contain a bcrypt/argon2 hash, NOT the raw secret
