@@ -4,7 +4,7 @@ title: Keypair Lifecycle
 
 # Keypair Lifecycle
 
-OIDC makes **RS256** mandatory. Thus you must give your `JwtService` an RSA key pair, and not a shared HMAC secret. The private key signs each Access Token and each ID Token. The server publishes the public key at the [JWKS endpoint](../endpoints/discovery.md), and each Client verifies the signatures with it.
+OIDC makes **RS256** mandatory. Thus you must give your `JwtService` an RSA key pair, and not a shared HMAC secret. The private key signs each Access Token and each ID Token. The server publishes the public key at the [JWKS endpoint](./getting_started.md#add-the-endpoints), and each Client verifies the signatures with it.
 
 ## Make a Key Pair
 
@@ -36,11 +36,11 @@ The `JwtService` accepts the `key` option in two forms:
 import { JwtService } from "@jmondi/oauth2-server";
 
 // PEM string (e.g. loaded from an env var or secret manager)
-new JwtService({ key: process.env.RSA_PRIVATE_KEY_PEM });
+new JwtService({ key: process.env.RSA_PRIVATE_KEY_PEM! });
 
 // Node KeyObject (e.g. from generateKeyPairSync or createPrivateKey)
 import { createPrivateKey } from "node:crypto";
-new JwtService({ key: createPrivateKey(process.env.RSA_PRIVATE_KEY_PEM) });
+new JwtService({ key: createPrivateKey(process.env.RSA_PRIVATE_KEY_PEM!) });
 ```
 
 A PEM is easy to store and to transport. A `KeyObject` is faster, because the server does not read the PEM again at each operation. The two forms give the same `kid`, which is an [RFC 7638](https://datatracker.ietf.org/doc/html/rfc7638) thumbprint. Thus the `kid` in the JWKS stays the same after a restart, while the key stays the same.

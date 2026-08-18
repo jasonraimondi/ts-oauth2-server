@@ -14,9 +14,15 @@ The Client calls this endpoint directly, from its server to your server. The bro
 :::
 
 ```ts
+import {
+  requestFromExpress,
+  handleExpressResponse,
+  handleExpressError,
+} from "@jmondi/oauth2-server/express";
+
 app.post("/token/revoke", async (req: Express.Request, res: Express.Response) => {
   try {
-    const oauthResponse = await authorizationServer.revoke(req);
+    const oauthResponse = await authorizationServer.revoke(requestFromExpress(req));
     return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);

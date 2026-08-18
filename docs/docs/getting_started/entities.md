@@ -19,10 +19,11 @@ The Client entity is an application that requests access to protected resources 
 interface OAuthClient {
   id: string;
   name: string;
-  secret?: string;
+  secret?: string | null;
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
   scopes: OAuthScope[];
+  [key: string]: any;
 }
 ```
 
@@ -33,11 +34,11 @@ The Auth Code entity is an authorization code with a short life. The authorizati
 ```ts
 interface OAuthAuthCode {
   code: string;
-  redirectUri?: string;
-  codeChallenge?: string;
-  codeChallengeMethod?: CodeChallengeMethod;
+  redirectUri?: string | null;
+  codeChallenge?: string | null;
+  codeChallengeMethod?: CodeChallengeMethod | null;
   expiresAt: Date;
-  user?: OAuthUser;
+  user?: OAuthUser | null;
   client: OAuthClient;
   scopes: OAuthScope[];
   nonce?: string | null;
@@ -77,9 +78,11 @@ The User entity is the resource owner. This is usually the end-user who lets an 
 
 ```ts
 interface OAuthUser {
-  id: string;
+  id: OAuthUserIdentifier;
   [key: string]: any;
 }
+
+type OAuthUserIdentifier = string | number;
 ```
 
 ## Scope Entity

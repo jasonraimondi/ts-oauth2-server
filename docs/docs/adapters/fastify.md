@@ -16,6 +16,10 @@ requestFromFastify(req: FastifyRequest): OAuthRequest
 ```
 
 ```ts
+responseFromFastify(res: FastifyReply): OAuthResponse
+```
+
+```ts
 handleFastifyReply(fastifyReply: FastifyReply, oauthResponse: OAuthResponse): void
 ```
 
@@ -28,12 +32,13 @@ handleFastifyError(e: unknown | OAuthException, reply: FastifyReply): void
 ```ts
 import { requestFromFastify, handleFastifyReply, handleFastifyError } from "@jmondi/oauth2-server/fastify";
 import fastify from 'fastify'
+import type { FastifyRequest, FastifyReply } from 'fastify'
 
 const app = fastify()
 
 // ...
 
-app.post('/oauth2/token', async (request: fastify.Request, reply: fastify.Reply) => {
+app.post('/oauth2/token', async (request: FastifyRequest, reply: FastifyReply) => {
   const authorizationServer = request.server.authorizationServer;
   
   try {

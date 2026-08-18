@@ -15,9 +15,17 @@ The Client calls this endpoint directly, from its server to your server. The bro
 :::
 
 ```ts
+import {
+  requestFromExpress,
+  handleExpressResponse,
+  handleExpressError,
+} from "@jmondi/oauth2-server/express";
+
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
   try {
-    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(
+      requestFromExpress(req),
+    );
     return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);
@@ -49,7 +57,7 @@ To set the `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#s
 To add more fields to an Access Token, write the `extraTokenFields` method in your `JwtService` class.
 
 ```ts
-import { JwtService } from "@jmondi/oauth2-server";
+import { JwtService, type ExtraAccessTokenFieldArgs } from "@jmondi/oauth2-server";
 
 export class MyCustomJwtService extends JwtService {
   extraTokenFields(params: ExtraAccessTokenFieldArgs) {

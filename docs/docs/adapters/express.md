@@ -15,6 +15,10 @@ requestFromExpress(req: Express.Request): OAuthRequest
 ```
 
 ```ts
+responseFromExpress(res: Express.Response): OAuthResponse
+```
+
+```ts
 handleExpressResponse(expressResponse: Express.Response, oauthResponse: OAuthResponse): void
 ```
 

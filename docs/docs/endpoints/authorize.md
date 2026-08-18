@@ -29,7 +29,11 @@ You write the login screen and the consent screen. Thus you can also add other c
 ## Implementation
 
 ```ts
-import { requestFromExpress } from "@jmondi/oauth2-server/express";
+import {
+  requestFromExpress,
+  handleExpressResponse,
+  handleExpressError,
+} from "@jmondi/oauth2-server/express";
 
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   try {

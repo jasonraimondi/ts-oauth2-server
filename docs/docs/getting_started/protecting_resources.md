@@ -34,7 +34,7 @@ interface AccessTokenPayload {
   /** Audience - the intended recipient API */
   aud?: string | string[];
   /** Space-delimited list of granted scopes */
-  scope?: string;
+  scope: string;
   // Plus any custom fields from extraTokenFields()
 }
 ```
@@ -141,7 +141,7 @@ async function validateAccessToken(
 
     return {
       payload,
-      scopes: payload.scope?.split(" ").filter(Boolean) ?? [],
+      scopes: payload.scope.split(" ").filter(Boolean),
       token: storedToken,
     };
   } catch (error) {

@@ -1,6 +1,6 @@
 # Custom Grant ⚠️
 
-To write a custom grant, extend the `AbstractGrant` class.
+To write a custom grant, extend the `CustomGrant` class.
 
 :::warning
 

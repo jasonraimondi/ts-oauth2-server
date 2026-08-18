@@ -10,6 +10,14 @@ For a web application with a server, use the authorization code grant. Keep the 
 
 :::
 
+:::info Enable this grant
+
+```ts
+authorizationServer.enableGrantType("implicit");
+```
+
+:::
+
 ## Redirect Mode
 
 By default, the implicit grant adds each token to the redirect URI in a URI fragment. [RFC 6749 §4.2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2) recommends this mode.

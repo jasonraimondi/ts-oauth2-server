@@ -86,7 +86,7 @@ interface OAuthScopeRepository {
     scopes: OAuthScope[],
     identifier: GrantIdentifier,
     client: OAuthClient,
-    user_id?: string,
+    user_id?: OAuthUserIdentifier,
   ): Promise<OAuthScope[]>;
 }
 ```
@@ -103,7 +103,7 @@ interface OAuthTokenRepository {
   // The returned token should not be persisted yet.
   // Note: The `accessTokenExpiresAt` value set here will be replaced by the
   //   authorization server using the TTL configured in `enableGrantType`.
-  issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken>;
+  issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser | null): Promise<OAuthToken>;
 
   // An async call that should persist an OAuthToken into your storage.
   persist(accessToken: OAuthToken): Promise<void>;
@@ -142,8 +142,8 @@ interface OAuthTokenRepository {
   // (Optional)
   //     Required if using /revoke RFC7009 "OAuth 2.0 Token Revocation"
   //     Required if using /introspect RFC7662 "OAuth 2.0 Token Introspection"
-  // @see https://tsoauth2server.com/docs/getting_started/endpoints#the-introspect-endpoint
-  // @see https://tsoauth2server.com/docs/getting_started/endpoints#the-revoke-endpoint
+  // @see https://tsoauth2server.com/docs/endpoints/introspect
+  // @see https://tsoauth2server.com/docs/endpoints/revoke
   getByAccessToken?(accessTokenToken: string): Promise<OAuthToken>;
 }
 ```
@@ -160,7 +160,7 @@ interface OAuthUserRepository {
   // be used to validate the users credentials. Grant type and client are provided
   // for additional checks if desired
   getUserByCredentials(
-    identifier: string,
+    identifier: OAuthUserIdentifier,
     password?: string,
     grantType?: GrantIdentifier,
     client?: OAuthClient,

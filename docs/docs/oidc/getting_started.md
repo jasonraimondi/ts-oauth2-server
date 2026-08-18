@@ -26,7 +26,7 @@ const authorizationServer = new AuthorizationServer(
   clientRepository,
   accessTokenRepository,
   scopeRepository,
-  new JwtService({ key: process.env.RSA_PRIVATE_KEY_PEM }), // RS256
+  new JwtService({ key: process.env.RSA_PRIVATE_KEY_PEM! }), // RS256
   {
     issuer: "https://auth.example.com",
     oidc: {
