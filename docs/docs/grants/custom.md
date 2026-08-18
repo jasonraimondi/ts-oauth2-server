@@ -22,8 +22,6 @@ authorizationServer.enableGrantTypes(
 
 ## Extend the CustomGrant Class
 
-Write your grant, and then enable it in your `AuthorizationServer`.
-
 ```ts
 export class MyCustomGrant extends CustomGrant {
   readonly identifier = "custom:my_custom_grant";

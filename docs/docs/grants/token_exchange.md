@@ -1,6 +1,6 @@
 # Token Exchange Grant
 
-With [RFC 8693 - OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693), a Client exchanges one security token for a different one. The new token gives access to a different resource or service. This page shows you how to enable the grant, and how the server handles the request and the response.
+With [RFC 8693 - OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693), a Client exchanges one security token for a different one. The new token gives access to a different resource or service.
 
 :::info Enable this grant
 

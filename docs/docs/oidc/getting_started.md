@@ -13,7 +13,7 @@ OIDC is optional. If you do not set the `oidc` block, the other token flows do n
 You need two things:
 
 1. **An RSA signing key.** OIDC makes RS256 mandatory. Thus you must give your `JwtService` an asymmetric key, and not a shared secret. See [Keypair Lifecycle](./keypair_lifecycle.md).
-2. **An `issuer`.** The OIDC layer uses the top-level `issuer` option as the Issuer, and the option becomes mandatory. It is the `iss` claim of each Access Token and each ID Token, and also the `issuer` field of the Discovery Document.
+2. **An `issuer`.** The OIDC layer uses the top-level `issuer` option as the Issuer, and the option becomes mandatory. It supplies the `iss` claim and the `issuer` field of the Discovery Document.
 
 ## Configuration
 

@@ -9,7 +9,6 @@ The `/token/revoke` endpoint revokes a token that the server issued.
 The Client calls this endpoint directly, from its server to your server. The browser is not part of the request, and thus the Client can safely send its client secret.
 
 :::info
-- This endpoint is optional.
 - You must define `TokenRepository#getByAccessToken` to revoke an Access Token.
 :::
 
@@ -49,7 +48,7 @@ const authoriztionServer = new AuthorizationServer(
 A complete revocation request contains these parameters:
 
 - **token** (required): The token to revoke.
-- **token_type_hint** (optional): The Token Type Hint. The permitted values are `access_token`, `refresh_token`, and `auth_code`. For an Access Token and a Refresh Token the hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server revokes a Refresh Token even when the hint is absent or incorrect. But you must send `token_type_hint=auth_code` to revoke an authorization code, because the server selects the handler from this one hint. The server rejects an unknown hint with `unsupported_token_type`.
+- **token_type_hint** (optional): The permitted values are `access_token`, `refresh_token`, and `auth_code`. For an Access Token and a Refresh Token the hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server revokes a Refresh Token even when the hint is absent or incorrect. But you must send `token_type_hint=auth_code` to revoke an authorization code, because the server selects the handler from this one hint. The server rejects an unknown hint with `unsupported_token_type`.
 
 The Client authenticates with its own credentials: the `client_id`, and also the `client_secret` for a Confidential Client. Each Client can revoke its own tokens. The Client does **not** need permission for the `client_credentials` grant.
 
@@ -59,11 +58,11 @@ If you set `useOpaqueRefreshTokens`, the server reads each opaque Refresh Token 
 
 :::: details View sample revoke request
 
-You can authenticate by passing the `client_id` and `client_secret` as a query string, or through basic auth.
+You can authenticate by passing the `client_id` and `client_secret` in the request body, or through basic auth.
 
 ::: code-group
 
-```http [Query String]
+```http [Request Body]
 POST /token/revoke HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -86,13 +85,7 @@ token=xxxxxxxxxx
 
 :::
 
-When `authenticateRevoke = false`:
-
-```ts
-new AuthorizationServer(..., {
-  authenticateRevoke: false,
-})
-```
+When you set `authenticateRevoke` to `false` (see [Configure](#configure)), send only the token:
 
 ```http
 POST /token/revoke HTTP/1.1

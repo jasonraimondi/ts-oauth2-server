@@ -232,4 +232,4 @@ The library does not write `azp` in v1, because `azp` is correct only while `aud
 - **Scope gate:** The server returns no ID Token if it does not grant the `openid` scope.
 - **Automatic scopes:** When you enable OIDC, the authorization code grant accepts the `openid`, `profile`, `email`, `address`, and `phone` scopes. You do not register them in your scope repository. The other grants, such as `client_credentials` and `password`, do not accept them, because only the authorization code flow issues an ID Token. The server does not accept `offline_access` automatically in v1.
 - **Token type:** The library signs each OIDC Access Token with the JOSE header `typ: "at+jwt"` (RFC 9068), and keeps `typ: "JWT"` on each ID Token. Thus no server accepts an ID Token as an Access Token.
-- **One use:** A Client can use each authorization code one time. The server rejects a second request with the same code, and issues no second ID Token.
+- **One use:** The server rejects a second request with the same authorization code, and issues no second ID Token.

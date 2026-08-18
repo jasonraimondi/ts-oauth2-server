@@ -9,7 +9,6 @@ The `/token/introspect` endpoint returns the Active state and the metadata of a 
 The Client calls this endpoint directly, from its server to your server. The browser is not part of the request, and thus the Client can safely send its client secret.
 
 :::info
-- This endpoint is optional.
 - You must define `TokenRepository#getByAccessToken` to introspect an Access Token.
 :::
 
@@ -62,19 +61,19 @@ const authorizationServer = new AuthorizationServer(
 A complete introspection request contains these parameters:
 
 - **token** (required): The token to introspect.
-- **token_type_hint** (optional): The Token Type Hint. The permitted values are `access_token`, `refresh_token`, and `auth_code`. The hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server finds a Refresh Token even when the hint is absent or incorrect. The server rejects an unknown hint with `unsupported_token_type`. This endpoint does not introspect an authorization code; a request with `token_type_hint=auth_code` reports `{"active": false}`.
+- **token_type_hint** (optional): The permitted values are `access_token`, `refresh_token`, and `auth_code`. The hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server finds a Refresh Token even when the hint is absent or incorrect. The server rejects an unknown hint with `unsupported_token_type`. This endpoint does not introspect an authorization code; a request with `token_type_hint=auth_code` reports `{"active": false}`.
 
-By default, the Client authenticates with the credentials of a Confidential Client: the `client_id` and the `client_secret`. The server rejects a Public Client. See [Configure](#configure).
+By default, the Client authenticates with the credentials of a Confidential Client: the `client_id` and the `client_secret`. See [Configure](#configure).
 
 An authenticated Client can introspect **any** token. A resource server usually makes this call. Thus the endpoint does not limit a Client to the tokens that the server issued to that Client. The Client does **not** need permission for the `client_credentials` grant.
 
 :::: details View sample introspect request
 
-Send the `client_id` and the `client_secret` in the query string, or use basic authentication.
+Send the `client_id` and the `client_secret` in the request body, or use basic authentication.
 
 ::: code-group
 
-```http [Query String]
+```http [Request Body]
 POST /token/introspect HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -97,13 +96,7 @@ token=xxxxxxxxxx
 
 :::
 
-When `authenticateIntrospect = false`:
-
-```ts
-new AuthorizationServer(..., {
-  authenticateIntrospect: false,
-})
-```
+When you set `authenticateIntrospect` to `false` (see [Configure](#configure)), send only the token:
 
 ```http
 POST /token/introspect HTTP/1.1

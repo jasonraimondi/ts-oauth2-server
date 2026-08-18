@@ -24,7 +24,7 @@ This endpoint operates through the browser of the user. The Client redirects the
 4. If the user approves, your server redirects the user to the Registered Redirect URI with an authorization code.
 5. The Client sends the authorization code to the `/token` endpoint and receives an Access Token.
 
-You write the login screen and the consent screen. Thus you can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
+You can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
 
 ## Implementation
 
@@ -132,7 +132,7 @@ Host: server.example.com
 ```
 
 :::warning Protect your login form and your consent form against CSRF
-The library validates the OAuth parameters. But your login route and your consent route are usual web forms, and the library does not protect them. Add CSRF protection to both routes. Also, keep the life of the session that holds the `AuthorizationRequest` short.
+The library validates the OAuth parameters. But your login route and your consent route are usual web forms, and the library does not protect them. Keep the life of the session that holds the `AuthorizationRequest` short.
 :::
 
 :::info Supports the following RFCs

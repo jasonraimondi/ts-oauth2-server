@@ -2,7 +2,7 @@
 
 :::info
 
-The default configuration is correct for most projects. You do not usually change these options.
+The default configuration is correct for most projects.
 
 :::
 

@@ -4,7 +4,7 @@ title: OIDC Hooks
 
 # OIDC Hooks
 
-The OIDC layer has two callbacks for you. They look the same, but they do different work. Many users select the incorrect one.
+The OIDC layer has two callbacks for you. They look the same, but they do different work.
 
 ## Which Hook Do I Use?
 
@@ -21,7 +21,7 @@ The OIDC layer has two callbacks for you. They look the same, but they do differ
 
 ## `getUserClaims`
 
-This callback is required. It returns the attributes of the end-user for UserInfo, for one subject. Return each attribute that you hold. The library then removes the claims that the granted scopes do not permit, and writes the canonical `sub`.
+This callback returns the attributes of the end-user for UserInfo, for one subject. Return each attribute that you hold. The library then removes the claims that the granted scopes do not permit, and writes the canonical `sub`.
 
 ```ts
 oidc: {
@@ -42,7 +42,7 @@ If the server does not grant the `email` scope, it removes `email` and `email_ve
 
 ## `getIdTokenClaims`
 
-This callback is optional. It adds your own claims to the ID Token. The default ID Token holds Protocol Claims only. This callback lets you add more claims, but it does not let you damage the token.
+This callback adds your own claims to the ID Token. The default ID Token holds Protocol Claims only. The callback lets you add more claims, but it does not let you damage the token.
 
 ```ts
 oidc: {

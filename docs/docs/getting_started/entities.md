@@ -9,8 +9,8 @@ The Client entity is an application that requests access to protected resources 
 - Each URI must be absolute.
 - A URI can contain query parameters in `application/x-www-form-urlencoded` format.
 - A URI must not contain a fragment.
-- The server compares the requested `redirect_uri` against each Registered Redirect URI, and the two must be the same URI ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). The host, the path, the port, and the query string must all agree.
-- One exception applies. A Loopback Redirect URI can use a different port. This is an `http` URI with the host `localhost`, `127.0.0.1`, or `[::1]` ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). Thus you must register each URI that your Client uses.
+- The server compares the requested `redirect_uri` against each Registered Redirect URI, and the two must be the same URI ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). The host, the path, the port, and the query string must all agree. Thus you must register each URI that your Client uses.
+- One exception applies. A Loopback Redirect URI can use a different port. This is an `http` URI with the host `localhost`, `127.0.0.1`, or `[::1]` ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)).
 - You can omit the `redirect_uri` parameter only when the Client has one Registered Redirect URI.
 
 :::

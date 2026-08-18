@@ -29,7 +29,7 @@ A complete password grant request contains these parameters:
 
 ::: code-group
 
-```http [Query String]
+```http [Request Body]
 POST /token HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded

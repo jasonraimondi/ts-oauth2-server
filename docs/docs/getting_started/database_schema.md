@@ -45,7 +45,7 @@ Store a hash of each Refresh Token. Compare the hashes with a constant-time func
 
 ### Use TLS for the Database Connection
 
-In production, always encrypt the connection between your application and your database with TLS.
+Verify the server certificate. With PostgreSQL, set `sslmode=verify-full`. A connection that does not verify the certificate gives no protection against an attacker on the network.
 
 ---
 
@@ -260,9 +260,9 @@ CREATE TABLE oauth_tokens (
 
 ---
 
-## Token Revocation Support (RFC7009)
+## Token Revocation Queries (RFC7009)
 
-Add a `revoked_at` timestamp column for the [`/token/revoke`](../endpoints/revoke.md) endpoint:
+Both schemas above include the `revoked_at` column. Your repository and the [`/token/revoke`](../endpoints/revoke.md) endpoint use it like this:
 
 ```sql
 -- Check if token is revoked in your repository
