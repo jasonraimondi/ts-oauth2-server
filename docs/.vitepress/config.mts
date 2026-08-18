@@ -95,27 +95,9 @@ export default defineConfig({
               text: "Configuration",
               link: "/docs/authorization_server/configuration",
             },
-          ],
-        },
-        {
-          text: "Endpoints",
-          items: [
-            { text: "Overview", link: "/docs/endpoints/" },
-            { text: "/authorize", link: "/docs/endpoints/authorize" },
-            { text: "/token", link: "/docs/endpoints/token" },
-            { text: "/token/revoke", link: "/docs/endpoints/revoke" },
             {
-              text: "/token/introspect",
-              link: "/docs/endpoints/introspect",
-            },
-            { text: "/userinfo", link: "/docs/endpoints/userinfo" },
-            {
-              text: "/.well-known/openid-configuration",
-              link: "/docs/endpoints/discovery",
-            },
-            {
-              text: "OIDC conformance smoke test",
-              link: "/docs/endpoints/oidc_conformance",
+              text: "Adapters",
+              link: "/docs/adapters/",
             },
           ],
         },
@@ -145,22 +127,48 @@ export default defineConfig({
           ],
         },
         {
+          text: "Endpoints",
+          items: [
+            {
+              text: "Core",
+              items: [
+                { text: "/authorize", link: "/docs/endpoints/authorize" },
+                { text: "/token", link: "/docs/endpoints/token" },
+              ],
+            },
+            {
+              text: "Token Management",
+              items: [
+                { text: "/token/revoke", link: "/docs/endpoints/revoke" },
+                {
+                  text: "/token/introspect",
+                  link: "/docs/endpoints/introspect",
+                },
+              ],
+            },
+          ],
+        },
+        {
           text: "OpenID Connect",
           items: [
             { text: "Getting Started with OIDC", link: "/docs/oidc/getting_started" },
             { text: "Keypair Lifecycle", link: "/docs/oidc/keypair_lifecycle" },
             { text: "Hooks", link: "/docs/oidc/hooks" },
-            { text: "/userinfo", link: "/docs/endpoints/userinfo" },
-            { text: "/.well-known/openid-configuration", link: "/docs/endpoints/discovery" },
+            {
+              text: "Endpoints",
+              items: [
+                { text: "/userinfo", link: "/docs/endpoints/userinfo" },
+                { text: "/.well-known/openid-configuration", link: "/docs/endpoints/discovery" },
+              ],
+            },
             { text: "Conformance smoke test", link: "/docs/endpoints/oidc_conformance" },
           ],
         },
+        {
+          text: "Protect Resources",
+          link: "/docs/getting_started/protecting_resources",
+        },
         { text: "Upgrade Guide", link: "/docs/upgrade_guide" },
-
-            {
-              text: "Protect Resources",
-              link: "/docs/getting_started/protecting_resources",
-            },
       ],
     },
 

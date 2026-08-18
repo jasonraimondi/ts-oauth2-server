@@ -9,8 +9,8 @@ The Client entity is an application that requests access to protected resources 
 - Each URI must be absolute.
 - A URI can contain query parameters in `application/x-www-form-urlencoded` format.
 - A URI must not contain a fragment.
-- The server compares the requested `redirect_uri` against each Registered Redirect URI, and the two must be the same URI ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). The host, the path, the port, and the query string must all agree.
-- One exception applies. A Loopback Redirect URI can use a different port. This is an `http` URI with the host `localhost`, `127.0.0.1`, or `[::1]` ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)). Thus you must register each URI that your Client uses.
+- The server compares the requested `redirect_uri` against each Registered Redirect URI, and the two must be the same URI ([RFC 6749 §3.1.2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3)). The host, the path, the port, and the query string must all agree. Thus you must register each URI that your Client uses.
+- One exception applies. A Loopback Redirect URI can use a different port. This is an `http` URI with the host `localhost`, `127.0.0.1`, or `[::1]` ([RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3)).
 - You can omit the `redirect_uri` parameter only when the Client has one Registered Redirect URI.
 
 :::
@@ -19,10 +19,11 @@ The Client entity is an application that requests access to protected resources 
 interface OAuthClient {
   id: string;
   name: string;
-  secret?: string;
+  secret?: string | null;
   redirectUris: string[];
   allowedGrants: GrantIdentifier[];
   scopes: OAuthScope[];
+  [key: string]: any;
 }
 ```
 
@@ -33,17 +34,26 @@ The Auth Code entity is an authorization code with a short life. The authorizati
 ```ts
 interface OAuthAuthCode {
   code: string;
-  redirectUri?: string;
-  codeChallenge?: string;
-  codeChallengeMethod?: CodeChallengeMethod;
+  redirectUri?: string | null;
+  codeChallenge?: string | null;
+  codeChallengeMethod?: CodeChallengeMethod | null;
   expiresAt: Date;
-  user?: OAuthUser;
+  user?: OAuthUser | null;
   client: OAuthClient;
   scopes: OAuthScope[];
+  nonce?: string | null;
+  authTime?: number | null;
+  maxAge?: number | null;
 }
 
 type CodeChallengeMethod = "S256" | "plain";
 ```
+
+:::info OpenID Connect
+
+The last three fields hold the OIDC data from the authorization request. With an [opaque authorization code](/docs/authorization_server/configuration), the stored row is the only record of them. Your repository must persist `nonce` and `authTime`, or the server rejects the code with `invalid_grant`.
+
+:::
 
 ## Token Entity
 
@@ -68,9 +78,11 @@ The User entity is the resource owner. This is usually the end-user who lets an 
 
 ```ts
 interface OAuthUser {
-  id: string;
+  id: OAuthUserIdentifier;
   [key: string]: any;
 }
+
+type OAuthUserIdentifier = string | number;
 ```
 
 ## Scope Entity

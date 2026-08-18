@@ -22,11 +22,11 @@ The Client sends a **POST** request to the `/token` endpoint with this body:
 
 :::: details View sample client_credentials request
 
-Send the `client_id` and the `client_secret` in the query string, or use basic authentication.
+Send the `client_id` and the `client_secret` in the request body, or use basic authentication.
 
 ::: code-group
 
-```http [Query String]
+```http [Request Body]
 POST /token HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
@@ -67,7 +67,7 @@ Pragma: no-cache
   token_type: 'Bearer',
   expires_in: 3600,
   access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDE3MDY0NjYsIm5iZiI6MTYwMTcwMjg2NiwiaWF0IjoxNjAxNzAyODY2LCJqdGkiOiJuZXcgdG9rZW4iLCJjaWQiOiJ0ZXN0IGNsaWVudCIsInNjb3BlIjoiIn0.KcXoCP6u9uhvtOoistLBskESA0tyT2I1SDe5Yn9iM4I',
-  scope: 'contacts.create contacts.read'
+  scope: 'contacts.read contacts.write'
 }
 ```
 :::

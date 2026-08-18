@@ -9,7 +9,7 @@ The `/authorize` endpoint starts the authorization procedure and issues an autho
 This endpoint operates through the browser of the user. The Client redirects the user here, and your server redirects the user back to the Client. Thus each parameter is visible in the URL, the browser history keeps it, and the user can change it. Never send the client secret to this endpoint.
 
 :::info
-- You need this endpoint only for the authorization code grant.
+- You need this endpoint for the authorization code grant and the implicit grant.
 
 - Accept the GET method for the initial request. Redirect the user agent to your authorization page.
 
@@ -24,12 +24,16 @@ This endpoint operates through the browser of the user. The Client redirects the
 4. If the user approves, your server redirects the user to the Registered Redirect URI with an authorization code.
 5. The Client sends the authorization code to the `/token` endpoint and receives an Access Token.
 
-You write the login screen and the consent screen. Thus you can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
+You can also add other checks, such as 2FA, MFA, or CAPTCHA, in the same handler.
 
 ## Implementation
 
 ```ts
-import { requestFromExpress } from "@jmondi/oauth2-server/express";
+import {
+  requestFromExpress,
+  handleExpressResponse,
+  handleExpressError,
+} from "@jmondi/oauth2-server/express";
 
 app.get("/authorize", async (req: Express.Request, res: Express.Response) => {
   try {
@@ -114,11 +118,12 @@ app.post("/scopes", (req, res) => {
 
 | Parameter | Required | Description |
 | --- | --- | --- |
-| `response_type` | Yes | Set to `code` for the authorization code grant |
+| `response_type` | Yes | Set to `code` for the authorization code grant, or `token` for the implicit grant |
 | `client_id` | Yes | The Client that requests the authorization |
 | `redirect_uri` | Conditional | The destination of the redirect. It must [match a Registered Redirect URI exactly](../getting_started/entities.md#client-entity). You can omit it only when the Client has one Registered Redirect URI |
 | `scope` | No | The scopes that the Client requests |
 | `state` | Recommended | An opaque value. The server returns it on the redirect. Use it as your CSRF token |
+| `aud` \| `audience` | No | The server records this value on the authorization request and encodes it into the authorization code. The `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the Access Token comes from the [`/token`](./token.md) request |
 
 ```
 GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
@@ -127,7 +132,7 @@ Host: server.example.com
 ```
 
 :::warning Protect your login form and your consent form against CSRF
-The library validates the OAuth parameters. But your login route and your consent route are usual web forms, and the library does not protect them. Add CSRF protection to both routes. Also, keep the life of the session that holds the `AuthorizationRequest` short.
+The library validates the OAuth parameters. But your login route and your consent route are usual web forms, and the library does not protect them. Keep the life of the session that holds the `AuthorizationRequest` short.
 :::
 
 :::info Supports the following RFCs

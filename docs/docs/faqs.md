@@ -1,4 +1,4 @@
-# FAQ's
+# FAQs
 
 ## How do I validate an Access Token in my API middleware?
 
@@ -9,7 +9,7 @@ You have two options:
 
 ## Why is there no `verifyToken()` method?
 
-Each application validates differently. The scopes for a route, the audience of the Access Token, the business rules, and the cost of a database read are all different for each application. The library gives you the parts — `JwtService.verify()` and `TokenRepository.getByAccessToken()` — and you assemble them.
+Each application validates differently. The scopes for a route, the audience of the Access Token, the business rules, and the cost of a database read are all different for each application. The library gives you the parts — `JwtService.verify()` and `OAuthTokenRepository.getByAccessToken()` — and you assemble them.
 
 ## Common Errors
 

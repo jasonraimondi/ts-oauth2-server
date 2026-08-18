@@ -34,7 +34,7 @@ interface AccessTokenPayload {
   /** Audience - the intended recipient API */
   aud?: string | string[];
   /** Space-delimited list of granted scopes */
-  scope?: string;
+  scope: string;
   // Plus any custom fields from extraTokenFields()
 }
 ```
@@ -127,7 +127,13 @@ async function validateAccessToken(
       return null;
     }
 
-    // 5. Verify expiration from database (defense in depth)
+    // 5. Check flag-based revocation (the row is still there, marked revoked)
+    if (await config.tokenRepository.isAccessTokenRevoked?.(storedToken)) {
+      console.warn("Token revoked");
+      return null;
+    }
+
+    // 6. Verify expiration from database (defense in depth)
     if (storedToken.accessTokenExpiresAt < new Date()) {
       console.warn("Token expired");
       return null;
@@ -135,7 +141,7 @@ async function validateAccessToken(
 
     return {
       payload,
-      scopes: payload.scope?.split(" ").filter(Boolean) ?? [],
+      scopes: payload.scope.split(" ").filter(Boolean),
       token: storedToken,
     };
   } catch (error) {
@@ -298,10 +304,12 @@ app.delete(
 
 **Keep the life of each Access Token short.** Let the client use a Refresh Token to get a new one.
 
+The second element of each pair is the Access Token TTL for that grant. Your `issueRefreshToken` method sets the life of the Refresh Token. The authorization server does not change it.
+
 ```typescript
 authorizationServer.enableGrantTypes(
   ["client_credentials", new DateInterval("15m")],
-  ["refresh_token", new DateInterval("7d")],
+  ["refresh_token", new DateInterval("15m")],
 );
 ```
 

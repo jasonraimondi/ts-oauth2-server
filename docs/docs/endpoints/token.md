@@ -15,9 +15,17 @@ The Client calls this endpoint directly, from its server to your server. The bro
 :::
 
 ```ts
+import {
+  requestFromExpress,
+  handleExpressResponse,
+  handleExpressError,
+} from "@jmondi/oauth2-server/express";
+
 app.post("/token", async (req: Express.Request, res: Express.Response) => {
   try {
-    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(req);
+    const oauthResponse = await authorizationServer.respondToAccessTokenRequest(
+      requestFromExpress(req),
+    );
     return handleExpressResponse(res, oauthResponse);
   } catch (e) {
     handleExpressError(e, res);
@@ -39,6 +47,29 @@ The `grant_type` parameter selects the flow. Each grant page gives the parameter
 | [`urn:ietf:params:oauth:grant-type:token-exchange`](/docs/grants/token_exchange) | Exchange one security token for a different one | [RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693) |
 
 When you enable OIDC and the server grants the `openid` scope, the authorization code response also contains an [ID Token](/docs/grants/authorization_code#openid-connect-id-tokens).
+
+## Audience
+
+To set the `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the Access Token, send an `aud` or `audience` parameter in the query or the body of the request. The [`/authorize`](./authorize.md) endpoint accepts the same parameter in the query, but it only records the value on the authorization request. Only the parameter that you send to this endpoint sets the `aud` claim.
+
+## Extra Token Fields
+
+To add more fields to an Access Token, write the `extraTokenFields` method in your `JwtService` class.
+
+```ts
+import { JwtService, type ExtraAccessTokenFieldArgs } from "@jmondi/oauth2-server";
+
+export class MyCustomJwtService extends JwtService {
+  extraTokenFields(params: ExtraAccessTokenFieldArgs) {
+    const { user = undefined, client, originatingAuthCodeId } = params;
+    return {
+      email: user?.email,
+      originatingAuthCodeId,
+      myCustomProps: "this will be in the decoded token!",
+    };
+  }
+}
+```
 
 :::info Supports the following RFCs
 [RFC6749 (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc6749), [RFC6750 (Bearer Token Usage)](https://datatracker.ietf.org/doc/html/rfc6750), [RFC8693 (Token Exchange)](https://datatracker.ietf.org/doc/html/rfc8693)

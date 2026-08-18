@@ -2,7 +2,7 @@
 
 :::info
 
-The default configuration is correct for most projects. You do not usually change these options.
+The default configuration is correct for most projects.
 
 :::
 
@@ -12,9 +12,9 @@ The authorization server has these optional settings:
 | --- | --- | --- | --- |
 | `requiresPKCE` | boolean | `true` | The server enforces PKCE. Disable it only for an old Client that cannot use PKCE. [[Learn more]][requires-pkce] |
 | `requiresS256` | boolean | `true` | The server accepts only the `S256` challenge method. Disable it to also accept the `plain` method. [[Learn more]][requires-s256] |
-| `notBeforeLeeway` | number | `0` | The permitted clock difference, as a NumericDate value. Keep it small, usually a few minutes at most. |
+| `notBeforeLeeway` | number | `0` | The permitted clock difference, in seconds. Keep it small, usually a few minutes at most. |
 | `tokenCID` | `"id"` \| `"name"` | `"id"` | The source of the `cid` claim in an Access Token: the `client.id` or the `client.name`. [[Learn more]][token-cid] |
-| `issuer` | string | `undefined` | The value of the `iss` claim. It becomes mandatory when you set the `oidc` block. |
+| `issuer` | string | `undefined` | The value of the `iss` claim. It becomes mandatory when you set the `oidc` block, and it must then be an absolute `https` URL with no query string and no fragment. Plain `http` is permitted only for a loopback host. |
 | `scopeDelimiter` | string | `" "` | The character that separates the scopes in a scope string. |
 | `authenticateIntrospect` | boolean | `true` | The [/token/introspect](../endpoints/introspect.md) endpoint authenticates the Client. The Client sends a valid `client_id` and `client_secret`, in the body or in the `Authorization` header. |
 | `authenticateRevoke` | boolean | `true` | The [/token/revoke](../endpoints/revoke.md) endpoint authenticates the Client, in the same way. |
@@ -51,7 +51,7 @@ const authorizationServer = new AuthorizationServer(
   scopeRepository,
   new JwtService("secret-key"),
   {
-    issuer: "auth.example.com",
+    issuer: "https://auth.example.com",
   },
 );
 ```

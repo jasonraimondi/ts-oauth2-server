@@ -90,7 +90,7 @@ PASS: OIDC conformance smoke test succeeded
 The script can also stop with a `FAIL` message, or with an `openid-client` error such as `id_token issued in the future`, `unexpected JWT alg received`, or `nonce mismatch`. Each of these shows a fault in the signing, in the discovery, or in the claims. Do not release the server until you correct the fault.
 
 :::note Two differences from RFC 9068
-The validators above check the ID Token strictly. But the **Access Token** is different from RFC 9068 in two places. It identifies the Client with `cid`, and not with `client_id`. It also carries `aud` only when the token request supplies an `audience` parameter. See [Access Token Format](../oidc/getting_started.md#access-token-format).
+The validators above check the ID Token strictly. But the **Access Token** is different from RFC 9068 in two places. It identifies the Client with `cid`, and not with `client_id`. It also carries `aud` only when the request supplies an `audience` or `aud` parameter, in the query string or in the body. See [Access Token Format](../oidc/getting_started.md#access-token-format).
 :::
 
 :::info The test suite covers this path

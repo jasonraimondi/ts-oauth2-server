@@ -22,26 +22,31 @@ requestFromVanilla(req: Request): Promise<OAuthRequest>
 responseToVanilla(oauthResponse: OAuthResponse): Response
 ```
 
+```ts
+handleVanillaError(e: unknown | OAuthException): OAuthResponse
+```
+
 ## Example
 
 ```ts
-import { requestFromVanilla, responseToVanilla } from "@jmondi/oauth2-server/vanilla";
+import { requestFromVanilla, responseToVanilla, handleVanillaError } from "@jmondi/oauth2-server/vanilla";
 
 import { Hono } from 'hono'
 const app = new Hono()
-  
+
 // ...
 
 app.post('/oauth2/token', async (c) => {
   const authorizationServer = c.get("authorization_server");
-  
-  const oauthResponse = await authorizationServer
-    .respondToAccessTokenRequest(await requestFromVanilla(request))
-    .catch(e => {
-      error(400, e.message);
-    });
 
-  return responseToVanilla(oauthResponse);
+  try {
+    const oauthResponse = await authorizationServer
+      .respondToAccessTokenRequest(await requestFromVanilla(c.req.raw));
+
+    return responseToVanilla(oauthResponse);
+  } catch (e) {
+    return responseToVanilla(handleVanillaError(e));
+  }
 });
 
 export default app

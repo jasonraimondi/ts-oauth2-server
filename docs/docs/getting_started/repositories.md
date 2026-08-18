@@ -42,9 +42,7 @@ interface OAuthAuthCodeRepository {
 
 :::danger `getByIdentifier` must return the code challenge
 
-`getByIdentifier` **must** return the `codeChallenge` and the `codeChallengeMethod` that you stored with the code.
-
-With an [opaque authorization code](/docs/authorization_server/configuration), the stored row is the only record of the challenge. If your query does not read these two columns, the server cannot enforce PKCE. The server then rejects the code with `invalid_grant` while `requiresPKCE` is `true`, which is the default. The server does not issue a token without a verifier. [ADR 0009](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0009-pkce-enforcement-authority.md) gives the full decision.
+With an [opaque authorization code](/docs/authorization_server/configuration), the stored row is the only record of the challenge. If your query does not read the `codeChallenge` and `codeChallengeMethod` columns, the server cannot enforce PKCE. The server then rejects the code with `invalid_grant` while `requiresPKCE` is `true`, which is the default. The server does not issue a token without a verifier. [ADR 0009](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/docs/adr/0009-pkce-enforcement-authority.md) gives the full decision.
 
 :::
 
@@ -88,7 +86,7 @@ interface OAuthScopeRepository {
     scopes: OAuthScope[],
     identifier: GrantIdentifier,
     client: OAuthClient,
-    user_id?: string,
+    user_id?: OAuthUserIdentifier,
   ): Promise<OAuthScope[]>;
 }
 ```
@@ -103,17 +101,17 @@ The `OAuthTokenRepository` interface manages the tokens. Its methods issue a tok
 interface OAuthTokenRepository {
   // Asynchronously issues a new OAuthToken for the given client, scopes, and optional user.
   // The returned token should not be persisted yet.
-  // Note: The `accessTokenExpiresAt` and `refreshTokenExpiresAt` value set here will be replaced
-  //   by the authorization server using the TTL configured in `enableGrantType`.
-  issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken>;
+  // Note: The `accessTokenExpiresAt` value set here will be replaced by the
+  //   authorization server using the TTL configured in `enableGrantType`.
+  issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser | null): Promise<OAuthToken>;
 
   // An async call that should persist an OAuthToken into your storage.
   persist(accessToken: OAuthToken): Promise<void>;
 
   // Adds refresh token fields to an already-persisted OAuthToken and updates storage.
   // This method should update the token record in your storage; persist() will not be called again.
-  // Note: The `refreshTokenExpiresAt` value set here will be replaced
-  //   by the authorization server using the TTL configured in `enableGrantType`.
+  // Note: The `refreshTokenExpiresAt` value set here is kept. The authorization
+  //   server does not replace it.
   issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken>;
 
   // This async method is called when a refresh token is used to reissue
@@ -126,8 +124,8 @@ interface OAuthTokenRepository {
   // See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2 for why.
   revokeDescendantsOf?(authCodeId: string): Promise<void>;
 
-  // This async method is called when an access token is validated by the
-  // authorization server. Return `true` if the access token has been
+  // This async method is called when a refresh token is validated by the
+  // authorization server. Return `true` if the refresh token has been
   // manually revoked. If the token is still valid return `false`
   isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 
@@ -144,8 +142,8 @@ interface OAuthTokenRepository {
   // (Optional)
   //     Required if using /revoke RFC7009 "OAuth 2.0 Token Revocation"
   //     Required if using /introspect RFC7662 "OAuth 2.0 Token Introspection"
-  // @see https://tsoauth2server.com/docs/getting_started/endpoints#the-introspect-endpoint
-  // @see https://tsoauth2server.com/docs/getting_started/endpoints#the-revoke-endpoint
+  // @see https://tsoauth2server.com/docs/endpoints/introspect
+  // @see https://tsoauth2server.com/docs/endpoints/revoke
   getByAccessToken?(accessTokenToken: string): Promise<OAuthToken>;
 }
 ```
@@ -162,7 +160,7 @@ interface OAuthUserRepository {
   // be used to validate the users credentials. Grant type and client are provided
   // for additional checks if desired
   getUserByCredentials(
-    identifier: string,
+    identifier: OAuthUserIdentifier,
     password?: string,
     grantType?: GrantIdentifier,
     client?: OAuthClient,

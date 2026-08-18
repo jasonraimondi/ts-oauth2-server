@@ -12,7 +12,7 @@ Read the [Security Considerations](#security-considerations) before you make you
 
 ### Hash Client Secrets
 
-**Never store a client secret as plain text.** RFC 6749 §2.3.1 tells you to protect the client credentials.
+**Never store a client secret as plain text.** RFC 6819 §5.1.4.1.3 tells you to store a hash in place of each credential.
 
 ```sql
 -- The 'secret' column should contain a bcrypt/argon2 hash, NOT the raw secret
@@ -45,7 +45,7 @@ Store a hash of each Refresh Token. Compare the hashes with a constant-time func
 
 ### Use TLS for the Database Connection
 
-In production, always encrypt the connection between your application and your database with TLS.
+Verify the server certificate. With PostgreSQL, set `sslmode=verify-full`. A connection that does not verify the certificate gives no protection against an attacker on the network.
 
 ---
 
@@ -128,6 +128,9 @@ CREATE TABLE oauth_auth_codes (
     expires_at TIMESTAMPTZ NOT NULL,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
+    nonce TEXT, -- OIDC: persist for an opaque authorization code
+    auth_time BIGINT, -- OIDC: persist for an opaque authorization code
+    max_age INTEGER, -- OIDC: authentication freshness
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ -- For revocation support
 );
@@ -231,7 +234,11 @@ CREATE TABLE oauth_auth_codes (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
     scopes TEXT[] NOT NULL DEFAULT '{}', -- Array instead of pivot table
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    nonce TEXT, -- OIDC: persist for an opaque authorization code
+    auth_time BIGINT, -- OIDC: persist for an opaque authorization code
+    max_age INTEGER, -- OIDC: authentication freshness
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ
 );
 
 CREATE TABLE oauth_tokens (
@@ -253,9 +260,9 @@ CREATE TABLE oauth_tokens (
 
 ---
 
-## Token Revocation Support (RFC7009)
+## Token Revocation Queries (RFC7009)
 
-Add a `revoked_at` timestamp column for the [`/token/revoke`](../endpoints/revoke.md) endpoint:
+Both schemas above include the `revoked_at` column. Your repository and the [`/token/revoke`](../endpoints/revoke.md) endpoint use it like this:
 
 ```sql
 -- Check if token is revoked in your repository
@@ -291,7 +298,7 @@ Make these four checks after you create your schema:
 
 | Check | Procedure |
 |-------|---------------|
-| The secrets are hashed | `SELECT secret FROM oauth_clients` shows a bcrypt hash. Each hash starts with `$2b$` |
+| The secrets are hashed | `SELECT secret FROM oauth_clients` shows a hash. Each hash starts with `$2b$` for bcrypt, or `$argon2` for argon2 |
 | The referential integrity is correct | Delete a Client. The database also deletes its tokens and its authorization codes |
 | The expiry column has an index | `EXPLAIN` shows that a query on the expiry uses the index |
 | The revocation operates | Your repository reports a revoked token as revoked |

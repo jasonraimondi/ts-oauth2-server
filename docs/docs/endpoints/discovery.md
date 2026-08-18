@@ -22,7 +22,7 @@ app.get("/.well-known/openid-configuration", (req: Express.Request, res: Express
 
 ### Response
 
-The server sends the document with `Content-Type: application/json` and `Cache-Control: public, max-age=3600`. The library derives each capability field from the v1 feature set:
+The server sends the document with `Content-Type: application/json` and `Cache-Control: public, max-age=3600`. The library derives each capability field from the feature set of the first OIDC release:
 
 | Field | Value | Notes |
 | --- | --- | --- |
@@ -33,11 +33,11 @@ The server sends the document with `Content-Type: application/json` and `Cache-C
 | `jwks_uri` | `oidc.jwksUri` | Security-critical. You cannot change it |
 | `response_types_supported` | `["code"]` | The server supports `response_type=code` only |
 | `grant_types_supported` | `["authorization_code", "refresh_token"]` | |
-| `subject_types_supported` | `["public"]` | Version 1 has no pairwise subject |
+| `subject_types_supported` | `["public"]` | The first OIDC release has no pairwise subject |
 | `id_token_signing_alg_values_supported` | `["RS256"]` | Security-critical. You cannot change it |
 | `scopes_supported` | `["openid", "profile", "email", "address", "phone"]` | The list has no `offline_access` scope |
 | `token_endpoint_auth_methods_supported` | `["client_secret_basic", "client_secret_post", "none"]` | |
-| `code_challenge_methods_supported` | `["S256"]` | The grant also accepts `plain` for the older Clients, but the document does not show it |
+| `code_challenge_methods_supported` | `["S256"]` | The grant accepts `plain` only when you set `requiresS256: false`, and the document never shows it |
 
 ```json
 {

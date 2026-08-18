@@ -25,7 +25,7 @@ The Client redirects the user to `/authorize` with these query parameters:
 - **redirect_uri**: The destination of the redirect after the authorization, for example `org.example.app://redirect`. It must match a [Registered Redirect URI](../getting_started/entities.md#client-entity) exactly.
 - **state**: A random string from your application. Compare it with the returned value later.
 - **code_challenge**: The code challenge. The next section shows you how to make it.
-- **code_challenge_method**: Set it to `S256` for the SHA256 hash of the verifier, or to `plain` for the verifier itself. If you omit this parameter, the server uses `plain`.
+- **code_challenge_method**: Set it to `S256` for the SHA256 hash of the verifier. If you omit this parameter, the server uses `plain`, which the default `requiresS256` [configuration option](../authorization_server/configuration.md) rejects. Send `plain` for the verifier itself only when you disable `requiresS256`.
 
 :::info
 Do **not** send the client secret in part one of the authorization code flow.
@@ -46,7 +46,7 @@ response_type=code
 ```
 :::
 
-The user will be asked to login to the authorization server and approve the client and requested scopes.
+The user will be asked to log in to the authorization server and approve the Client and the requested scopes.
 
 If the user approves the Client, the authorization server redirects the user to the `redirect_uri`. The query string contains these fields:
 
@@ -56,7 +56,7 @@ If the user approves the Client, the authorization server redirects the user to 
 ::: details View sample authorization_code (part 1) response
 ```http
 HTTP/1.1 302 Found
-Location: http://localhost&code=eyJhbGciOiJIUzI1NiJ9.eyJjbGllbnRfaWQiOiJhdXRoY29kZWNsaWVudCIsInJlZGlyZWN0X3VyaSI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdXRoX2NvZGVfaWQiOiJteS1zdXBlci1zZWNyZXQtYXV0aC1jb2RlIiwic2NvcGVzIjpbXSwiZXhwaXJlX3RpbWUiOjE2MDE3NTM3MzMsImNvZGVfY2hhbGxlbmdlIjoiT0RRd1pHTTRZelpsTnpNeU1qUXlaREF4WWpFNU1XWmtZMlJrTmpKbU1UbGxNbUkwTnpJMFpEbGtNR0psWWpGbE1tTXhPV1kyWkRJMVpEZGpNak13WWciLCJjb2RlX2NoYWxsZW5nZV9tZXRob2QiOiJTMjU2In0.OIEtZN5BHNaB4Mz0plUpGAP93EHyoil2smJiG3S_2BM&state=abcdefghijklmnopqrstuvwxyz123456789
+Location: http://localhost?code=eyJhbGciOiJIUzI1NiJ9.eyJjbGllbnRfaWQiOiJhdXRoY29kZWNsaWVudCIsInJlZGlyZWN0X3VyaSI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdXRoX2NvZGVfaWQiOiJteS1zdXBlci1zZWNyZXQtYXV0aC1jb2RlIiwic2NvcGVzIjpbXSwiZXhwaXJlX3RpbWUiOjE2MDE3NTM3MzMsImNvZGVfY2hhbGxlbmdlIjoiT0RRd1pHTTRZelpsTnpNeU1qUXlaREF4WWpFNU1XWmtZMlJrTmpKbU1UbGxNbUkwTnpJMFpEbGtNR0psWWpGbE1tTXhPV1kyWkRJMVpEZGpNak13WWciLCJjb2RlX2NoYWxsZW5nZV9tZXRob2QiOiJTMjU2In0.OIEtZN5BHNaB4Mz0plUpGAP93EHyoil2smJiG3S_2BM&state=abcdefghijklmnopqrstuvwxyz123456789
 ```
 :::
 
@@ -147,7 +147,7 @@ If your device can make a SHA256 hash, use the `S256` method. The code challenge
 const code_challenge = base64urlencode(crypto.createHash("sha256").update(code_verifier).digest());
 ```
 
-If your device cannot make a SHA256 hash, use the `plain` method. The code challenge is then the `code_verifier` itself.
+If your device cannot make a SHA256 hash, disable the `requiresS256` [configuration option](../authorization_server/configuration.md) and use the `plain` method. The code challenge is then the `code_verifier` itself.
 
 ```ts
 const code_challenge = code_verifier;
@@ -172,7 +172,7 @@ A Client can use each authorization code one time only. You can also revoke an a
 A revocation request contains these parameters:
 
 - **token**: The authorization code that the server issued to the Client.
-- **token_type_hint** (optional): Set it to `auth_code`. The hint is only advisory, because the server identifies the type of the token from the token itself.
+- **token_type_hint**: Set it to `auth_code`. The server revokes an authorization code only when the request contains this hint.
 
 ::: details View sample revoke authorization_code request
 ```http
@@ -197,7 +197,7 @@ Pragma: no-cache
 
 ## OpenID Connect ID Tokens
 
-Set an `oidc` block on the authorization server to enable OIDC. Then, when the server grants the `openid` scope, the token response contains a signed ID Token with the Access Token:
+Set a top-level `issuer` and an `oidc` block on the authorization server to enable OIDC. Then, when the server grants the `openid` scope, the token response contains a signed ID Token with the Access Token:
 
 ```json
 {
@@ -232,4 +232,4 @@ The library does not write `azp` in v1, because `azp` is correct only while `aud
 - **Scope gate:** The server returns no ID Token if it does not grant the `openid` scope.
 - **Automatic scopes:** When you enable OIDC, the authorization code grant accepts the `openid`, `profile`, `email`, `address`, and `phone` scopes. You do not register them in your scope repository. The other grants, such as `client_credentials` and `password`, do not accept them, because only the authorization code flow issues an ID Token. The server does not accept `offline_access` automatically in v1.
 - **Token type:** The library signs each OIDC Access Token with the JOSE header `typ: "at+jwt"` (RFC 9068), and keeps `typ: "JWT"` on each ID Token. Thus no server accepts an ID Token as an Access Token.
-- **One use:** A Client can use each authorization code one time. The server rejects a second request with the same code, and issues no second ID Token.
+- **One use:** The server rejects a second request with the same authorization code, and issues no second ID Token.

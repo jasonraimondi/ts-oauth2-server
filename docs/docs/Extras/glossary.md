@@ -31,6 +31,3 @@ Each parameter of a front channel request is visible in the URL. The browser his
 A request that a Client sends directly to your server, with no browser. The [`/token`](../endpoints/token.md), [`/token/revoke`](../endpoints/revoke.md), and [`/token/introspect`](../endpoints/introspect.md) endpoints are back channel endpoints.
 
 No third party sees a back channel request. Thus a Client can safely send its secret on the back channel.
-
-[access_token_response]: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/ "Access Token Response"
-[client_credentials]: https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/ "Client Credentials Grant"
