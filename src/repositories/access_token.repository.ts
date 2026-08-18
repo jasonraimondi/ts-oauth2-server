@@ -19,7 +19,7 @@ export interface OAuthTokenRepository {
   /**
    * Asynchronously issues a new OAuthToken for the given client, scopes, and optional user.
    * The returned token should not be persisted yet.
-   * Note: The `accessTokenExpiresAt` and `refreshTokenExpiresAt` value set here will be replaced
+   * Note: The `accessTokenExpiresAt` value set here will be replaced
    * by the authorization server using the TTL configured in `enableGrantType`.
    * @param client OAuth client entity
    * @param scopes Array of OAuth scopes
@@ -31,8 +31,8 @@ export interface OAuthTokenRepository {
   /**
    * Adds refresh token fields to an already-persisted OAuthToken and updates storage.
    * This method should update the token record in your storage; persist() will not be called again.
-   * Note: The `refreshTokenExpiresAt` value set here will be replaced
-   * by the authorization server using the TTL configured in `enableGrantType`.
+   * Note: The `refreshTokenExpiresAt` value set here is kept as-is;
+   * the authorization server does not replace it.
    * @param accessToken The persisted access token
    * @param client OAuth client entity
    * @returns Promise resolving to the updated OAuthToken
