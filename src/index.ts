@@ -100,4 +100,5 @@ export * from "./grants/refresh_token.grant.js";
 export * from "./grants/token_exchange.grant.js";
 export * from "./grants/abstract/abstract.grant.js";
 export * from "./grants/abstract/abstract_authorized.grant.js";
+export * from "./grants/abstract/custom.grant.js";
 export * from "./grants/abstract/grant.interface.js";
