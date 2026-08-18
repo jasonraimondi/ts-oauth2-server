@@ -101,8 +101,8 @@ The `OAuthTokenRepository` interface manages the tokens. Its methods issue a tok
 interface OAuthTokenRepository {
   // Asynchronously issues a new OAuthToken for the given client, scopes, and optional user.
   // The returned token should not be persisted yet.
-  // Note: The `accessTokenExpiresAt` and `refreshTokenExpiresAt` value set here will be replaced
-  //   by the authorization server using the TTL configured in `enableGrantType`.
+  // Note: The `accessTokenExpiresAt` value set here will be replaced by the
+  //   authorization server using the TTL configured in `enableGrantType`.
   issueToken(client: OAuthClient, scopes: OAuthScope[], user?: OAuthUser): Promise<OAuthToken>;
 
   // An async call that should persist an OAuthToken into your storage.
@@ -110,8 +110,8 @@ interface OAuthTokenRepository {
 
   // Adds refresh token fields to an already-persisted OAuthToken and updates storage.
   // This method should update the token record in your storage; persist() will not be called again.
-  // Note: The `refreshTokenExpiresAt` value set here will be replaced
-  //   by the authorization server using the TTL configured in `enableGrantType`.
+  // Note: The `refreshTokenExpiresAt` value set here is kept. The authorization
+  //   server does not replace it.
   issueRefreshToken(accessToken: OAuthToken, client: OAuthClient): Promise<OAuthToken>;
 
   // This async method is called when a refresh token is used to reissue
@@ -124,8 +124,8 @@ interface OAuthTokenRepository {
   // See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2 for why.
   revokeDescendantsOf?(authCodeId: string): Promise<void>;
 
-  // This async method is called when an access token is validated by the
-  // authorization server. Return `true` if the access token has been
+  // This async method is called when a refresh token is validated by the
+  // authorization server. Return `true` if the refresh token has been
   // manually revoked. If the token is still valid return `false`
   isRefreshTokenRevoked(refreshToken: OAuthToken): Promise<boolean>;
 

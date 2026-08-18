@@ -42,7 +42,7 @@ When you enable OIDC and the server grants the `openid` scope, the authorization
 
 ## Audience
 
-To set the `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the Access Token, send an `aud` or `audience` parameter in the query or the body of the request. The [`/authorize`](./authorize.md) endpoint accepts the same parameter in the query.
+To set the `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the Access Token, send an `aud` or `audience` parameter in the query or the body of the request. The [`/authorize`](./authorize.md) endpoint accepts the same parameter in the query, but it only records the value on the authorization request. Only the parameter that you send to this endpoint sets the `aud` claim.
 
 ## Extra Token Fields
 

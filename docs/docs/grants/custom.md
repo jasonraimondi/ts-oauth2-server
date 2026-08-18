@@ -14,7 +14,7 @@ This is an advanced procedure. Read and understand the OAuth 2.0 specification b
 const customGrant = new MyCustomGrant(...);
 
 authorizationServer.enableGrantTypes(
-  [customGrant, new DateInterval("1d")],
+  [{ grant: customGrant }, new DateInterval("1d")],
 );
 ```
 

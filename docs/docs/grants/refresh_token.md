@@ -85,12 +85,12 @@ A revocation request contains these parameters:
 
 ::: details View sample revoke refresh_token request
 ```http
-POST /token HTTP/1.1
+POST /token/revoke HTTP/1.1
 Host: example.com
 Content-Type: application/x-www-form-urlencoded
 
-token_type_hint=refresh_token
-&refresh_token=xxxxxxxxx
+token=xxxxxxxxx
+&token_type_hint=refresh_token
 ```
 :::
 

@@ -10,7 +10,7 @@ The Client calls this endpoint directly, from its server to your server. The bro
 
 :::info
 - This endpoint is optional.
-- You must define `TokenRepository#getByAccessToken` if a Client sends `token_type_hint=access_token`.
+- You must define `TokenRepository#getByAccessToken` to revoke an Access Token.
 :::
 
 ```ts
@@ -43,7 +43,7 @@ const authoriztionServer = new AuthorizationServer(
 A complete revocation request contains these parameters:
 
 - **token** (required): The token to revoke.
-- **token_type_hint** (optional): The Token Type Hint. The permitted values are `access_token`, `refresh_token`, and `auth_code`. The hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server revokes a Refresh Token even when the hint is absent or incorrect. The server rejects an unknown hint with `unsupported_token_type`.
+- **token_type_hint** (optional): The Token Type Hint. The permitted values are `access_token`, `refresh_token`, and `auth_code`. For an Access Token and a Refresh Token the hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server revokes a Refresh Token even when the hint is absent or incorrect. But you must send `token_type_hint=auth_code` to revoke an authorization code, because the server selects the handler from this one hint. The server rejects an unknown hint with `unsupported_token_type`.
 
 The Client authenticates with its own credentials: the `client_id`, and also the `client_secret` for a Confidential Client. Each Client can revoke its own tokens. The Client does **not** need permission for the `client_credentials` grant.
 

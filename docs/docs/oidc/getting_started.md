@@ -103,7 +103,7 @@ The ID Token is different. It obeys OpenID Connect Core 1.0.
 
 - **No ID Token on a refresh.** The server issues an ID Token only in the authorization code exchange.
 - **No automatic `offline_access` scope.** You control the issue of each Refresh Token.
-- **RS256 only.** ES256 comes later, because one key cannot obey OIDC Discovery §3 with an ES256 key. See [Keypair Lifecycle](./keypair_lifecycle.md#multi-key-rotation).
+- **RS256 only.** ES256 comes later, because the server holds one RSA key, and that key can advertise RS256 only in the `id_token_signing_alg_values_supported` field that OIDC Discovery §3 requires. See [Keypair Lifecycle](./keypair_lifecycle.md#multi-key-rotation).
 - **Plain JSON UserInfo only.** The server cannot sign or encrypt a UserInfo response.
 
 ## Next Steps

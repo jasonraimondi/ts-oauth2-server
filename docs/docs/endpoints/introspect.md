@@ -56,7 +56,7 @@ const authorizationServer = new AuthorizationServer(
 A complete introspection request contains these parameters:
 
 - **token** (required): The token to introspect.
-- **token_type_hint** (optional): The Token Type Hint. The permitted values are `access_token` and `refresh_token`. The hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server finds a Refresh Token even when the hint is absent or incorrect. The server rejects an unknown hint with `unsupported_token_type`.
+- **token_type_hint** (optional): The Token Type Hint. The permitted values are `access_token`, `refresh_token`, and `auth_code`. The hint is only advisory, because the server identifies the type of the token from the token itself. Thus the server finds a Refresh Token even when the hint is absent or incorrect. The server rejects an unknown hint with `unsupported_token_type`. This endpoint does not introspect an authorization code; a request with `token_type_hint=auth_code` reports `{"active": false}`.
 
 By default, the Client authenticates with the credentials of a Confidential Client: the `client_id` and the `client_secret`. The server rejects a Public Client. See [Configure](#configure).
 

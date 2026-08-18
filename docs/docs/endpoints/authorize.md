@@ -9,7 +9,7 @@ The `/authorize` endpoint starts the authorization procedure and issues an autho
 This endpoint operates through the browser of the user. The Client redirects the user here, and your server redirects the user back to the Client. Thus each parameter is visible in the URL, the browser history keeps it, and the user can change it. Never send the client secret to this endpoint.
 
 :::info
-- You need this endpoint only for the authorization code grant.
+- You need this endpoint for the authorization code grant and the implicit grant.
 
 - Accept the GET method for the initial request. Redirect the user agent to your authorization page.
 
@@ -114,12 +114,12 @@ app.post("/scopes", (req, res) => {
 
 | Parameter | Required | Description |
 | --- | --- | --- |
-| `response_type` | Yes | Set to `code` for the authorization code grant |
+| `response_type` | Yes | Set to `code` for the authorization code grant, or `token` for the implicit grant |
 | `client_id` | Yes | The Client that requests the authorization |
 | `redirect_uri` | Conditional | The destination of the redirect. It must [match a Registered Redirect URI exactly](../getting_started/entities.md#client-entity). You can omit it only when the Client has one Registered Redirect URI |
 | `scope` | No | The scopes that the Client requests |
 | `state` | Recommended | An opaque value. The server returns it on the redirect. Use it as your CSRF token |
-| `aud` \| `audience` | No | The value of the `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the issued Access Token |
+| `aud` \| `audience` | No | The server records this value on the authorization request and encodes it into the authorization code. The `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the Access Token comes from the [`/token`](./token.md) request |
 
 ```
 GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz

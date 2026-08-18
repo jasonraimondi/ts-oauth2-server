@@ -128,6 +128,9 @@ CREATE TABLE oauth_auth_codes (
     expires_at TIMESTAMPTZ NOT NULL,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
+    nonce TEXT, -- OIDC: persist for an opaque authorization code
+    auth_time BIGINT, -- OIDC: persist for an opaque authorization code
+    max_age INTEGER, -- OIDC: authentication freshness
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ -- For revocation support
 );
@@ -231,7 +234,11 @@ CREATE TABLE oauth_auth_codes (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
     scopes TEXT[] NOT NULL DEFAULT '{}', -- Array instead of pivot table
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    nonce TEXT, -- OIDC: persist for an opaque authorization code
+    auth_time BIGINT, -- OIDC: persist for an opaque authorization code
+    max_age INTEGER, -- OIDC: authentication freshness
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ
 );
 
 CREATE TABLE oauth_tokens (
@@ -291,7 +298,7 @@ Make these four checks after you create your schema:
 
 | Check | Procedure |
 |-------|---------------|
-| The secrets are hashed | `SELECT secret FROM oauth_clients` shows a bcrypt hash. Each hash starts with `$2b$` |
+| The secrets are hashed | `SELECT secret FROM oauth_clients` shows a hash. Each hash starts with `$2b$` for bcrypt, or `$argon2` for argon2 |
 | The referential integrity is correct | Delete a Client. The database also deletes its tokens and its authorization codes |
 | The expiry column has an index | `EXPLAIN` shows that a query on the expiry uses the index |
 | The revocation operates | Your repository reports a revoked token as revoked |

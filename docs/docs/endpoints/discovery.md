@@ -37,7 +37,7 @@ The server sends the document with `Content-Type: application/json` and `Cache-C
 | `id_token_signing_alg_values_supported` | `["RS256"]` | Security-critical. You cannot change it |
 | `scopes_supported` | `["openid", "profile", "email", "address", "phone"]` | The list has no `offline_access` scope |
 | `token_endpoint_auth_methods_supported` | `["client_secret_basic", "client_secret_post", "none"]` | |
-| `code_challenge_methods_supported` | `["S256"]` | The grant also accepts `plain` for the older Clients, but the document does not show it |
+| `code_challenge_methods_supported` | `["S256"]` | The grant accepts `plain` only when you set `requiresS256: false`, and the document never shows it |
 
 ```json
 {

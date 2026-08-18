@@ -25,7 +25,7 @@ The Client redirects the user to `/authorize` with these query parameters:
 - **redirect_uri**: The destination of the redirect after the authorization, for example `org.example.app://redirect`. It must match a [Registered Redirect URI](../getting_started/entities.md#client-entity) exactly.
 - **state**: A random string from your application. Compare it with the returned value later.
 - **code_challenge**: The code challenge. The next section shows you how to make it.
-- **code_challenge_method**: Set it to `S256` for the SHA256 hash of the verifier, or to `plain` for the verifier itself. If you omit this parameter, the server uses `plain`.
+- **code_challenge_method**: Set it to `S256` for the SHA256 hash of the verifier. If you omit this parameter, the server uses `plain`, which the default `requiresS256` [configuration option](../authorization_server/configuration.md) rejects. Send `plain` for the verifier itself only when you disable `requiresS256`.
 
 :::info
 Do **not** send the client secret in part one of the authorization code flow.
@@ -147,7 +147,7 @@ If your device can make a SHA256 hash, use the `S256` method. The code challenge
 const code_challenge = base64urlencode(crypto.createHash("sha256").update(code_verifier).digest());
 ```
 
-If your device cannot make a SHA256 hash, use the `plain` method. The code challenge is then the `code_verifier` itself.
+If your device cannot make a SHA256 hash, disable the `requiresS256` [configuration option](../authorization_server/configuration.md) and use the `plain` method. The code challenge is then the `code_verifier` itself.
 
 ```ts
 const code_challenge = code_verifier;
@@ -172,7 +172,7 @@ A Client can use each authorization code one time only. You can also revoke an a
 A revocation request contains these parameters:
 
 - **token**: The authorization code that the server issued to the Client.
-- **token_type_hint** (optional): Set it to `auth_code`. The hint is only advisory, because the server identifies the type of the token from the token itself.
+- **token_type_hint**: Set it to `auth_code`. The server revokes an authorization code only when the request contains this hint.
 
 ::: details View sample revoke authorization_code request
 ```http
@@ -197,7 +197,7 @@ Pragma: no-cache
 
 ## OpenID Connect ID Tokens
 
-Set an `oidc` block on the authorization server to enable OIDC. Then, when the server grants the `openid` scope, the token response contains a signed ID Token with the Access Token:
+Set a top-level `issuer` and an `oidc` block on the authorization server to enable OIDC. Then, when the server grants the `openid` scope, the token response contains a signed ID Token with the Access Token:
 
 ```json
 {
