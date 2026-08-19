@@ -49,7 +49,7 @@ interface OAuthAuthCode {
 type CodeChallengeMethod = "S256" | "plain";
 ```
 
-:::info OpenID Connect
+:::warning OpenID Connect
 
 The last three fields hold the OIDC data from the authorization request. With an [opaque authorization code](/docs/authorization_server/configuration), the stored row is the only record of them. Your repository must persist `nonce` and `authTime`, or the server rejects the code with `invalid_grant`.
 

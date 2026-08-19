@@ -39,7 +39,7 @@ interface AccessTokenPayload {
 }
 ```
 
-:::info Important
+:::warning Use the `jti` claim, not the JWT string
 Use the `jti` claim to find the token in your `OAuthTokenRepository`. The `jti` claim holds the internal token identifier. It is **not** the JWT string that the client sent.
 :::
 

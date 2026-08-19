@@ -3,7 +3,7 @@
 
 Each Access Token expires. With this grant, a Client sends a Refresh Token and gets a new Access Token.
 
-:::tip
+:::info
 
 This grant is enabled by default.
 

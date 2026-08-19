@@ -27,7 +27,7 @@ The Client redirects the user to `/authorize` with these query parameters:
 - **code_challenge**: The code challenge. The next section shows you how to make it.
 - **code_challenge_method**: Set it to `S256` for the SHA256 hash of the verifier. If you omit this parameter, the server uses `plain`, which the default `requiresS256` [configuration option](../authorization_server/configuration.md) rejects. Send `plain` for the verifier itself only when you disable `requiresS256`.
 
-:::info
+:::warning
 Do **not** send the client secret in part one of the authorization code flow.
 :::
 

@@ -3,7 +3,7 @@
 
 A Client uses this grant to get an Access Token for its own resources. The Client does not act for a user.
 
-:::tip
+:::info
 This grant is enabled by default.
 :::
 

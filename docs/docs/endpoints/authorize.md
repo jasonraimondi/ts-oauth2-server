@@ -131,7 +131,7 @@ GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
 Host: server.example.com
 ```
 
-:::warning Protect your login form and your consent form against CSRF
+:::danger Protect your login form and your consent form against CSRF
 The library validates the OAuth parameters. But your login route and your consent route are usual web forms, and the library does not protect them. Keep the life of the session that holds the `AuthorizationRequest` short.
 :::
 
