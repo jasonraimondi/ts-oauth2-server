@@ -50,7 +50,7 @@ The OAuth 2.0 Security Best Current Practice ([RFC 9700](https://datatracker.iet
 
 ### [Password](./password.md)
 
-The Client collects the name and the password of the user, and sends them to the `/token` endpoint. The Client sees the credentials of the user. Use it only for an old first-party Client that cannot use a redirect.
+The Client collects the name and the password of the user, and sends them to the `/token` endpoint. The Client sees the credentials of the user. RFC 9700 says this grant MUST NOT be used. The library keeps it only so an old first-party Client can migrate.
 
 ### [Implicit](./implicit.md)
 
