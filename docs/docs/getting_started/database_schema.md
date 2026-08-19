@@ -1,10 +1,12 @@
 # Database Schema Reference
 
-This page gives SQL examples for the entities. The library works with any database, but most projects use a relational database.
+This page gives PostgreSQL examples for the entities. The library works with any database. Adapt the types for a different database.
+
+The token columns store identifiers, not credentials. With the default JWT setup, the client receives a signed JWT, and the JWT carries the stored `access_token` value as its `jti` claim. The same applies to the `refresh_token` value and to the authorization `code`. You do not store the full JWT.
 
 :::danger Security Critical
 
-Read the [Security Considerations](#security-considerations) before you make your schema. If you do not hash your secrets and your tokens, an attacker who reads your database gets full access.
+Read the [Security Considerations](#security-considerations) before you make your schema. If you do not hash your client secrets, an attacker who reads your database can authenticate as each Confidential Client.
 
 :::
 
@@ -12,12 +14,7 @@ Read the [Security Considerations](#security-considerations) before you make you
 
 ### Hash Client Secrets
 
-**Never store a client secret as plain text.** RFC 6819 §5.1.4.1.3 tells you to store a hash in place of each credential.
-
-```sql
--- The 'secret' column should contain a bcrypt/argon2 hash, NOT the raw secret
--- Example hash: $2b$10$X7o4c5/QyOxCz...
-```
+**Never store a client secret as plain text.** RFC 6819 §5.1.4.1 (Credential Storage Protection) tells you to protect each stored credential. Store a bcrypt or argon2 hash in the `secret` column, for example `$2b$10$X7o4c5/QyOxCz...`.
 
 Your `OAuthClientRepository.isClientValid()` must compare the hashes with a safe function:
 
@@ -37,11 +34,11 @@ async isClientValid(grantType: GrantIdentifier, client: OAuthClient, clientSecre
 }
 ```
 
-### Hash the Refresh Tokens
+### Hash Opaque Refresh Tokens
 
-A Refresh Token has a long life. If an attacker reads your database and finds a plain text Refresh Token, that attacker can make a new Access Token at any time.
+With the default JWT tokens, the database stores only token identifiers. An attacker who reads them cannot make a token, because the attacker cannot sign the JWT.
 
-Store a hash of each Refresh Token. Compare the hashes with a constant-time function when you validate the token.
+If you use opaque refresh tokens with a custom `RefreshTokenEncoder`, the stored value is the credential itself. Store a SHA-256 digest of each token, and make `getByRefreshToken` look the row up by the digest of the incoming value. Do not use bcrypt or argon2 here: a salted hash cannot be looked up.
 
 ### Use TLS for the Database Connection
 
@@ -68,7 +65,9 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_users_email ON users(email);
+-- No index on email: a UNIQUE constraint already creates one. The same applies to
+-- every PRIMARY KEY and UNIQUE column below, and to the leading column of a
+-- composite PRIMARY KEY.
 ```
 
 ### Scopes Table
@@ -80,8 +79,6 @@ CREATE TABLE oauth_scopes (
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-CREATE INDEX idx_oauth_scopes_name ON oauth_scopes(name);
 ```
 
 ### Clients Table
@@ -111,7 +108,8 @@ CREATE TABLE oauth_client_scopes (
     PRIMARY KEY (client_id, scope_id)
 );
 
-CREATE INDEX idx_oauth_client_scopes_client ON oauth_client_scopes(client_id);
+-- Indexes the reverse lookup ("which Clients have this scope?") and the cascade
+-- when a scope is deleted. Postgres does not index a foreign key automatically.
 CREATE INDEX idx_oauth_client_scopes_scope ON oauth_client_scopes(scope_id);
 ```
 
@@ -121,7 +119,7 @@ CREATE INDEX idx_oauth_client_scopes_scope ON oauth_client_scopes(scope_id);
 CREATE TYPE code_challenge_method AS ENUM ('S256', 'plain');
 
 CREATE TABLE oauth_auth_codes (
-    code VARCHAR(255) PRIMARY KEY,
+    code TEXT PRIMARY KEY,
     redirect_uri TEXT,
     code_challenge VARCHAR(255),
     code_challenge_method code_challenge_method,
@@ -144,31 +142,32 @@ CREATE INDEX idx_oauth_auth_codes_expires ON oauth_auth_codes(expires_at);
 
 ```sql
 CREATE TABLE oauth_auth_code_scopes (
-    auth_code VARCHAR(255) NOT NULL REFERENCES oauth_auth_codes(code) ON DELETE CASCADE,
+    auth_code TEXT NOT NULL REFERENCES oauth_auth_codes(code) ON DELETE CASCADE,
     scope_id UUID NOT NULL REFERENCES oauth_scopes(id) ON DELETE CASCADE,
     PRIMARY KEY (auth_code, scope_id)
 );
 
-CREATE INDEX idx_oauth_auth_code_scopes_code ON oauth_auth_code_scopes(auth_code);
+CREATE INDEX idx_oauth_auth_code_scopes_scope ON oauth_auth_code_scopes(scope_id);
 ```
 
 ### Tokens Table
 
 ```sql
 CREATE TABLE oauth_tokens (
-    access_token VARCHAR(255) PRIMARY KEY,
+    access_token TEXT PRIMARY KEY,
     access_token_expires_at TIMESTAMPTZ NOT NULL,
-    refresh_token VARCHAR(255) UNIQUE,
+    refresh_token TEXT UNIQUE,
     refresh_token_expires_at TIMESTAMPTZ,
     client_id UUID NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    originating_auth_code_id VARCHAR(255), -- For RFC6749 §4.1.2 compliance
+    -- No foreign key: the token must survive after you purge the authorization
+    -- code row. RFC 6749 §4.1.2 uses it to revoke each descendant token when a
+    -- code is redeemed twice.
+    originating_auth_code_id TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ -- For revocation support (RFC7009)
 );
 
-CREATE INDEX idx_oauth_tokens_access_token ON oauth_tokens(access_token);
-CREATE INDEX idx_oauth_tokens_refresh_token ON oauth_tokens(refresh_token);
 CREATE INDEX idx_oauth_tokens_client ON oauth_tokens(client_id);
 CREATE INDEX idx_oauth_tokens_user ON oauth_tokens(user_id);
 CREATE INDEX idx_oauth_tokens_auth_code ON oauth_tokens(originating_auth_code_id);
@@ -179,12 +178,12 @@ CREATE INDEX idx_oauth_tokens_expires ON oauth_tokens(access_token_expires_at);
 
 ```sql
 CREATE TABLE oauth_token_scopes (
-    access_token VARCHAR(255) NOT NULL REFERENCES oauth_tokens(access_token) ON DELETE CASCADE,
+    access_token TEXT NOT NULL REFERENCES oauth_tokens(access_token) ON DELETE CASCADE,
     scope_id UUID NOT NULL REFERENCES oauth_scopes(id) ON DELETE CASCADE,
     PRIMARY KEY (access_token, scope_id)
 );
 
-CREATE INDEX idx_oauth_token_scopes_token ON oauth_token_scopes(access_token);
+CREATE INDEX idx_oauth_token_scopes_scope ON oauth_token_scopes(scope_id);
 ```
 
 ---
@@ -222,11 +221,12 @@ CREATE TABLE oauth_clients (
     redirect_uris TEXT[] NOT NULL DEFAULT '{}',
     allowed_grants VARCHAR(50)[] NOT NULL DEFAULT '{}',
     scopes TEXT[] NOT NULL DEFAULT '{}', -- Array instead of pivot table
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 
 CREATE TABLE oauth_auth_codes (
-    code VARCHAR(255) PRIMARY KEY,
+    code TEXT PRIMARY KEY,
     redirect_uri TEXT,
     code_challenge VARCHAR(255),
     code_challenge_method code_challenge_method,
@@ -242,14 +242,14 @@ CREATE TABLE oauth_auth_codes (
 );
 
 CREATE TABLE oauth_tokens (
-    access_token VARCHAR(255) PRIMARY KEY,
+    access_token TEXT PRIMARY KEY,
     access_token_expires_at TIMESTAMPTZ NOT NULL,
-    refresh_token VARCHAR(255) UNIQUE,
+    refresh_token TEXT UNIQUE,
     refresh_token_expires_at TIMESTAMPTZ,
     client_id UUID NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     scopes TEXT[] NOT NULL DEFAULT '{}', -- Array instead of pivot table
-    originating_auth_code_id VARCHAR(255),
+    originating_auth_code_id TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ
 );
@@ -262,24 +262,29 @@ CREATE TABLE oauth_tokens (
 
 ## Token Revocation Queries (RFC7009)
 
-Both schemas above include the `revoked_at` column. Your repository and the [`/token/revoke`](../endpoints/revoke.md) endpoint use it like this:
+Both schemas above include the `revoked_at` column. Map each query to its repository method:
 
 ```sql
--- Check if token is revoked in your repository
+-- getByAccessToken / getByRefreshToken: a plain lookup, with no revocation filter
 SELECT * FROM oauth_tokens
-WHERE access_token = $1
-  AND revoked_at IS NULL;
+WHERE access_token = $1;
 
--- Revoke a token
+-- isAccessTokenRevoked / isRefreshTokenRevoked: report the flag
+SELECT revoked_at IS NOT NULL FROM oauth_tokens
+WHERE access_token = $1;
+
+-- revoke: set the flag (RFC7009, the /token/revoke endpoint)
 UPDATE oauth_tokens
 SET revoked_at = NOW()
 WHERE access_token = $1;
 
--- Revoke all tokens from an auth code (RFC6749 §4.1.2)
+-- revokeDescendantsOf: revoke all tokens from one auth code (RFC6749 §4.1.2)
 UPDATE oauth_tokens
 SET revoked_at = NOW()
 WHERE originating_auth_code_id = $1;
 ```
+
+Keep the revocation check in `isAccessTokenRevoked` and `isRefreshTokenRevoked`, not in the `getBy` lookups. A lookup that filters out the revoked rows makes a revoked token and a deleted token look the same.
 
 ---
 
@@ -288,7 +293,7 @@ WHERE originating_auth_code_id = $1;
 These two projects use an ORM:
 
 - **Prisma schema**: [example/prisma/schema.prisma](https://github.com/jasonraimondi/ts-oauth2-server/blob/main/example/prisma/schema.prisma)
-- **Full example application**: [ts-oauth2-server-example](https://github.com/jasonraimondi/ts-oauth2-server-example), with a Prisma schema and the migrations
+- **Drizzle schema**: [ts-oauth2-server-example](https://github.com/jasonraimondi/ts-oauth2-server-example), a full example application with a [Drizzle schema](https://github.com/jasonraimondi/ts-oauth2-server-example/blob/main/src/db/schema.ts) and its [migrations](https://github.com/jasonraimondi/ts-oauth2-server-example/tree/main/drizzle)
 
 ---
 
@@ -298,7 +303,7 @@ Make these four checks after you create your schema:
 
 | Check | Procedure |
 |-------|---------------|
-| The secrets are hashed | `SELECT secret FROM oauth_clients` shows a hash. Each hash starts with `$2b$` for bcrypt, or `$argon2` for argon2 |
+| The secrets are hashed | `SELECT secret FROM oauth_clients` shows a hash. Each hash starts with `$2a$`, `$2b$`, or `$2y$` for bcrypt, or `$argon2` for argon2 |
 | The referential integrity is correct | Delete a Client. The database also deletes its tokens and its authorization codes |
 | The expiry column has an index | `EXPLAIN` shows that a query on the expiry uses the index |
 | The revocation operates | Your repository reports a revoked token as revoked |
