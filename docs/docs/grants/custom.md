@@ -1,4 +1,4 @@
-# Custom Grant ⚠️
+# Custom Grant
 
 To write a custom grant, extend the `CustomGrant` class.
 

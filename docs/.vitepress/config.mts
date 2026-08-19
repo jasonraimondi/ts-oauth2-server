@@ -106,7 +106,7 @@ export default defineConfig({
           items: [
             { text: "Overview", link: "/docs/grants/" },
             {
-              text: "Authorization Code",
+              text: "Authorization Code with PKCE",
               link: "/docs/grants/authorization_code",
             },
             {
@@ -117,13 +117,18 @@ export default defineConfig({
               text: "Refresh Token",
               link: "/docs/grants/refresh_token",
             },
-            { text: "Password", link: "/docs/grants/password" },
-            { text: "Implicit", link: "/docs/grants/implicit" },
             {
               text: "Token Exchange",
               link: "/docs/grants/token_exchange",
             },
             { text: "Custom Grant", link: "/docs/grants/custom" },
+            {
+              text: "Legacy",
+              items: [
+                { text: "Password", link: "/docs/grants/password" },
+                { text: "Implicit", link: "/docs/grants/implicit" },
+              ],
+            },
           ],
         },
         {

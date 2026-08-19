@@ -1,5 +1,5 @@
 
-# Password Grant
+# Password
 
 Use the password grant only with your own Clients that can keep a secret. Do not use it in a browser application or in a native mobile application.
 

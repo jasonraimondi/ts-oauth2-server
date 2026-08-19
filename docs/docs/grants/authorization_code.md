@@ -1,4 +1,4 @@
-# Authorization Code Grant (w/ PKCE)
+# Authorization Code with PKCE
 
 The server issues a temporary code, and the Client exchanges it for an Access Token. First the user authorizes the application. Then the server redirects the user to the application, and puts the code in the URL. Last, the application exchanges the code for the Access Token.
 

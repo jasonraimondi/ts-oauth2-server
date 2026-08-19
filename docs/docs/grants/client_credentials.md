@@ -1,5 +1,5 @@
 
-# Client Credentials Grant
+# Client Credentials
 
 A Client uses this grant to get an Access Token for its own resources. The Client does not act for a user.
 

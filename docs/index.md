@@ -10,7 +10,9 @@
 
 ## Introduction
 
-This library is a standards-compliant OAuth 2.0 authorization server for Node.js, written in TypeScript. It uses JWT and Proof Key for Code Exchange (PKCE).
+This library is a standards-compliant OAuth 2.0 authorization server for Node.js, written in TypeScript. It issues signed JWT Access Tokens, enforces PKCE by default, and adds an optional [OpenID Connect](/docs/oidc/getting_started) layer. It implements RFC 6749 and its companion RFCs for bearer tokens, revocation, introspection, and token exchange.
+
+The library is framework-agnostic, and it does not own your storage or your routes. You write a small set of [repositories](/docs/getting_started/repositories) for your database, and you connect each endpoint to one server method. [Adapters](/docs/adapters/) for Express, Fastify, and H3 convert the request and response objects of your framework.
 
 The library needs Node.js 22 or later.
 

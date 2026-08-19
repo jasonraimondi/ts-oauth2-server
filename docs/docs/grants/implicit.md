@@ -1,4 +1,4 @@
-# Implicit Grant ⚠️ ⚠️
+# Implicit
 
 :::warning Do not use this grant
 
