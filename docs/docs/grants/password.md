@@ -1,7 +1,13 @@
 
 # Password
 
-Use the password grant only with your own Clients that can keep a secret. Do not use it in a browser application or in a native mobile application.
+:::warning Do not use this grant
+
+This library supports the password grant, but the grant insecurely exposes the credentials of the user to the Client. The OAuth 2.0 Security Best Current Practice ([RFC 9700 §2.4](https://datatracker.ietf.org/doc/html/rfc9700#section-2.4)) says it MUST NOT be used.
+
+Use the [authorization code grant with PKCE](./authorization_code.md) instead. The library keeps this grant only so an old first-party Client can migrate.
+
+:::
 
 :::info Enable this grant
 
