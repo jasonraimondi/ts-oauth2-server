@@ -9,17 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.0.0-rc.6] - 2026-08-19
 
-_Expected to be the final release candidate before 5.0.0. No further API changes are planned for the 5.0.0 line; please report anything found against this build._
+_This is the last release candidate that we expect before 5.0.0. No more API changes are planned. Report any problem that you find in this build._
 
 ### Added
-- `CustomGrant` is exported from the package index, so consumers can extend it the way the custom-grant documentation shows. ([#257](https://github.com/jasonraimondi/ts-oauth2-server/pull/257))
+- The package index exports `CustomGrant`. Consumers can now extend it, as the custom grant documentation shows. ([#257](https://github.com/jasonraimondi/ts-oauth2-server/pull/257))
 
 ### Changed
-- The package declares `"sideEffects": false`. The root entry re-exports the full public surface, so a bundler that assumes modules are impure — Webpack, unless told otherwise — pulled in the whole library for a single imported symbol. All 55 modules reachable from the five entry points were audited for import-time side effects before the flag was set; the build output carries no top-level expression statements. ([#258](https://github.com/jasonraimondi/ts-oauth2-server/pull/258))
-- The documentation site is rewritten in Simplified Technical English, with a restructured sidebar, repaired code examples, JSDoc across the five JSR entry points, and an upgrade guide that answers "does this affect me" first. No library behavior changes. ([#256](https://github.com/jasonraimondi/ts-oauth2-server/pull/256))
+- The package declares `"sideEffects": false`. Before this change, some bundlers kept the full library when a consumer imported one symbol from the root entry. ([#258](https://github.com/jasonraimondi/ts-oauth2-server/pull/258))
+- The documentation site has a new structure and new text. The library behavior does not change. ([#256](https://github.com/jasonraimondi/ts-oauth2-server/pull/256))
 
 ### Fixed
-- Corrected the `issueToken` and `issueRefreshToken` JSDoc. The server replaces `accessTokenExpiresAt` with the grant TTL, but keeps `refreshTokenExpiresAt` as the repository sets it. The stale `@see` URLs now point at pages that exist. ([#257](https://github.com/jasonraimondi/ts-oauth2-server/pull/257))
+- The JSDoc for `issueToken` and `issueRefreshToken` was not correct. The server replaces `accessTokenExpiresAt` with the grant TTL, but it keeps `refreshTokenExpiresAt` as the repository sets it. Some `@see` links pointed to pages that do not exist. ([#257](https://github.com/jasonraimondi/ts-oauth2-server/pull/257))
 
 ## [5.0.0-rc.5] - 2026-07-31
 
