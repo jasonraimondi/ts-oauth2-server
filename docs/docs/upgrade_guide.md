@@ -85,6 +85,19 @@ res.redirect(session.oauth.returnTo);
 
 If you supply a custom `JwtInterface`, your `verify(token, options)` must obey `ignoreExpiration`. Without it, a request to revoke an expired token does nothing.
 
+### Authorization codes live 10 minutes {#v5-auth-code-ttl}
+
+The default life of an authorization code is now 10 minutes, the maximum that [RFC 6749 §4.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2) recommends. Before, it was 15 minutes. To keep the previous value, or to set a different one, pass `authCodeTTL` when you enable the grant:
+
+```ts
+authorizationServer.enableGrantType({
+  grant: "authorization_code",
+  userRepository,
+  authCodeRepository,
+  authCodeTTL: new DateInterval("15m"),
+});
+```
+
 ## Upgrading to v4 {#to-v4}
 
 From v3. This applies to you only if you serve the revoke endpoint or the introspect endpoint.

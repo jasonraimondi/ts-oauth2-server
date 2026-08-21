@@ -58,7 +58,7 @@ export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-._~+\/]+=*/;
  *
  * The client is sent to `/authorize`, the end-user approves, and the server
  * redirects back with an authorization code. The client then exchanges that
- * code at `/token` for an access token. Codes live 15 minutes.
+ * code at `/token` for an access token. Codes live 10 minutes.
  *
  * PKCE is required by default (RFC 7636). A code is revoked as it is redeemed,
  * and a second redemption calls the optional
@@ -75,7 +75,7 @@ export const REGEX_ACCESS_TOKEN = /[A-Za-z0-9\-._~+\/]+=*/;
 export class AuthCodeGrant extends AbstractAuthorizedGrant {
   readonly identifier: GrantIdentifier = "authorization_code";
 
-  protected authCodeTTL: DateInterval = new DateInterval("15m");
+  protected authCodeTTL: DateInterval = new DateInterval("10m");
 
   private codeChallengeVerifiers = {
     plain: new PlainVerifier(),
@@ -92,8 +92,10 @@ export class AuthCodeGrant extends AbstractAuthorizedGrant {
     scopeRepository: OAuthScopeRepository,
     jwt: JwtInterface,
     options: AuthorizationServerOptions,
+    authCodeTTL?: DateInterval,
   ) {
     super(clientRepository, tokenRepository, scopeRepository, jwt, options);
+    if (authCodeTTL) this.authCodeTTL = authCodeTTL;
     this.authCodeEncoder = this.options.useOpaqueAuthorizationCodes
       ? new OpaqueAuthCodeEncoder(this.authCodeRepository)
       : new JwtAuthCodeEncoder(

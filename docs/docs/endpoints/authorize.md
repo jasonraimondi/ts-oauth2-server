@@ -114,6 +114,37 @@ app.post("/scopes", (req, res) => {
 });
 ```
 
+## Authentication Freshness
+
+OpenID Connect Core §3.1.2.1 lets a Client send `prompt` and `max_age`. The library parses both. But the check of the user session is the work of your `/authorize` route, because the library cannot see the session.
+
+- **`prompt=none`**: The server must not show a login form or a consent form. If the user has no session, or has not approved the Client before, redirect to the `redirect_uri` with `error=login_required` (no session) or `error=consent_required` (no approval), plus the `state` from the request. Do not render a page.
+- **`max_age`**: Compare the time of the last login with `Date.now()`. If the login is older than `max_age` seconds, send the user to the login form again before the consent step. Then set `authRequest.authTime` to the time of that new login. The server repeats this check at `/token`, so a stale `authTime` fails the code exchange with `invalid_grant`. Do the check at `/authorize` so that the user sees the login form, not a token error.
+
+```ts
+const authRequest = await authorizationServer.validateAuthorizationRequest(requestFromExpress(req));
+const lastLoginSeconds = req.session.authTime; // set by your login route
+
+const sessionIsStale =
+  authRequest.maxAge !== undefined &&
+  (lastLoginSeconds === undefined || lastLoginSeconds + authRequest.maxAge < Math.floor(Date.now() / 1000));
+
+if (!req.user || sessionIsStale) {
+  if (authRequest.prompt === "none") {
+    const redirect = new URL(String(authRequest.redirectUri));
+    redirect.searchParams.set("error", "login_required");
+    if (authRequest.state) redirect.searchParams.set("state", authRequest.state);
+    res.redirect(redirect.toString());
+    return;
+  }
+  res.redirect("/login");
+  return;
+}
+
+authRequest.user = req.user;
+authRequest.authTime = lastLoginSeconds;
+```
+
 ## Request Parameters
 
 | Parameter | Required | Description |
@@ -123,6 +154,8 @@ app.post("/scopes", (req, res) => {
 | `redirect_uri` | Conditional | The destination of the redirect. It must [match a Registered Redirect URI exactly](../getting_started/entities.md#client-entity). You can omit it only when the Client has one Registered Redirect URI |
 | `scope` | No | The scopes that the Client requests |
 | `state` | Recommended | An opaque value. The server returns it on the redirect. Use it as your CSRF token |
+| `prompt` | No | OIDC. The server stores the value on `authorizationRequest.prompt`. It does not act on it. See [Authentication Freshness](#authentication-freshness) |
+| `max_age` | No | OIDC. The server stores the value on `authorizationRequest.maxAge`, and rejects the code exchange when `auth_time + max_age` is in the past. See [Authentication Freshness](#authentication-freshness) |
 | `aud` \| `audience` | No | The server records this value on the authorization request and encodes it into the authorization code. The `aud` claim ([RFC 7519 §4.1.3](https://tools.ietf.org/html/rfc7519#section-4.1.3)) of the Access Token comes from the [`/token`](./token.md) request |
 
 ```

@@ -12,6 +12,17 @@ authorizationServer.enableGrantType({
 });
 ```
 
+An authorization code is valid for 10 minutes, the maximum that [RFC 6749 §4.1.2](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2) recommends. Set `authCodeTTL` to change the life of the code:
+
+```ts
+authorizationServer.enableGrantType({
+  grant: "authorization_code",
+  userRepository,
+  authCodeRepository,
+  authCodeTTL: new DateInterval("5m"),
+});
+```
+
 :::
 
 ### Flow

@@ -40,6 +40,8 @@ export type EnableableGrants =
       grant: "authorization_code";
       authCodeRepository: OAuthAuthCodeRepository;
       userRepository: OAuthUserRepository;
+      /** How long an authorization code stays valid. Defaults to 10 minutes, the maximum that RFC 6749 §4.1.2 recommends. */
+      authCodeTTL?: DateInterval;
     }
   | {
       grant: "password";
@@ -280,6 +282,7 @@ export class AuthorizationServer {
         this.scopeRepository,
         this.jwt,
         this.options,
+        toEnable.authCodeTTL,
       );
     } else if (toEnable.grant === "password") {
       grant = new PasswordGrant(

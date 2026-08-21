@@ -262,6 +262,43 @@ describe("authorization_server", () => {
       expect(decodedCode.code_challenge).toBeUndefined();
     });
 
+    it("issues auth codes that expire after the configured authCodeTTL", async () => {
+      authorizationServer = new AuthorizationServer(
+        inMemoryClientRepository,
+        inMemoryAccessTokenRepository,
+        inMemoryScopeRepository,
+        new JwtService("secret-key"),
+        { requiresPKCE: false },
+      );
+      authorizationServer.enableGrantType({
+        grant: "authorization_code",
+        authCodeRepository: inMemoryAuthCodeRepository,
+        userRepository: inMemoryUserRepository,
+        authCodeTTL: new DateInterval("2m"),
+      });
+      const request = new OAuthRequest({
+        query: {
+          response_type: "code",
+          client_id: client.id,
+          scope: scope1.name,
+          state: "state-is-a-secret",
+        },
+      });
+
+      // act
+      const validResponse = await authorizationServer.validateAuthorizationRequest(request);
+      validResponse.user = user;
+      validResponse.isAuthorizationApproved = true;
+      const response = await authorizationServer.completeAuthorizationRequest(validResponse);
+
+      // assert
+      const authorizeResponseQuery = new URLSearchParams(response.headers.location.split("?")[1]);
+      const decodedCode: PayloadAuthCode = <PayloadAuthCode>decode(String(authorizeResponseQuery.get("code")));
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      expect(decodedCode.expire_time).toBeGreaterThan(nowSeconds + 110);
+      expect(decodedCode.expire_time).toBeLessThanOrEqual(nowSeconds + 120);
+    });
+
     it("auth server requiring pkce throws if request is missing code_challenge", async () => {
       authorizationServer = new AuthorizationServer(
         inMemoryClientRepository,
