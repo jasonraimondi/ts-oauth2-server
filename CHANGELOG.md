@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-08-20
+
+_This is the stable 5.0.0 release. It contains every change from 5.0.0-rc.0 through 5.0.0-rc.6, plus the changes below. The [upgrade guide](https://tsoauth2server.com/docs/upgrade_guide#to-v5) lists each breaking change and the procedure to migrate from v4._
+
+### Added
+- The `authorization_code` grant option accepts `authCodeTTL`. Before this change, a consumer had to subclass `AuthCodeGrant` to change the life of an authorization code. ([#260](https://github.com/jasonraimondi/ts-oauth2-server/issues/260))
+
+### Changed
+- **BREAKING**: The default life of an authorization code is 10 minutes, the maximum that RFC 6749 §4.1.2 recommends. Before this change, it was 15 minutes. Pass `authCodeTTL: new DateInterval("15m")` to keep the previous value. ([#260](https://github.com/jasonraimondi/ts-oauth2-server/issues/260))
+- The authorize endpoint documentation now states that `prompt` and `max_age` enforcement at the authorize step is the work of the consumer, and shows the `login_required` redirect. ([#260](https://github.com/jasonraimondi/ts-oauth2-server/issues/260))
+
 ## [5.0.0-rc.6] - 2026-08-19
 
 _This is the last release candidate that we expect before 5.0.0. No more API changes are planned. Report any problem that you find in this build._
