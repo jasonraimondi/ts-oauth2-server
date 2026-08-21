@@ -65,6 +65,10 @@ export default defineConfig({
         text: "Config",
         link: "/docs/authorization_server/configuration",
       },
+      {
+        text: "Example",
+        link: "https://github.com/jasonraimondi/ts-oauth2-server-example",
+      },
     ],
 
     sidebar: {
